@@ -32,9 +32,10 @@ React component library with Roblox Studio.
 ## Desktop app
 
 The Electron/React app can use CSS, platform vibrancy, native macOS traffic
-lights, responsive layout, and accessible web controls. Project tabs are the
-primary navigation. Runtime state should be visible without turning the screen
-into a monitoring dashboard.
+lights, responsive layout, and accessible web controls. A repository selector
+defines the current workspace; Project, Skills, Assets, Studio, and Settings
+are its primary navigation. Runtime state should be visible without turning
+the screen into a monitoring dashboard.
 
 ## Roblox Studio plugin
 

@@ -16,6 +16,8 @@ complete only when its exit checks pass in the extracted repositories.
 
 ## M1 — Focus the desktop product
 
+**State:** Complete
+
 **Goal:** Make `sandblock-code` visibly match the v0 product boundary.
 
 - Remove or quarantine task-board, backlog, planning, and unrelated historical
@@ -30,7 +32,9 @@ product.
 
 ## M2 — Durable local projects
 
-**Goal:** Give every tab a validated project identity.
+**State:** In progress
+
+**Goal:** Give every registered project a validated identity.
 
 - Implement the local project registry and configuration schema.
 - Store repository root, Rojo project, main place, Project Skill, and optional
@@ -38,8 +42,14 @@ product.
 - Add create/import/edit/remove flows with canonical path validation.
 - Report missing or invalid project files without corrupting the registry.
 
-**Exit check:** Restarting the app restores project tabs and validates them
+**Exit check:** Restarting the app restores registered projects and the current selection, then validates them
 without launching a runtime.
+
+**Current progress:** The app now persists local repository roots in Electron
+application data, scans Skills/assets/Rojo/place files, creates an optional
+versioned `.sandblock-code.json`, restores the active project, and supports
+removal without deleting repo files. Rich config editing and complete runtime
+launch validation remain.
 
 ## M3 — Project-bound runtime orchestration
 
@@ -83,6 +93,12 @@ maintainability.
 
 **Exit check:** The compatible versions work end to end and upgrading Rojo is an
 explicit, testable pin change.
+
+**Current progress:** The `7.7.0-rc.1` fork now exports a UI-free adapter and
+the Sandblock Studio plugin vendors it with its MPL-2.0 notice. A fixture test
+covers the protocol-5 handshake, initial reconciliation, and a live WebSocket
+filesystem patch. Runtime-owned server launch, approved descriptor binding, and
+the app/plugin compatibility contract are still required before M5 is complete.
 
 ## M6 — Visual feedback and generation workflows
 

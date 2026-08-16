@@ -60,7 +60,7 @@ development.
 
 ### 4. Develop in a bound project runtime
 
-Open the project tab in Sandblock Code, then start the runtime. The app launches
+Select the project workspace in Sandblock Code, then start the runtime. The app launches
 the agent in the repository and connects it to the correct MCP, Rojo runtime,
 Project Skill, and main Studio place.
 

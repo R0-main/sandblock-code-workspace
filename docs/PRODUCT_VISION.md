@@ -3,7 +3,7 @@
 ## North star
 
 Sandblock Code is the local developer cockpit for the Sandblock Roblox pole. A
-developer opens one project tab and gets a correctly bound coding agent, MCP
+developer selects one local project workspace and gets a correctly bound coding agent, MCP
 gateway, Rojo runtime, Roblox Studio session, Project Skill, and visual asset
 tools without manually reconnecting each component.
 
@@ -23,8 +23,8 @@ workflow for unrelated production disciplines.
 
 ## The intended experience
 
-For each local game project, Sandblock Code provides a tab similar to an editor
-workspace. The tab knows the repository root, main Roblox place, Rojo project,
+For each local game project, Sandblock Code provides a focused editor-like
+workspace. It knows the repository root, main Roblox place, Rojo project,
 Project Skill, and runtime configuration. From there the developer can:
 
 1. start or inspect the project runtime;
@@ -43,7 +43,7 @@ architecture summaries.
 
 ### Included
 
-- Local project registration and project tabs.
+- Local project registration and one selected project workspace.
 - Project settings and runtime health.
 - Project Skill discovery, validation, and regeneration utilities.
 - Start/stop orchestration for the MCP gateway and pinned Rojo runtime.

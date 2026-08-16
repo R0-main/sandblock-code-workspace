@@ -18,7 +18,7 @@ submodules.
 
 **Status:** Accepted
 
-v0 centers on project tabs, project settings, Project Skill utilities,
+v0 centers on one selected local project workspace, project settings, Project Skill utilities,
 generation tools, runtime status, and one-click launch of the agent, MCP, Rojo,
 and main Studio place. Task boards, backlog, planning, and team management are
 outside v0 even if historical code for them still exists.

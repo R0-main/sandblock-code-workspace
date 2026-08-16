@@ -62,29 +62,42 @@ large permanent rewrite of Rojo core.
 
 | Area | Current | Target |
 | --- | --- | --- |
-| Desktop | Extracted Electron/React app still contains historical platform/task surfaces | Focused project-tab cockpit with no task management |
+| Desktop | Focused Electron/React cockpit selects one local repo and shows its Skills, assets, config, MCP health, and Studio binding; historical platform/task code is inactive | Add project-bound launch orchestration without expanding back into task management |
 | MCP gateway | TypeScript gateway federates official StudioMCP and custom tools | Same gateway becomes explicitly project-bound per runtime |
-| Studio bridge | Luau plugin uses outbound long polling and a manual toolbar toggle | Dock UI auto-binds from a valid launch ticket, with manual fallback |
+| Studio bridge | Luau plugin immediately claims the outbound bridge, then long-polls for commands after a manual connect action | Dock UI auto-binds from a valid launch ticket, with manual fallback |
 | Studio ownership | One active Studio bridge owner; commands serialize | Preserve deterministic ownership and expose it clearly per runtime |
-| Rojo | Fork pinned to `v7.7.0-rc.1`, core unchanged except Sandblock notes | Minimal adapter/headless boundary consumed by final plugin |
+| Rojo | Fork pinned to `v7.7.0-rc.1`; its minimal headless adapter is vendored into the Sandblock plugin and manually connects on protocol 5 | Runtime-approved server selection, automatic binding, and one-click lifecycle owned by Sandblock Code |
 | Project launch | Pieces exist in the historical app | One flow launches runtime, Rojo, main place, plugin binding, and agent |
-| Visual tools | Selection, UI/model/icon rendering and image generation already exist | Productized feedback loop exposed from the project tab and plugin |
+| Visual tools | Selection, UI/model/icon rendering and image generation already exist | Productized feedback loop exposed from the selected project and plugin |
 
 ## Project configuration
 
-Each registered project needs a durable configuration owned by Sandblock Code.
-The exact persistence format can evolve, but the logical contract is:
+Each registered project has a local registry entry owned by Sandblock Code and
+may keep stable, shareable metadata in `.sandblock-code.json` at its repository
+root. The current versioned format is:
 
 ```json
 {
+  "version": 1,
   "projectId": "stable-project-id",
   "displayName": "Game name",
-  "repoRoot": "/absolute/path/to/repository",
   "rojoProject": "default.project.json",
   "mainPlaceId": 1234567890,
-  "projectSkill": ".agents/skills/project-context/SKILL.md"
+  "projectSkill": ".agents/skills/project-context/SKILL.md",
+  "assetRoots": ["assets", "generated"]
 }
 ```
+
+The absolute repository path never enters the versioned project file. Electron
+stores it in its local application-data registry, canonicalizes it in the main
+process, and exposes only narrow folder, scan, config, binding, and open-path
+operations to the sandboxed renderer.
+
+The app scans the registered repo for `SKILL.md` files, Rojo project files,
+place files, and project-local image/model/audio assets. If the connected
+Studio reports a `PlaceId`, the app labels it as connected to the selected repo
+only when that value matches `mainPlaceId`; otherwise it shows an unbound or
+mismatched state and offers an explicit bind action.
 
 At launch, the app creates an ephemeral runtime descriptor. It adds values such
 as `runtimeId`, process state, local ports, compatible component versions, and a
@@ -97,7 +110,7 @@ rebind a runtime or authorize a different project.
 
 ## Target launch lifecycle
 
-1. The developer selects a project tab and chooses Start or Open Studio.
+1. The developer selects a local project and chooses Start or Open Studio.
 2. Sandblock Code validates the repository, Rojo project, main place, Project
    Skill, and compatible component versions.
 3. The app creates or reuses the project's MCP gateway and opaque runtime ID.
@@ -126,9 +139,10 @@ The agent uses one Sandblock MCP endpoint. The gateway dynamically merges:
   search tools.
 
 Current transports include MCP HTTP, legacy SSE compatibility, and the
-plugin's outbound poll/response bridge. New transports must preserve a single
-tool registry and common request correlation rather than creating a second
-agent-facing gateway.
+plugin's outbound claim/poll/response bridge. The immediate claim confirms
+ownership before the first long-poll is parked. New transports must preserve a
+single tool registry and common request correlation rather than creating a
+second agent-facing gateway.
 
 Useful current visual capabilities include reading the Studio selection,
 inserting instances, rendering GUI elements, capturing workspace or turntable
@@ -162,6 +176,14 @@ model.
 The baseline is upstream Rojo `v7.7.0-rc.1`, matching the proven game stack.
 Sandblock Code pins compatible app, CLI/server, and plugin adapter versions.
 Runtime code never follows a moving upstream branch.
+
+The current Studio integration vendors a generated model from
+`sandblock-rojo/sandblock-adapter.project.json`. That model exposes the
+fork-owned HTTP/WebSocket protocol, initial hydration, reconciliation, and sync
+session lifecycle without upstream Rojo product UI. The Sandblock plugin owns
+the visible controls and status feedback. Manual connection to the local
+default port is an implementation slice; selecting only the runtime approved by
+Sandblock Code remains the target contract.
 
 Rojo updates are deliberate, not automatic. Update when there is a relevant
 bug fix, security issue, Roblox Studio compatibility requirement, or valuable
