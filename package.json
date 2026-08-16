@@ -10,6 +10,7 @@
   "scripts": {
     "bootstrap": "node scripts/bootstrap.mjs",
     "bootstrap:remotes": "node scripts/bootstrap.mjs --configure-remotes",
-    "status": "node scripts/status.mjs"
+    "status": "node scripts/status.mjs",
+    "context:check": "node scripts/check-context.mjs"
   }
 }

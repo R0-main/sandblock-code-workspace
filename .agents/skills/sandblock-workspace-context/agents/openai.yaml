@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sandblock Workspace Context"
+  short_description: "Load Sandblock Code workspace context"
+  default_prompt: "Use $sandblock-workspace-context to load the Sandblock Code workspace architecture before making changes."
