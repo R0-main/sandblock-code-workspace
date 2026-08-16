@@ -1,0 +1,15 @@
+{
+  "name": "sandblock-code-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Meta-repository for the Sandblock Code development workspace",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "bootstrap": "node scripts/bootstrap.mjs",
+    "bootstrap:remotes": "node scripts/bootstrap.mjs --configure-remotes",
+    "status": "node scripts/status.mjs"
+  }
+}

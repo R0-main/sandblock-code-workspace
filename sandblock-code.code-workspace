@@ -1,0 +1,21 @@
+{
+  "folders": [
+    {
+      "name": "Sandblock Code",
+      "path": "sandblock-code"
+    },
+    {
+      "name": "Studio Plugin",
+      "path": "sandblock-studio-plugin"
+    },
+    {
+      "name": "Sandblock Rojo",
+      "path": "sandblock-rojo"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/.DS_Store": true
+    }
+  }
+}

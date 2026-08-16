@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "repositories": [
+    {
+      "name": "Sandblock Code",
+      "path": "sandblock-code",
+      "remote": "git@github.com:R0-main/sandblock-code.git",
+      "defaultBranch": "main"
+    },
+    {
+      "name": "Sandblock Studio Plugin",
+      "path": "sandblock-studio-plugin",
+      "remote": "git@github.com:R0-main/sandblock-studio-plugin.git",
+      "defaultBranch": "main"
+    },
+    {
+      "name": "Sandblock Rojo",
+      "path": "sandblock-rojo",
+      "remote": "git@github.com:R0-main/sandblock-rojo.git",
+      "upstream": "https://github.com/rojo-rbx/rojo.git",
+      "defaultBranch": "sandblock/7.7.0-rc.1"
+    }
+  ]
+}

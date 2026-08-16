@@ -1,0 +1,7 @@
+.DS_Store
+node_modules/
+
+# Independent repositories managed by workspace.json.
+/sandblock-code/
+/sandblock-studio-plugin/
+/sandblock-rojo/
