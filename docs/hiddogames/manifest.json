@@ -1,0 +1,28 @@
+{
+  "workspace": "6c987837-d07d-4c6b-9841-c6702922b08a",
+  "root": "VzAoc7HPyUIkg3nelFyDZ",
+  "docs": [
+    {
+      "docId": "VzAoc7HPyUIkg3nelFyDZ",
+      "title": "Feedback Document Example",
+      "status": "ok",
+      "chars": 8953,
+      "file": "feedback-document-example.md"
+    }
+  ],
+  "blobs": [
+    {
+      "key": "Rg4M9GM8DazuKrlX4kyAIo0xr7VuoXfsp0dzyA4g_Rs=",
+      "file": "assets/asset-01.png",
+      "bytes": 103932,
+      "type": "image/png"
+    },
+    {
+      "key": "OBSB1XAbKTye0cOssGacC2j0ICdsM999Sj2AlMROq4o=",
+      "file": "assets/asset-02.png",
+      "bytes": 794045,
+      "type": "image/png"
+    }
+  ],
+  "note": "Exported from the self-hosted AFFiNE instance at docs.hiddogames.com. Only individually shared docs are publicly readable; the workspace root doc returns 403, so the doc list cannot be enumerated without auth."
+}
