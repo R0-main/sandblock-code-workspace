@@ -59,8 +59,12 @@ architecture summaries.
 - A replacement for the team's task tracker.
 - Automatic product decisions, release approval, or advertising decisions.
 - Automatic publication of generated assets to the global library.
+- Generation pipelines for 3D models, VFX, or audio; v0 generates images and
+  thumbnails, while the library and reuse rules already cover every asset type.
 - Full multi-place orchestration; v0 opens the main place.
 - Git worktree orchestration for Roblox projects.
+- Creator Hub analytics and post-launch reporting, which arrive after v0
+  through SB-017 and M8.
 
 Historical platform and task-management code may still exist in the extracted
 desktop repository during migration. Its presence does not put those features
@@ -89,14 +93,14 @@ and inspect it before declaring the work complete.
 
 ### Automation with explicit human authority
 
-Agents can implement, test, search reusable systems, generate assets, and
-prepare changes. Humans retain the final word on the GDD, planning, global
+Agents can implement, test, search reusable content of every kind—systems,
+models, UI, VFX, and sounds—generate assets, and prepare changes. Humans retain the final word on the GDD, planning, global
 asset promotion, playtest interpretation, publication, and post-launch ads.
 
 ### Modular growth
 
-New runtime tools, asset types, and Studio capabilities must plug into stable
-contracts. Sandblock Code should evolve by adding capabilities rather than
+New runtime tools, asset types—models, VFX, audio, and whatever follows—and
+Studio capabilities must plug into stable contracts. Sandblock Code should evolve by adding capabilities rather than
 turning one component into an unbounded monolith.
 
 ## Success criteria for v0

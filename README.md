@@ -1,6 +1,6 @@
 # Sandblock Code workspace
 
-This Git meta-repository is the single entry point for the three repositories
+This Git meta-repository is the single entry point for the four repositories
 that form the Sandblock Roblox developer environment.
 
 ```text
@@ -10,6 +10,7 @@ sandblock-code-workspace/
   sandblock-code/             Electron app, MCP gateway, local runtime
   sandblock-studio-plugin/    Sandblock Roblox Studio plugin
   sandblock-rojo/             pinned Rojo fork
+  sandblock-ui/               reusable design tokens and React components
 ```
 
 The root tracks architecture, vision, agent context, and workspace
@@ -24,7 +25,8 @@ routes to:
 - product vision and v0 boundaries;
 - cross-repository architecture and accepted decisions;
 - delivery roadmap;
-- Roblox development workflow;
+- Roblox development workflow, including the reusable library of systems,
+  models, UI, VFX, and sounds;
 - shared desktop/Studio design direction.
 
 Agents working from this root should load
@@ -67,7 +69,7 @@ repository.
 
 The historical repository remains at
 `/Users/romain/sandblock/roblox-studio-ai-automation`. It is a migration source,
-not an active fourth component. Do not delete it until the project-bound
+not an active fifth component. Do not delete it until the project-bound
 MCP/Studio runtime is validated end to end.
 
 The expected `R0-main` remotes in `workspace.json` are intentionally not added

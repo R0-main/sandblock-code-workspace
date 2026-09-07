@@ -29,6 +29,23 @@ Exact rendering values can differ where platform constraints require it. Keep a
 small generated or hand-maintained token mapping rather than trying to share a
 React component library with Roblox Studio.
 
+## Reusable package
+
+**Current:** the independent `sandblock-ui` repository owns the publishable
+`@sandblock/ui` package. Its canonical `tokens.json` generates CSS variables
+and a typed TypeScript export. It also owns product-agnostic web primitives such as
+buttons, choice cards, search fields, status badges, empty states, surfaces,
+the shared icon set, and a byte-identical copy of the official Sandblock Code
+application icon for web consumers. Sandblock Code consumes these exports directly, so
+package changes are exercised by the owning product rather than maintained as
+an unused copy.
+
+Other React or Electron projects may consume the components. Non-web renderers
+consume the semantic token data and maintain a native mapping. Product state,
+navigation, Electron APIs, MCP behavior, and project-specific components do not
+belong in the shared package. In particular, the Roblox Studio plugin remains
+Luau-native and must not import or emulate a React component runtime.
+
 ## Desktop app
 
 The Electron/React app can use CSS, platform vibrancy, native macOS traffic
@@ -53,6 +70,12 @@ The default view should answer:
 
 ## Interaction rules
 
+- Reserve the official-site-inspired tactile button treatment for prominent
+  launch, conversion, or onboarding actions. Dense application controls remain
+  flat and compact.
+- Use full-surface choice cards for short option sets where the entire label,
+  icon, and description should be one selection target. Keep the selected state
+  explicit with both contrast and an icon.
 - Auto-open the plugin only for a valid intentional launch from Sandblock Code.
 - Always retain a normal toolbar/menu way to reopen it.
 - Prefer direct recovery actions beside actionable errors.

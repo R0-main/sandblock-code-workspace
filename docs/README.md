@@ -11,7 +11,7 @@ repository in the Sandblock Code workspace.
 | System boundaries, runtime binding, transports, and ownership | [`ARCHITECTURE.md`](ARCHITECTURE.md) |
 | Accepted cross-repository decisions | [`DECISIONS.md`](DECISIONS.md) |
 | Delivery order and completion gates | [`ROADMAP.md`](ROADMAP.md) |
-| Roblox game production workflow | [`ROBLOX_DEVELOPMENT_WORKFLOW.md`](ROBLOX_DEVELOPMENT_WORKFLOW.md) |
+| Roblox game production workflow, reuse rules, and reusable library content types (systems, models, UI, VFX, sounds) | [`ROBLOX_DEVELOPMENT_WORKFLOW.md`](ROBLOX_DEVELOPMENT_WORKFLOW.md) |
 | Shared visual direction | [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) |
 | Repository locations, branches, and bootstrap configuration | [`../workspace.json`](../workspace.json) |
 

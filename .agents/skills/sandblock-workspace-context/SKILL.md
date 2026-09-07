@@ -1,6 +1,6 @@
 ---
 name: sandblock-workspace-context
-description: Load the canonical product vision, architecture, decisions, roadmap, ownership boundaries, and Roblox production workflow for the Sandblock Code multi-repository workspace. Use when starting or resuming work from the workspace root; planning or implementing changes that touch Sandblock Code, its MCP gateway, Roblox Studio plugin, Rojo fork, project runtime, Project Skills, visual tools, or cross-repository contracts; or deciding which child repository owns a change.
+description: Load the canonical product vision, architecture, decisions, roadmap, ownership boundaries, and Roblox production workflow for the Sandblock Code multi-repository workspace. Use when starting or resuming work from the workspace root; planning or implementing changes that touch Sandblock Code, its MCP gateway, Roblox Studio plugin, Rojo fork, project runtime, Project Skills, visual tools, the reusable library of systems, models, UI, VFX, and sounds, or cross-repository contracts; or deciding which child repository owns a change.
 ---
 
 # Sandblock Workspace Context
@@ -19,7 +19,7 @@ current repository inspection with remembered context.
 5. State whether important behavior is **current**, **target**, **later**, or
    **historical**.
 
-Never treat the historical monorepository as a fourth active component. It is a
+Never treat the historical monorepository as a fifth active component. It is a
 migration source until the extracted system is validated end to end.
 
 ## Route by concern
@@ -79,11 +79,16 @@ Read [`ROBLOX_DEVELOPMENT_WORKFLOW.md`](../../../docs/ROBLOX_DEVELOPMENT_WORKFLO
 For a specific game, also load that game's Project Skill and GDD. GDD scope
 controls which commercial/platform features become tasks.
 
+The reusable library covers Luau systems, models and map kits, UI and icons,
+VFX, sounds, and animations. When a task builds a mechanic, look for all of the
+pieces it needs, not the code only, and report the ones that are missing.
+
 ### UI work
 
 Read [`DESIGN_SYSTEM.md`](../../../docs/DESIGN_SYSTEM.md) and inspect the actual
-rendered surface. Share semantic tokens across desktop and Studio, not web UI
-components. Use visual verification when the result is visible or spatial.
+rendered surface. `sandblock-ui` owns reusable web tokens and React primitives;
+Studio consumes a native token mapping rather than web UI components. Use visual
+verification when the result is visible or spatial.
 
 ## Make cross-repository changes safely
 

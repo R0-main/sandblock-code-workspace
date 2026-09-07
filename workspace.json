@@ -19,6 +19,12 @@
       "remote": "git@github.com:R0-main/sandblock-rojo.git",
       "upstream": "https://github.com/rojo-rbx/rojo.git",
       "defaultBranch": "sandblock/7.7.0-rc.1"
+    },
+    {
+      "name": "Sandblock UI",
+      "path": "sandblock-ui",
+      "remote": "git@github.com:R0-main/sandblock-ui.git",
+      "defaultBranch": "main"
     }
   ]
 }

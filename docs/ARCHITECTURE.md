@@ -2,16 +2,18 @@
 
 ## System overview
 
-Sandblock Code is a coordinated workspace of three independently versioned
+Sandblock Code is a coordinated workspace of four independently versioned
 repositories. The desktop app is the control plane, the Studio plugin is the
-in-Studio execution and feedback surface, and the Rojo fork supplies a pinned,
-compatible sync engine.
+in-Studio execution and feedback surface, the Rojo fork supplies a pinned,
+compatible sync engine, and Sandblock UI owns reusable web interface primitives.
 
 ```mermaid
 flowchart LR
     Human["Developer"] --> App["Sandblock Code desktop app"]
+    UI["Sandblock UI\ntokens + React primitives"] --> App
     App --> Config["Project configuration"]
     App --> Runtime["Project runtime"]
+    App --> RuntimeSvc["Project runtime service\nloopback 3071"]
     App --> Agent["Coding agent\nCWD = project repo"]
     App --> Studio["Roblox Studio\nmain place"]
     Runtime --> Gateway["Project-bound MCP gateway"]
@@ -20,6 +22,8 @@ flowchart LR
     Gateway --> Local["Sandblock local tools"]
     Gateway --> Bridge["Outbound Studio bridge"]
     Bridge --> Plugin["Sandblock Studio plugin"]
+    Plugin --> RuntimeSvc
+    RuntimeSvc --> RojoServer
     Plugin <--> Studio
     Runtime --> RojoServer["Pinned Rojo server"]
     RojoServer <--> RojoAdapter["Plugin Rojo adapter"]
@@ -58,6 +62,13 @@ behavior close to upstream.
 The Sandblock-branded product UI belongs in `sandblock-studio-plugin`, not in a
 large permanent rewrite of Rojo core.
 
+### `sandblock-ui`
+
+Owns the `@sandblock/ui` package, semantic web tokens, framework-agnostic CSS,
+product-agnostic React primitives, and the component catalog. It has an
+independent release lifecycle and contains no Electron, MCP, filesystem,
+project-state, or Roblox Studio behavior.
+
 ## Current implementation and target split
 
 | Area | Current | Target |
@@ -65,9 +76,10 @@ large permanent rewrite of Rojo core.
 | Desktop | Focused Electron/React cockpit selects one local repo and shows its Skills, assets, config, MCP health, and Studio binding; historical platform/task code is inactive | Add project-bound launch orchestration without expanding back into task management |
 | MCP gateway | TypeScript gateway federates official StudioMCP and custom tools | Same gateway becomes explicitly project-bound per runtime |
 | Studio bridge | Luau plugin immediately claims the outbound bridge, then long-polls for commands after a manual connect action | Dock UI auto-binds from a valid launch ticket, with manual fallback |
+| Runtime discovery | The plugin lists approved projects from Sandblock Code's loopback runtime service and asks it to serve one | Same service also issues launch tickets and reports agent/gateway binding per runtime |
 | Studio ownership | One active Studio bridge owner; commands serialize | Preserve deterministic ownership and expose it clearly per runtime |
-| Rojo | Fork pinned to `v7.7.0-rc.1`; its minimal headless adapter is vendored into the Sandblock plugin and manually connects on protocol 5 | Runtime-approved server selection, automatic binding, and one-click lifecycle owned by Sandblock Code |
-| Project launch | Pieces exist in the historical app | One flow launches runtime, Rojo, main place, plugin binding, and agent |
+| Rojo | Fork pinned to `v7.7.0-rc.1`; Sandblock Code starts `rojo serve` per project from the pinned build, and the vendored adapter connects to the port that project was given | Automatic binding from a launch ticket, plus lifecycle reporting per runtime |
+| Project launch | Rojo and the Studio services start from one action, in the desktop window or in the plugin | One flow also launches the main place and the agent |
 | Visual tools | Selection, UI/model/icon rendering and image generation already exist | Productized feedback loop exposed from the selected project and plugin |
 
 ## Project configuration
@@ -94,7 +106,8 @@ process, and exposes only narrow folder, scan, config, binding, and open-path
 operations to the sandboxed renderer.
 
 The app scans the registered repo for `SKILL.md` files, Rojo project files,
-place files, and project-local image/model/audio assets. If the connected
+place files, and project-local assets of every supported kind: images, 3D
+models, VFX definitions, and audio. If the connected
 Studio reports a `PlaceId`, the app labels it as connected to the selected repo
 only when that value matches `mainPlaceId`; otherwise it shows an unbound or
 mismatched state and offers an explicit bind action.
@@ -129,6 +142,55 @@ Partial failures must remain visible and independently retryable. A failed
 plugin handshake should not erase the project config or force a full app
 restart.
 
+## Project runtime service
+
+Sandblock Code exposes a small loopback HTTP service, by default on port `3071`
+(`SANDBLOCK_RUNTIME_PORT`), so the Studio plugin can discover approved projects
+without learning any filesystem path. It lives in the Electron main process,
+which already owns the project registry, path canonicalization, and the right to
+start processes.
+
+| Route | Purpose |
+| --- | --- |
+| `GET /health` | Service signature and the pinned Rojo version/protocol |
+| `GET /runtimes` | Runtime descriptors for every registered project |
+| `POST /runtimes/{runtimeId}/start` | Serve that project with the pinned Rojo build |
+| `POST /runtimes/{runtimeId}/stop` | Stop that project's Rojo server |
+| `POST /runtimes/{runtimeId}/events` | Studio reports a connect, a sync, or a disconnect |
+| `GET /activity` | Sync history, newest first, optionally for one runtime |
+
+A runtime descriptor carries `runtimeId`, `displayName`, the repository-relative
+`projectFile`, `mainPlaceId`, whether the project is configured, a blocking
+`issue` when there is one, and the current `rojo` state including the loopback
+`url`, `projectName`, `serverVersion`, `protocolVersion`, and whether that
+server matches the pinned protocol. It never carries `repoRoot`.
+
+Studio is the only side that sees a patch land, so the plugin reports its own
+events and the app keeps them next to what it knows by itself — a server it
+started, adopted, stopped, or failed to start. That history is in memory: it
+explains a running session, not a permanent record.
+
+Every route except `/health` requires the `X-Sandblock-Runtime` header. The
+service is unauthenticated on loopback like the bridge, but a browser cannot add
+a custom header cross-origin without a preflight the service refuses, so a page
+the developer happens to visit cannot enumerate projects or spawn servers.
+
+Rojo is started as `rojo serve <projectFile> --port <free port>` with the
+working directory set to the project repository, using `SANDBLOCK_ROJO_BIN`, the
+pinned fork build beside the app, or `rojo` on `PATH`, in that order. A game
+repository's own toolchain is deliberately not used: it may pin a different Rojo
+or none at all, while the vendored Studio adapter only speaks the pinned
+protocol. The server is considered running only once it answers `/api/rojo`;
+until then the app reports `starting`, and a failure keeps the last lines Rojo
+printed.
+
+A server the app did not start — `rojo serve` run by hand, or one left by an
+earlier session — is reported as `external` and reused instead of being
+duplicated on a second port. A candidate only counts when the `projectName` it
+reports matches the `name` in that repository's own Rojo project file, so the
+plugin's development server, or another game's, is never mistaken for this
+project. The app never stops an external server: it does not own that process.
+
 ## MCP gateway
 
 The agent uses one Sandblock MCP endpoint. The gateway dynamically merges:
@@ -136,7 +198,11 @@ The agent uses one Sandblock MCP endpoint. The gateway dynamically merges:
 - official StudioMCP tools;
 - Sandblock Studio bridge tools;
 - local utilities such as generation, project metadata, and future library
-  search tools.
+  search tools. Library search is **target** and must cover every content type
+  listed in
+  [`ROBLOX_DEVELOPMENT_WORKFLOW.md`](ROBLOX_DEVELOPMENT_WORKFLOW.md)—systems,
+  models, UI, VFX, and sounds—through one query surface rather than one tool
+  per asset family.
 
 Current transports include MCP HTTP, legacy SSE compatibility, and the
 plugin's outbound claim/poll/response bridge. The immediate claim confirms
@@ -144,11 +210,24 @@ ownership before the first long-poll is parked. New transports must preserve a
 single tool registry and common request correlation rather than creating a
 second agent-facing gateway.
 
+Not every upstream belongs in every session. A runtime profile decides which
+upstreams the gateway federates, so a development session is not charged the
+context cost of tools it will not call. Creator Hub analytics is the first such
+profiled upstream (**target**, see
+[`DECISIONS.md`](DECISIONS.md#sb-017--creator-hub-analytics-is-a-separate-process-behind-the-same-gateway)):
+its own process, its own credential, merged into the same tool registry rather
+than served from a second endpoint.
+
 Useful current visual capabilities include reading the Studio selection,
 inserting instances, rendering GUI elements, capturing workspace or turntable
 views, obtaining model or styled icons, generating icons, and uploading local
 images. Tool availability is runtime-discovered; documentation must not claim
 that an unavailable tool succeeded.
+
+Every call an agent or the playground makes is routed through one registry, and
+recorded there: name, source, caller, duration, a one-line argument preview, and
+the error when it failed. `GET /playground/history` serves that timeline to the
+desktop, which shows it beside the project's sync history.
 
 The gateway is the source of truth for tool names, validation, timeouts,
 correlation IDs, and errors. Studio commands remain serialized while the
@@ -162,8 +241,8 @@ Studio plugins cannot act as arbitrary inbound local servers. It should:
 - show selected project, place validation, MCP health, Rojo health, and last
   actionable error;
 - accept only runtime descriptors issued by Sandblock Code;
-- refuse mutations when the Studio `PlaceId` conflicts with the selected
-  runtime;
+- refuse to connect when the Studio `PlaceId` conflicts with the selected
+  runtime's `mainPlaceId`, before any server is started;
 - auto-open only for an intentional Sandblock launch or when the user opens it;
 - provide a manual recovery path without asking for raw filesystem paths;
 - expose visual captures so agents can verify spatial or rendered changes.
@@ -181,9 +260,9 @@ The current Studio integration vendors a generated model from
 `sandblock-rojo/sandblock-adapter.project.json`. That model exposes the
 fork-owned HTTP/WebSocket protocol, initial hydration, reconciliation, and sync
 session lifecycle without upstream Rojo product UI. The Sandblock plugin owns
-the visible controls and status feedback. Manual connection to the local
-default port is an implementation slice; selecting only the runtime approved by
-Sandblock Code remains the target contract.
+the visible controls and status feedback. The adapter connects to the port the
+runtime service reports for the selected project; the saved manual URL is only a
+recovery path used when no project is selected and the app is unreachable.
 
 Rojo updates are deliberate, not automatic. Update when there is a relevant
 bug fix, security issue, Roblox Studio compatibility requirement, or valuable
@@ -200,8 +279,12 @@ baseline.
 - Studio mutations require a matching runtime and `PlaceId`.
 - The Electron renderer has `contextIsolation` enabled, Node integration
   disabled, sandboxing enabled, and only narrow IPC methods exposed.
-- Generated assets require review before global library promotion.
+- Generated assets of any kind—image, model, VFX, or audio—require review
+  before global library promotion.
 - Logs avoid secrets and provide enough correlation to debug one launch.
+- Roblox account credentials are captured through the genuine Roblox login page,
+  verified before storage, and held in the OS keychain. They never reach the
+  renderer, an agent, a tool result, or a child process argument list.
 
 ## Cross-repository contracts
 

@@ -119,12 +119,39 @@ task.
 
 - Generate or refresh a Project Skill from the approved GDD plus coding skill.
 - Validate links, ownership, and one-fact-one-source context routing.
-- Add conditional search of tagged systems, code, models, and UI assets.
+- Add conditional search of tagged systems, code, models, UI, VFX, and sounds.
 - Add human-reviewed promotion from a project into the global library.
 
 **Exit check:** A fresh agent can recover project vision and conventions from
-the skill, find relevant reusable work when needed, and avoid loading unrelated
-assets for trivial tasks.
+the skill, find every reusable piece a mechanic needs—system, model, UI, VFX,
+and sound—when relevant, and avoid loading unrelated assets for trivial tasks.
+
+## M8 — Creator Hub analysis
+
+**Goal:** Turn post-launch Roblox data into analysis a human can act on.
+
+This milestone sits outside the v0 boundary and does not gate any earlier
+milestone. It exists so the capability arrives through an accepted decision
+rather than by accretion. See
+[`DECISIONS.md`](DECISIONS.md#sb-017--creator-hub-analytics-is-a-separate-process-behind-the-same-gateway).
+
+- Capture, verify, and store a Roblox credential in the OS keychain.
+- Discover the Creator Hub endpoints empirically and pin what actually answers.
+- Resolve and persist each project's `universeId`.
+- Expose coarse read-only analytics tools through an analysis runtime profile.
+- Snapshot metrics locally so trend history outlives the dashboard's own
+  retention window and updates can be compared before and after.
+- Draft a feedback document from real data for human review.
+
+**Exit check:** An agent asked to analyse a live game reports engagement,
+retention, monetization, and acquisition from the project's own universe, names
+every metric it could not retrieve, and never presents an unavailable figure as
+measured.
+
+**Current progress:** Credential capture is implemented in the desktop app:
+Roblox sign-in through an isolated session, verification against Roblox before
+storage, keychain-backed secrets, and account metadata surfaced without ever
+exposing the cookie. The analytics tools and the endpoint pin are not built yet.
 
 ## Later candidates
 

@@ -68,7 +68,8 @@ For each task the agent should:
 
 1. read the Project Skill and task-relevant references;
 2. inspect current code and repository status before editing;
-3. decide whether existing Sandblock systems or assets are relevant;
+3. decide whether existing Sandblock systems, models, VFX, sounds, or UI
+   assets are relevant;
 4. implement the smallest coherent change in native strict Luau;
 5. run focused checks, then the repository check suite;
 6. use Studio captures when the result is spatial or visual;
@@ -141,23 +142,55 @@ alone.
 
 ## Reuse and asset workflow
 
-Sandblock's future global library contains tagged code systems, models, UI, and
-other assets. Search it when the task is substantial enough that reuse could
-save time or preserve consistency—for example a shop system, daily rewards,
-shared UI pattern, environment kit, or complex model.
+### Library content types
+
+Sandblock's global library is **target** behavior. It is designed to hold every
+kind of production content a game needs, not code alone:
+
+- reusable Luau systems and utilities such as shops, daily rewards,
+  leaderboards, onboarding, or codes;
+- 3D models, props, and map or environment kits;
+- UI components, layouts, icons, and generated images;
+- VFX such as particle rigs, beams, trails, impact and ability effects;
+- sounds and music such as SFX, ambience, UI feedback, and loops;
+- animations and future asset types.
+
+Items are expected to be searchable through tags and metadata such as category,
+visual or audio style, compatible stack, intended use, source project, version,
+and approval state.
+
+A mechanic is rarely code alone. When an agent builds one, it should be able to
+find the system, the model, the VFX, and the sound through the same search
+surface instead of assuming only code and UI are reusable, and it should state
+which of those pieces are missing rather than shipping a silent or effectless
+feature as if it were complete.
+
+### When to search
+
+Search the library when the task is substantial enough that reuse could save
+time or preserve consistency—for example a shop system, daily rewards, a shared
+UI pattern, an environment kit, a complex model, the effect for a new ability,
+or the SFX for a new interaction.
 
 Skip the search for trivial local edits where no reusable system or asset is
 plausibly needed. This keeps the workflow fast and prevents irrelevant context
 from flooding the agent.
 
-When an agent generates an image or other asset through Sandblock tools:
+### Generated assets
+
+When an agent generates an image, model, effect, sound, or other asset through
+Sandblock tools:
 
 1. attach it to the active project with useful tags and provenance;
-2. inspect it in the relevant UI or Studio context;
+2. inspect it in the relevant UI, Studio, or playback context;
 3. revise or reject it if it does not meet the project need;
 4. keep it project-local by default;
 5. promote it to the global library only after a human explicitly approves the
    promotion.
+
+Current generation tools cover images and thumbnails. Model, VFX, and audio
+generation is **later** work; when those tools arrive they inherit the same
+review, provenance, and promotion rules rather than defining their own.
 
 The approval can later be delegated to a reliable review agent, but the current
 policy is human approval.
@@ -171,7 +204,13 @@ Use visual tools when they materially verify the result:
 - capture model or turntable views after model changes;
 - inspect generated icons and thumbnails before upload;
 - compare captures after an iteration when the agent is correcting a visual
-  defect.
+  defect;
+- capture the effect in its real context after a VFX change, since a particle
+  rig judged in isolation rarely reads the same in the scene.
+
+Audio has no equivalent capture. After a sound change, report what was added,
+where it is triggered, and its volume or looping behavior, and leave the
+subjective check to a human listening pass.
 
 The goal is evidence, not screenshot volume. A pure refactor with unchanged
 rendered behavior usually needs tests, not a decorative capture.
@@ -184,6 +223,8 @@ Before a task is marked Done manually, confirm that:
 - relevant focused tests and the repository check command pass;
 - server authority, cleanup, and persistence implications were considered;
 - relevant visual changes were captured and inspected;
+- code, model, VFX, and sound pieces of the change are either present or
+  explicitly reported as missing;
 - generated assets remain local or have explicit global-library approval;
 - stable context changes are reflected in the Project Skill or its references;
 - the branch contains no unrelated workspace or child-repository changes.
