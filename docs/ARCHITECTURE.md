@@ -74,7 +74,7 @@ project-state, or Roblox Studio behavior.
 | Area | Current | Target |
 | --- | --- | --- |
 | Desktop | Focused Electron/React cockpit selects one local repo and shows its Skills, assets, config, MCP health, and Studio binding; historical platform/task code is inactive | Add project-bound launch orchestration without expanding back into task management |
-| MCP gateway | TypeScript gateway federates official StudioMCP and custom tools | Same gateway becomes explicitly project-bound per runtime |
+| MCP gateway | TypeScript gateway federates official StudioMCP and custom tools, resolves the plugin-connected Studio's opaque id, and injects it into applicable official calls | Preserve explicit project binding as runtime profiles add optional upstreams |
 | Studio bridge | Luau plugin immediately claims the outbound bridge, then long-polls for commands after a manual connect action | Dock UI auto-binds from a valid launch ticket, with manual fallback |
 | Runtime discovery | The plugin lists approved projects from Sandblock Code's loopback runtime service and asks it to serve one | Same service also issues launch tickets and reports agent/gateway binding per runtime |
 | Studio ownership | One active Studio bridge owner; commands serialize | Preserve deterministic ownership and expose it clearly per runtime |
@@ -210,6 +210,13 @@ ownership before the first long-poll is parked. New transports must preserve a
 single tool registry and common request correlation rather than creating a
 second agent-facing gateway.
 
+The gateway owns official Studio routing. It matches the Sandblock plugin's
+Studio fingerprint against `list_roblox_studios`, stores the resulting opaque
+StudioMCP id, removes `studio_id` from agent-facing tool schemas, and injects
+that id into every applicable call. If several Studios are open and no unique
+match exists, it refuses to guess. Legacy StudioMCP builds that expose a global
+`set_active_studio` flow remain supported as a compatibility path.
+
 Not every upstream belongs in every session. A runtime profile decides which
 upstreams the gateway federates, so a development session is not charged the
 context cost of tools it will not call. Creator Hub analytics is the first such
@@ -221,8 +228,11 @@ than served from a second endpoint.
 Useful current visual capabilities include reading the Studio selection,
 inserting instances, rendering GUI elements, capturing workspace or turntable
 views, obtaining model or styled icons, generating icons, and uploading local
-images. Tool availability is runtime-discovered; documentation must not claim
-that an unavailable tool succeeded.
+images. The gateway also exposes device simulator state/control and a
+multi-device playtest matrix that selects each phone or tablet preset, starts
+Play, waits, captures the viewport, reads console output, stops Play, and
+restores the prior simulator state. Tool availability is runtime-discovered;
+documentation must not claim that an unavailable tool succeeded.
 
 Every call an agent or the playground makes is routed through one registry, and
 recorded there: name, source, caller, duration, a one-line argument preview, and

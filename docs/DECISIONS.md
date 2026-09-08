@@ -33,7 +33,10 @@ Sandblock Code stores the repository path and project metadata, creates the
 runtime identity, launches the agent in the repository, and gives it a
 project-bound MCP endpoint. The LLM does not select a project by sending an
 untrusted path during MCP connection. MCP Roots are not the architectural
-foundation of project binding.
+foundation of project binding. The same boundary applies inside Studio: the
+gateway resolves the official StudioMCP session from the connected plugin and
+injects its opaque `studio_id`; an agent-facing tool cannot select an arbitrary
+open Studio by supplying that id.
 
 ## SB-004 — v0 launches the main Roblox place only
 
