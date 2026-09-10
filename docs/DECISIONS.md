@@ -160,8 +160,9 @@ Rojo is started from the pinned fork build with the project repository as
 working directory, not from the game repository's own toolchain, because a game
 repository may pin a different Rojo or none at all while the vendored adapter
 only speaks the pinned protocol. The plugin refuses to connect when the open
-Studio place conflicts with the project's `mainPlaceId`, before any server
-starts. The saved manual Rojo URL remains only as a recovery path for a server
+Studio place is not one of the project's declared `places` (see
+[SB-018](#sb-018--a-project-declares-the-places-its-agents-may-reach)), before
+any server starts. The saved manual Rojo URL remains only as a recovery path for a server
 started by hand while the app is unreachable.
 
 A Rojo server the app did not start is reported and reused rather than
@@ -204,3 +205,35 @@ data remains a human decision under
 Projects gain a resolved Roblox `universeId` alongside `mainPlaceId` in
 `.sandblock-code.json`, because analytics are addressed by universe rather than
 by place.
+
+## SB-018 — A project declares the places its agents may reach
+
+**Status:** Accepted
+
+A game is several Roblox places, and an agent legitimately needs more than one:
+a lobby and an arena are one project. But an agent that could reach any open
+Studio would eventually edit a place belonging to another game, or a colleague's
+scratch place that happens to be open.
+
+So a project declares its places in `.sandblock-code.json`, and that list is an
+allowlist. Sandblock Code is the only writer: the desktop declares places by
+picking from the Studios open on the machine — at game creation, and in project
+settings — so a place cannot be declared by typing a number nobody has opened.
+Neither the plugin nor an agent can add one.
+
+The Studio plugin refuses to connect from an undeclared place, and names the
+declared ones instead of failing vaguely. It claims exactly one place on the
+bridge, so Studios on different places of the same project connect side by side,
+each with its own command queue. Two Studios on the same place are refused, and
+so is a Studio from a second project: places only mean something inside a
+project, and mixing two projects would put another game's places one selection
+away from an agent.
+
+Every agent call is addressed to one place. A session starts on the main place,
+switches with `select_studio_place`, or overrides one call with a `place`
+argument. The selection is per MCP client, so two agents can hold two places at
+once instead of moving each other's target — which is the conflict this decision
+exists to prevent, expressed one level up from the old single-Studio lock.
+
+`mainPlaceId` stays in the config, in sync with the main place, and a project
+written before this decision reads back as a single main place.

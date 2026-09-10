@@ -75,9 +75,9 @@ project-state, or Roblox Studio behavior.
 | --- | --- | --- |
 | Desktop | Focused Electron/React cockpit selects one local repo and shows its Skills, assets, config, MCP health, and Studio binding; historical platform/task code is inactive | Add project-bound launch orchestration without expanding back into task management |
 | MCP gateway | TypeScript gateway federates official StudioMCP and custom tools, resolves the plugin-connected Studio's opaque id, and injects it into applicable official calls | Preserve explicit project binding as runtime profiles add optional upstreams |
-| Studio bridge | Luau plugin immediately claims the outbound bridge, then long-polls for commands after a manual connect action | Dock UI auto-binds from a valid launch ticket, with manual fallback |
+| Studio bridge | Luau plugin immediately claims its declared place on the outbound bridge, then long-polls for that place's commands after a manual connect action | Dock UI auto-binds from a valid launch ticket, with manual fallback |
 | Runtime discovery | The plugin lists approved projects from Sandblock Code's loopback runtime service and asks it to serve one | Same service also issues launch tickets and reports agent/gateway binding per runtime |
-| Studio ownership | One active Studio bridge owner; commands serialize | Preserve deterministic ownership and expose it clearly per runtime |
+| Studio ownership | One Studio per declared place, one project per bridge; each place has its own command queue, and each agent session its own selected place | Preserve deterministic per-place ownership and expose it clearly per runtime |
 | Rojo | Fork pinned to `v7.7.0-rc.1`; Sandblock Code starts `rojo serve` per project from the pinned build, and the vendored adapter connects to the port that project was given | Automatic binding from a launch ticket, plus lifecycle reporting per runtime |
 | Project launch | Rojo and the Studio services start from one action, in the desktop window or in the plugin | One flow also launches the main place and the agent |
 | Visual tools | Selection, UI/model/icon rendering and image generation already exist | Productized feedback loop exposed from the selected project and plugin |
@@ -95,10 +95,22 @@ root. The current versioned format is:
   "displayName": "Game name",
   "rojoProject": "default.project.json",
   "mainPlaceId": 1234567890,
+  "places": [
+    { "key": "main", "name": "Game name", "placeId": 1234567890, "main": true },
+    { "key": "lobby", "name": "Lobby", "placeId": 2345678901, "main": false }
+  ],
   "projectSkill": ".agents/skills/project-context/SKILL.md",
   "assetRoots": ["assets", "generated"]
 }
 ```
+
+`places` is the allowlist of Roblox places the project owns, and the only set an
+agent can act on. Exactly one place is `main`: every agent session starts there.
+Sandblock Code is the only writer — the desktop declares places by picking from
+the Studios open on the machine, at game creation and in project settings, so a
+project is never bound to a place nobody has opened. Neither the plugin nor an
+agent can add one. `mainPlaceId` stays in sync with the main place, and a project
+written before `places` existed reads back as a single main place.
 
 The absolute repository path never enters the versioned project file. Electron
 stores it in its local application-data registry, canonicalizes it in the main
@@ -109,8 +121,8 @@ The app scans the registered repo for `SKILL.md` files, Rojo project files,
 place files, and project-local assets of every supported kind: images, 3D
 models, VFX definitions, and audio. If the connected
 Studio reports a `PlaceId`, the app labels it as connected to the selected repo
-only when that value matches `mainPlaceId`; otherwise it shows an unbound or
-mismatched state and offers an explicit bind action.
+only when that value matches one of the declared `places`; otherwise it shows an
+unbound or mismatched state and offers an explicit bind action.
 
 At launch, the app creates an ephemeral runtime descriptor. It adds values such
 as `runtimeId`, process state, local ports, compatible component versions, and a
@@ -205,17 +217,35 @@ The agent uses one Sandblock MCP endpoint. The gateway dynamically merges:
   per asset family.
 
 Current transports include MCP HTTP, legacy SSE compatibility, and the
-plugin's outbound claim/poll/response bridge. The immediate claim confirms
-ownership before the first long-poll is parked. New transports must preserve a
-single tool registry and common request correlation rather than creating a
-second agent-facing gateway.
+plugin's outbound claim/poll/response bridge. The claim names the place the
+Studio holds and repeats the project's declared list, which is how the bridge
+learns the allowlist; it confirms ownership of that place before the first
+long-poll is parked. New transports must preserve a single tool registry and
+common request correlation rather than creating a second agent-facing gateway.
 
-The gateway owns official Studio routing. It matches the Sandblock plugin's
-Studio fingerprint against `list_roblox_studios`, stores the resulting opaque
-StudioMCP id, removes `studio_id` from agent-facing tool schemas, and injects
-that id into every applicable call. If several Studios are open and no unique
-match exists, it refuses to guess. Legacy StudioMCP builds that expose a global
-`set_active_studio` flow remain supported as a compatibility path.
+## Multi-place Studio routing
+
+Several Studios connect to the bridge at once, one per declared place, each with
+its own command queue. Two Studios on the *same* place are refused, and so is a
+Studio from a *second project*: places only mean anything inside a project, and
+mixing two would put another game's places one selection away from an agent.
+
+Every agent-facing tool call is addressed to one place. An MCP client starts on
+the project's main place and changes that with `select_studio_place`, or
+overrides it for a single call with the `place` argument the gateway adds to
+every Studio-facing schema. The selection lives per MCP client, so two agents can
+hold two places at the same time without moving each other's target.
+`list_studio_places` reports the declared places, which have a Studio connected,
+and which one the caller's calls are going to.
+
+The gateway owns official Studio routing, now per place. It matches each
+connected plugin's Studio fingerprint against `list_roblox_studios`, stores the
+resulting opaque StudioMCP id for that place, removes `studio_id` from
+agent-facing tool schemas, and injects the id of the place a call is addressed
+to. If several Studios are open and no unique match exists, it refuses to guess.
+Legacy StudioMCP builds that expose a global `set_active_studio` flow remain
+supported: calls are serialized and the active Studio is switched around each
+one, so a shared global cannot be pulled out from under a call in flight.
 
 Not every upstream belongs in every session. A runtime profile decides which
 upstreams the gateway federates, so a development session is not charged the
@@ -240,8 +270,8 @@ the error when it failed. `GET /playground/history` serves that timeline to the
 desktop, which shows it beside the project's sync history.
 
 The gateway is the source of truth for tool names, validation, timeouts,
-correlation IDs, and errors. Studio commands remain serialized while the
-plugin has one execution owner.
+correlation IDs, and errors. Studio commands remain serialized per place: one
+plugin owns a place, and its queue is that place's execution order.
 
 ## Studio plugin behavior
 
@@ -251,8 +281,11 @@ Studio plugins cannot act as arbitrary inbound local servers. It should:
 - show selected project, place validation, MCP health, Rojo health, and last
   actionable error;
 - accept only runtime descriptors issued by Sandblock Code;
-- refuse to connect when the Studio `PlaceId` conflicts with the selected
-  runtime's `mainPlaceId`, before any server is started;
+- refuse to connect when the Studio `PlaceId` is not one of the selected
+  runtime's declared `places`, before any server is started, and name the places
+  that are declared;
+- claim exactly one declared place, so Studios on different places of the same
+  project connect side by side;
 - auto-open only for an intentional Sandblock launch or when the user opens it;
 - provide a manual recovery path without asking for raw filesystem paths;
 - expose visual captures so agents can verify spatial or rendered changes.
