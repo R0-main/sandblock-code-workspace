@@ -55,7 +55,9 @@ launch validation remain.
 
 **Goal:** Reach a deterministic ready-to-code state.
 
-- Create opaque runtime IDs and project-bound MCP endpoints.
+- Create opaque runtime IDs and project-bound MCP endpoints. **Current:**
+  `/projects/<projectId>/mcp` scopes an agent to its project, and agents are
+  bound through `--mcp-config` or the repository's `.mcp.json` (SB-019).
 - Start/stop the gateway and pinned Rojo server per project.
 - Launch the coding agent with the correct working directory and Project Skill.
 - Launch Roblox Studio on the configured main place.

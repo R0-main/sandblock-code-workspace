@@ -153,8 +153,10 @@ the approved GDD includes them.
 The Studio plugin discovers projects, and starts one project's Rojo server,
 through a loopback HTTP service owned by the Electron main process (default
 port `3071`). The plugin sends an opaque `runtimeId` and receives a runtime
-descriptor with a loopback Rojo URL; repository paths never cross that boundary,
-and every route except `/health` requires the `X-Sandblock-Runtime` header.
+descriptor whose Rojo URL is the service's own route for that project; repository
+paths never cross that boundary, and every route except `/health` and that Rojo
+route requires the `X-Sandblock-Runtime` header (see
+[SB-020](#sb-020--rojo-is-part-of-sandblock-code)).
 
 Rojo is started from the pinned fork build with the project repository as
 working directory, not from the game repository's own toolchain, because a game
@@ -162,12 +164,7 @@ repository may pin a different Rojo or none at all while the vendored adapter
 only speaks the pinned protocol. The plugin refuses to connect when the open
 Studio place is not one of the project's declared `places` (see
 [SB-018](#sb-018--a-project-declares-the-places-its-agents-may-reach)), before
-any server starts. The saved manual Rojo URL remains only as a recovery path for a server
-started by hand while the app is unreachable.
-
-A Rojo server the app did not start is reported and reused rather than
-duplicated, matched to the project by the `name` in its Rojo project file. The
-app does not stop a process it does not own.
+any server starts.
 
 Sync history flows the other way: the plugin reports connects, patches, and
 disconnects to the same service, because Studio is the only side that sees a
@@ -224,10 +221,9 @@ Neither the plugin nor an agent can add one.
 The Studio plugin refuses to connect from an undeclared place, and names the
 declared ones instead of failing vaguely. It claims exactly one place on the
 bridge, so Studios on different places of the same project connect side by side,
-each with its own command queue. Two Studios on the same place are refused, and
-so is a Studio from a second project: places only mean something inside a
-project, and mixing two projects would put another game's places one selection
-away from an agent.
+each with its own command queue. Two Studios on the same place are refused.
+Studios from several projects share the bridge; [SB-019](#sb-019--agents-are-tied-to-one-project-so-several-games-run-at-once)
+keeps each agent inside its own project.
 
 Every agent call is addressed to one place. A session starts on the main place,
 switches with `select_studio_place`, or overrides one call with a `place`
@@ -237,3 +233,70 @@ exists to prevent, expressed one level up from the old single-Studio lock.
 
 `mainPlaceId` stays in the config, in sync with the main place, and a project
 written before this decision reads back as a single main place.
+
+## SB-019 — Agents are tied to one project, so several games run at once
+
+**Status:** Accepted — revises the "one project per bridge" rule SB-018 first
+shipped with
+
+The goal is to work on several games at the same time: a Studio, a Rojo server
+and an agent per game, side by side. Locking the bridge to one project made that
+impossible, and it protected the wrong thing — the danger was never two games
+being connected, it was an agent reaching a game that is not its own.
+
+So the lock moves from the bridge to the agent. Each project has its own MCP
+endpoint, `/projects/<projectId>/mcp`, and a session opened there resolves places
+inside that project only: another game's places cannot be listed, selected, or
+reached by PlaceId, and a session id cannot be replayed on another project's
+path. This implements the project-bound endpoint [SB-003](#sb-003--the-app-owns-project-binding)
+already required.
+
+What stays exclusive across projects is a place: one Studio holds a PlaceId,
+whichever project claims it. A key such as `main` only names a place inside one
+project, so two projects may both have one.
+
+The unscoped `/mcp` endpoint keeps working while a single project is connected.
+Once a second connects it refuses every Studio call and names the project
+endpoints, because it has no way to tell which game its caller means.
+
+Agents are bound without the LLM choosing anything. The agent Sandblock Code
+launches gets its project endpoint through `--mcp-config`, under
+`--strict-mcp-config`, so the developer's own user-scope servers stay out. An
+agent opened by hand — Claude Code in a terminal or in the desktop Code tab, an
+IDE extension, Cursor — reads `.mcp.json` or `.cursor/mcp.json`, which the app
+writes into the game repository on an explicit action. Those files are keyed by
+`projectId`, so linking first ensures `.sandblock-code.json` exists: an id
+derived from this machine's path would break for anyone else who clones the
+game.
+
+The desktop window still shows one project at a time, but only as a view: every
+Studio read and tool call names the active project, and switching leaves the
+other projects' Studios, Rojo servers and agents running.
+
+## SB-020 — Rojo is part of Sandblock Code
+
+**Status:** Accepted — supersedes SB-016's manual Rojo URL and its reuse of a
+Rojo server the app did not start
+
+Studio used to connect to Rojo on whatever port the project had been given, and
+could also be pointed at a Rojo someone started by hand — through a manual URL
+in the plugin, or because the app adopted a server already on the default port.
+Both let a Rojo off the pinned protocol reach Studio: a game repository can pin
+another Rojo, and a hand-run `rojo serve` uses it. With several games open at
+once, a port per game also meant a port per game to keep free and reachable.
+
+Rojo is now something Sandblock Code provides, not something it finds. The app
+starts every server a project syncs through, from the pinned build, on an
+internal port kept clear of Rojo's own default. Studio never sees that port: the
+runtime service serves each project's Rojo at `/runtimes/<runtimeId>/rojo`,
+forwarding Rojo's HTTP API and tunnelling its WebSocket, and the runtime
+descriptor hands the plugin that route. The vendored adapter builds every Rojo
+URL by appending `/api/...` to its base, so the fork needed no change.
+
+A server the app did not start is never adopted, and the plugin has no Rojo URL
+setting: without Sandblock Code there is nothing to sync with.
+
+Rojo's own client cannot add the `X-Sandblock-Runtime` header, so the Rojo route
+is exempt from it and refuses browsers instead — any request carrying `Origin`
+or `Sec-Fetch-Site`, which Roblox Studio's HTTP and WebSocket clients never send.
+That is stricter than Rojo itself, which accepts a WebSocket from any origin.

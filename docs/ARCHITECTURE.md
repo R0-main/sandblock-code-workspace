@@ -77,8 +77,8 @@ project-state, or Roblox Studio behavior.
 | MCP gateway | TypeScript gateway federates official StudioMCP and custom tools, resolves the plugin-connected Studio's opaque id, and injects it into applicable official calls | Preserve explicit project binding as runtime profiles add optional upstreams |
 | Studio bridge | Luau plugin immediately claims its declared place on the outbound bridge, then long-polls for that place's commands after a manual connect action | Dock UI auto-binds from a valid launch ticket, with manual fallback |
 | Runtime discovery | The plugin lists approved projects from Sandblock Code's loopback runtime service and asks it to serve one | Same service also issues launch tickets and reports agent/gateway binding per runtime |
-| Studio ownership | One Studio per declared place, one project per bridge; each place has its own command queue, and each agent session its own selected place | Preserve deterministic per-place ownership and expose it clearly per runtime |
-| Rojo | Fork pinned to `v7.7.0-rc.1`; Sandblock Code starts `rojo serve` per project from the pinned build, and the vendored adapter connects to the port that project was given | Automatic binding from a launch ticket, plus lifecycle reporting per runtime |
+| Studio ownership | One Studio per declared place, several projects on one bridge; each place has its own command queue, each agent is tied to its project's endpoint and keeps its own selected place | Preserve deterministic per-place ownership and expose it clearly per runtime |
+| Rojo | Fork pinned to `v7.7.0-rc.1`; Sandblock Code starts `rojo serve` per project from the pinned build on an internal port, and serves it to Studio at `/runtimes/<id>/rojo` on the runtime service (HTTP and WebSocket); no Rojo it did not start is used | Ship the pinned build with the app, plus automatic binding from a launch ticket |
 | Project launch | Rojo and the Studio services start from one action, in the desktop window or in the plugin | One flow also launches the main place and the agent |
 | Visual tools | Selection, UI/model/icon rendering and image generation already exist | Productized feedback loop exposed from the selected project and plugin |
 
@@ -226,9 +226,23 @@ common request correlation rather than creating a second agent-facing gateway.
 ## Multi-place Studio routing
 
 Several Studios connect to the bridge at once, one per declared place, each with
-its own command queue. Two Studios on the *same* place are refused, and so is a
-Studio from a *second project*: places only mean anything inside a project, and
-mixing two would put another game's places one selection away from an agent.
+its own command queue — and from several projects at once. Two Studios on the
+*same* PlaceId are refused whichever projects they belong to; a key like `main`
+only names a place inside one project.
+
+Projects are kept apart at the agent, not at the bridge. Each project has its
+own endpoint, `/projects/<projectId>/mcp`; a session opened there resolves places
+inside that project only, and its session id cannot be replayed on another
+project's path. The unscoped `/mcp` keeps working while one project is connected
+and refuses Studio calls once a second connects, naming the project endpoints.
+
+The agent Sandblock Code launches receives its project endpoint through
+`--mcp-config` under `--strict-mcp-config`. Agents opened by hand — Claude Code
+in a terminal, the desktop Code tab or an IDE, and Cursor — read `.mcp.json` and
+`.cursor/mcp.json`, which the app writes into the game repository from project
+settings. The desktop's Studio status and tool runner name the active project on
+every request, so switching the window's project never shows or drives another
+game. See [SB-019](DECISIONS.md#sb-019--agents-are-tied-to-one-project-so-several-games-run-at-once).
 
 Every agent-facing tool call is addressed to one place. An MCP client starts on
 the project's main place and changes that with `select_studio_place`, or
