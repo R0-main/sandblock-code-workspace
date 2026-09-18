@@ -66,6 +66,13 @@ Read:
 The current manual toolbar bridge is not the final target. Preserve outbound
 loopback communication and validate runtime plus `PlaceId` before mutations.
 
+### Shared agent skills
+
+Read [`DECISIONS.md`](../../../docs/DECISIONS.md) SB-021. `sandblock-skills`
+owns workflows reusable across games; a game's own Project Skill owns what
+describes that game. Do not wire the extracted system to a skill that still
+lives in the historical monorepository — migrate it instead.
+
 ### Rojo fork work
 
 Read [`sandblock-rojo/SANDBLOCK.md`](../../../sandblock-rojo/SANDBLOCK.md), then

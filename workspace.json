@@ -25,6 +25,12 @@
       "path": "sandblock-ui",
       "remote": "git@github.com:R0-main/sandblock-ui.git",
       "defaultBranch": "main"
+    },
+    {
+      "name": "Sandblock Skills",
+      "path": "sandblock-skills",
+      "remote": "git@ssh.git.shulkr.net:roblox/skills.git",
+      "defaultBranch": "main"
     }
   ]
 }

@@ -269,9 +269,10 @@ writes into the game repository on an explicit action. Those files are keyed by
 derived from this machine's path would break for anyone else who clones the
 game.
 
-The desktop window still shows one project at a time, but only as a view: every
-Studio read and tool call names the active project, and switching leaves the
-other projects' Studios, Rojo servers and agents running.
+Every Studio read and tool call names the project it belongs to, and working on
+one game leaves the other projects' Studios, Rojo servers and agents running.
+The in-window project switcher this decision first shipped with is replaced by a
+window per project in [SB-022](#sb-022--a-project-window-is-the-projects-runtime).
 
 ## SB-020 — Rojo is part of Sandblock Code
 
@@ -300,3 +301,64 @@ Rojo's own client cannot add the `X-Sandblock-Runtime` header, so the Rojo route
 is exempt from it and refuses browsers instead — any request carrying `Origin`
 or `Sec-Fetch-Site`, which Roblox Studio's HTTP and WebSocket clients never send.
 That is stricter than Rojo itself, which accepts a WebSocket from any origin.
+
+## SB-021 — Shared agent skills live in `sandblock-skills`
+
+**Status:** Accepted
+
+Amends SB-001: the workspace now coordinates five independent product
+repositories. `sandblock-skills` (`git@ssh.git.shulkr.net:roblox/skills.git`)
+owns the agent skills that are shared across games and are therefore owned by
+neither one game repository nor the desktop application.
+
+A skill belongs there when it encodes a reusable Sandblock workflow and its
+inputs are configuration. A skill belongs in a game's own Project Skill when it
+describes that game specifically. The Roblox thumbnail workflow is the first
+case: the discovery, ranking, and generation engine is shared, while the
+per-game subjects, palettes, and place bindings stay with the game.
+
+Nothing in the extracted system may depend on the historical monorepository at
+runtime. Migrating a skill out of it is what retires that dependency; pointing
+the desktop application at a skill still living there is not an acceptable
+substitute.
+
+**Current:** the repository is registered in `workspace.json`, ignored by the
+meta-repository, and cloned by `npm run bootstrap`. It carries no skill yet.
+
+**Target:** the thumbnail workflow moves out of
+`roblox-studio-ai-automation`, and Sandblock Code resolves shared skills from
+this repository when it launches a coding agent.
+
+## SB-022 — A project window is the project's runtime
+
+**Status:** Accepted — revises the single switching window described in
+[SB-019](#sb-019--agents-are-tied-to-one-project-so-several-games-run-at-once)
+
+SB-019 made it possible to work on several games at once, but the desktop still
+showed them through one window with a project switcher. That leaves the developer
+reading one game while the process runs three, and every surface in the window —
+Studio status, Rojo state, tool history — has to be re-read on each switch to
+avoid describing the wrong game.
+
+Sandblock Code therefore runs one main process and opens one window per project.
+The app starts on a launcher: the list of registered games. Opening one opens its
+window, fixed on that project for as long as it exists. There is no in-window
+switcher, so a window can never display one game while the call it sends goes to
+another, and two games sit side by side on screen instead of taking turns.
+
+What is shared stays in the main process behind those windows: the MCP gateway
+and its per-project endpoints, the loopback runtime service, the project
+registry, the Roblox account, and the agent sessions. A window is a view and a
+set of controls, never a second copy of a service.
+
+What belongs to one project belongs to its window. A project's Rojo server starts
+when its window opens and stops when that window closes: nothing keeps syncing a
+game nobody has open. The plugin can still ask the runtime service to serve a
+project — that request opens the project's window first, so *Rojo is running* and
+*its window is open* stay the same statement from either side. The runtime
+service lists the projects with a window open first, most recently focused first,
+replacing the single "selected repository" the old window declared.
+
+Closing the last window quits the app. The main process is where the gateway, the
+runtime service and every Rojo server live; left running with nothing on screen
+it would keep serving games nobody has open.

@@ -41,6 +41,6 @@ Do not silently write target behavior as if it were already implemented.
   `ROBLOX_DEVELOPMENT_WORKFLOW.md`.
 - UI work: read `DESIGN_SYSTEM.md` and the owning repository's current UI.
 
-The historical repository at
-`/Users/romain/sandblock/roblox-studio-ai-automation` is a migration source,
-not a fourth product component or a canonical source of future scope.
+The historical repository at `~/sandblock/roblox-studio-ai-automation` is a
+migration source, not a product component or a canonical source of future
+scope.

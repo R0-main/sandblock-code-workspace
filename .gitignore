@@ -6,3 +6,8 @@ node_modules/
 /sandblock-studio-plugin/
 /sandblock-rojo/
 /sandblock-ui/
+/sandblock-skills/
+
+# Local secrets and generated media.
+.env
+/artifacts/

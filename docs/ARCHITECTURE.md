@@ -2,15 +2,18 @@
 
 ## System overview
 
-Sandblock Code is a coordinated workspace of four independently versioned
+Sandblock Code is a coordinated workspace of five independently versioned
 repositories. The desktop app is the control plane, the Studio plugin is the
 in-Studio execution and feedback surface, the Rojo fork supplies a pinned,
-compatible sync engine, and Sandblock UI owns reusable web interface primitives.
+compatible sync engine, Sandblock UI owns reusable web interface primitives, and
+Sandblock Skills owns the agent skills shared across games.
 
 ```mermaid
 flowchart LR
-    Human["Developer"] --> App["Sandblock Code desktop app"]
-    UI["Sandblock UI\ntokens + React primitives"] --> App
+    Human["Developer"] --> Launcher["Launcher window\nregistered games"]
+    Launcher --> Window["Project window\none game"]
+    Window --> App["Sandblock Code main process"]
+    UI["Sandblock UI\ntokens + React primitives"] --> Window
     App --> Config["Project configuration"]
     App --> Runtime["Project runtime"]
     App --> RuntimeSvc["Project runtime service\nloopback 3071"]
@@ -29,6 +32,28 @@ flowchart LR
     RojoServer <--> RojoAdapter["Plugin Rojo adapter"]
     RojoAdapter --> Studio
 ```
+
+## One process, one window per project
+
+The desktop app is a single main process with a window per game. It opens on a
+launcher — the list of registered projects — and opening one opens that
+project's window, fixed on it for as long as the window exists. There is no
+in-window project switcher, so a window cannot display one game while the call
+it sends goes to another, and two games are worked on side by side rather than
+in turns. See [SB-022](DECISIONS.md#sb-022--a-project-window-is-the-projects-runtime).
+
+Everything shared lives in the main process behind those windows: the MCP
+gateway and its per-project endpoints, the loopback runtime service, the project
+registry, path canonicalization, the Roblox account, and the agent sessions. A
+window is a view and a set of controls, never a second copy of a service, and a
+renderer never opens a window itself — it names a registered repository and the
+main process resolves it.
+
+What belongs to one project belongs to its window. A project's Rojo server
+starts when its window opens and stops when that window closes, so nothing keeps
+syncing a game nobody has open. A plugin asking the runtime service to serve a
+project opens that project's window first. Closing the last window quits the
+app, because the main process has nothing left to serve.
 
 ## Repository ownership
 
@@ -62,6 +87,21 @@ behavior close to upstream.
 The Sandblock-branded product UI belongs in `sandblock-studio-plugin`, not in a
 large permanent rewrite of Rojo core.
 
+### `sandblock-skills`
+
+Owns the agent skills shared across games — the reusable workflows that belong
+to neither a single game repository nor the desktop application. See SB-021 in
+[`DECISIONS.md`](DECISIONS.md) for the ownership test.
+
+**Current:** registered in [`../workspace.json`](../workspace.json) and cloned by
+`npm run bootstrap`; it carries no skill yet.
+
+**Target:** it holds the Roblox thumbnail discovery and generation workflow,
+migrated out of the historical monorepository, and Sandblock Code resolves
+shared skills from it when launching a coding agent. Per-game configuration —
+subjects, palettes, place bindings — stays in the game repository's own Project
+Skill.
+
 ### `sandblock-ui`
 
 Owns the `@sandblock/ui` package, semantic web tokens, framework-agnostic CSS,
@@ -73,13 +113,13 @@ project-state, or Roblox Studio behavior.
 
 | Area | Current | Target |
 | --- | --- | --- |
-| Desktop | Focused Electron/React cockpit selects one local repo and shows its Skills, assets, config, MCP health, and Studio binding; historical platform/task code is inactive | Add project-bound launch orchestration without expanding back into task management |
+| Desktop | A launcher window lists the registered games; each opens its own Electron/React window, fixed on one project, showing its Skills, assets, config, MCP health, and Studio binding; historical platform/task code is inactive | Add project-bound launch orchestration without expanding back into task management |
 | MCP gateway | TypeScript gateway federates official StudioMCP and custom tools, resolves the plugin-connected Studio's opaque id, and injects it into applicable official calls | Preserve explicit project binding as runtime profiles add optional upstreams |
 | Studio bridge | Luau plugin immediately claims its declared place on the outbound bridge, then long-polls for that place's commands after a manual connect action | Dock UI auto-binds from a valid launch ticket, with manual fallback |
 | Runtime discovery | The plugin lists approved projects from Sandblock Code's loopback runtime service and asks it to serve one | Same service also issues launch tickets and reports agent/gateway binding per runtime |
 | Studio ownership | One Studio per declared place, several projects on one bridge; each place has its own command queue, each agent is tied to its project's endpoint and keeps its own selected place | Preserve deterministic per-place ownership and expose it clearly per runtime |
-| Rojo | Fork pinned to `v7.7.0-rc.1`; Sandblock Code starts `rojo serve` per project from the pinned build on an internal port, and serves it to Studio at `/runtimes/<id>/rojo` on the runtime service (HTTP and WebSocket); no Rojo it did not start is used | Ship the pinned build with the app, plus automatic binding from a launch ticket |
-| Project launch | Rojo and the Studio services start from one action, in the desktop window or in the plugin | One flow also launches the main place and the agent |
+| Rojo | Fork pinned to `v7.7.0-rc.1`; Sandblock Code starts `rojo serve` per project from the pinned build on an internal port when that project's window opens, stops it when the window closes, and serves it to Studio at `/runtimes/<id>/rojo` on the runtime service (HTTP and WebSocket); no Rojo it did not start is used | Ship the pinned build with the app, plus automatic binding from a launch ticket |
+| Project launch | Opening a project's window serves it with Rojo; the plugin can ask for a project instead, and its window opens with it | One flow also launches the main place and the agent |
 | Visual tools | Selection, UI/model/icon rendering and image generation already exist | Productized feedback loop exposed from the selected project and plugin |
 
 ## Project configuration
@@ -95,6 +135,7 @@ root. The current versioned format is:
   "displayName": "Game name",
   "rojoProject": "default.project.json",
   "mainPlaceId": 1234567890,
+  "universeId": 987654321,
   "places": [
     { "key": "main", "name": "Game name", "placeId": 1234567890, "main": true },
     { "key": "lobby", "name": "Lobby", "placeId": 2345678901, "main": false }
@@ -111,6 +152,12 @@ the Studios open on the machine, at game creation and in project settings, so a
 project is never bound to a place nobody has opened. Neither the plugin nor an
 agent can add one. `mainPlaceId` stays in sync with the main place, and a project
 written before `places` existed reads back as a single main place.
+
+`universeId` is the Roblox universe those places belong to, resolved from the
+main place and stored rather than looked up on each read, per
+[SB-017](DECISIONS.md). It is `null` until resolved, and it is cleared whenever
+the main place changes — a different place may be a different game, and a stale
+universe would key every store and analytics lookup to the wrong experience.
 
 The absolute repository path never enters the versioned project file. Electron
 stores it in its local application-data registry, canonicalizes it in the main
@@ -135,11 +182,14 @@ rebind a runtime or authorize a different project.
 
 ## Target launch lifecycle
 
-1. The developer selects a local project and chooses Start or Open Studio.
+1. The developer opens a project from the launcher, which opens that project's
+   window; the Studio plugin asking the runtime service for the project opens
+   the same window.
 2. Sandblock Code validates the repository, Rojo project, main place, Project
    Skill, and compatible component versions.
 3. The app creates or reuses the project's MCP gateway and opaque runtime ID.
-4. The app starts the pinned Rojo server for that project.
+4. The app starts the pinned Rojo server for that project, and stops it when the
+   window closes.
 5. The app launches Roblox Studio on the configured main place with a
    short-lived launch ticket discoverable only on loopback.
 6. The plugin opens its dock UI for that valid launch, registers itself, checks
@@ -176,6 +226,10 @@ A runtime descriptor carries `runtimeId`, `displayName`, the repository-relative
 `issue` when there is one, and the current `rojo` state including the loopback
 `url`, `projectName`, `serverVersion`, `protocolVersion`, and whether that
 server matches the pinned protocol. It never carries `repoRoot`.
+
+Projects with a window open are listed first, most recently focused first, and
+starting a runtime opens that project's window when it is not already open: a
+project's Rojo server is owned by its window.
 
 Studio is the only side that sees a patch land, so the plugin reports its own
 events and the app keeps them next to what it knows by itself — a server it
@@ -240,9 +294,9 @@ The agent Sandblock Code launches receives its project endpoint through
 `--mcp-config` under `--strict-mcp-config`. Agents opened by hand — Claude Code
 in a terminal, the desktop Code tab or an IDE, and Cursor — read `.mcp.json` and
 `.cursor/mcp.json`, which the app writes into the game repository from project
-settings. The desktop's Studio status and tool runner name the active project on
-every request, so switching the window's project never shows or drives another
-game. See [SB-019](DECISIONS.md#sb-019--agents-are-tied-to-one-project-so-several-games-run-at-once).
+settings. Each project has its own window, and that window's Studio status
+and tool runner name its project on every request, so one game's surfaces never
+show or drive another. See [SB-019](DECISIONS.md#sb-019--agents-are-tied-to-one-project-so-several-games-run-at-once).
 
 Every agent-facing tool call is addressed to one place. An MCP client starts on
 the project's main place and changes that with `select_studio_place`, or
