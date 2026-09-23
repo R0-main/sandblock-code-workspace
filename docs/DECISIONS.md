@@ -362,3 +362,36 @@ replacing the single "selected repository" the old window declared.
 Closing the last window quits the app. The main process is where the gateway, the
 runtime service and every Rojo server live; left running with nothing on screen
 it would keep serving games nobody has open.
+
+## SB-023 — A place syncs its own Rojo project
+
+**Status:** Accepted — refines
+[SB-020](#sb-020--rojo-is-part-of-sandblock-code)
+
+An experience can be several places that share code but not their tree: a lobby
+and a game that both mount `code/core`, each beside its own `code/lobby` or
+`code/game`. The project config named one Rojo file and Sandblock Code ran one
+server per repository, so whichever file that was reached every Studio of the
+project. The game place of `stop-the-eruption` was synced with the lobby's
+project, without an error or a warning, and ran the other place's code.
+
+A declared place may therefore name its own Rojo project with
+`places[].rojoProject`; a place without one syncs the project's `rojoProject`,
+so single-place projects do not change. Sandblock Code runs one `rojo serve` per
+distinct project file, each on its own internal port, and places naming the same
+file share its session.
+
+The Studio's `PlaceId` is the routing key. The plugin sends it when it asks for
+a runtime; the runtime service resolves it to the declared place, the place to
+its project file, and the file to its session, and hands back that place's route
+`/runtimes/<runtimeId>/places/<key>/rojo`. A `PlaceId` the project does not
+declare gets no session, and an unpublished place is served only when every
+place syncs the same file. Nothing falls back to the main place's tree: a silent
+fallback is exactly how the wrong code reached a place.
+
+Routing is also checked after the fact. The plugin reports the DataModel name it
+synced; when it is not the `name` of the Rojo project the place declares, the
+place shows the error with the expected and received files in the project's
+window, and the plugin stops the sync. The runtime API moves to version 3. An
+older plugin names no place: it keeps working while every place syncs one file,
+and is refused, with a message to update, once they differ.

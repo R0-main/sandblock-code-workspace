@@ -118,7 +118,7 @@ project-state, or Roblox Studio behavior.
 | Studio bridge | Luau plugin immediately claims its declared place on the outbound bridge, then long-polls for that place's commands after a manual connect action | Dock UI auto-binds from a valid launch ticket, with manual fallback |
 | Runtime discovery | The plugin lists approved projects from Sandblock Code's loopback runtime service and asks it to serve one | Same service also issues launch tickets and reports agent/gateway binding per runtime |
 | Studio ownership | One Studio per declared place, several projects on one bridge; each place has its own command queue, each agent is tied to its project's endpoint and keeps its own selected place | Preserve deterministic per-place ownership and expose it clearly per runtime |
-| Rojo | Fork pinned to `v7.7.0-rc.1`; Sandblock Code starts `rojo serve` per project from the pinned build on an internal port when that project's window opens, stops it when the window closes, and serves it to Studio at `/runtimes/<id>/rojo` on the runtime service (HTTP and WebSocket); no Rojo it did not start is used | Ship the pinned build with the app, plus automatic binding from a launch ticket |
+| Rojo | Fork pinned to `v7.7.0-rc.1`; Sandblock Code starts one `rojo serve` per Rojo project file a project's places sync, from the pinned build, each on its own internal port, when that project's window opens, stops them when the window closes, and serves each place's to Studio at `/runtimes/<id>/places/<key>/rojo` on the runtime service (HTTP and WebSocket); no Rojo it did not start is used | Ship the pinned build with the app, plus automatic binding from a launch ticket |
 | Project launch | Opening a project's window serves it with Rojo; the plugin can ask for a project instead, and its window opens with it | One flow also launches the main place and the agent |
 | Visual tools | Selection, UI/model/icon rendering and image generation already exist | Productized feedback loop exposed from the selected project and plugin |
 
@@ -138,7 +138,7 @@ root. The current versioned format is:
   "universeId": 987654321,
   "places": [
     { "key": "main", "name": "Game name", "placeId": 1234567890, "main": true },
-    { "key": "lobby", "name": "Lobby", "placeId": 2345678901, "main": false }
+    { "key": "lobby", "name": "Lobby", "placeId": 2345678901, "main": false, "rojoProject": "lobby.project.json" }
   ],
   "projectSkill": ".agents/skills/project-context/SKILL.md",
   "assetRoots": ["assets", "generated"]
@@ -152,6 +152,16 @@ the Studios open on the machine, at game creation and in project settings, so a
 project is never bound to a place nobody has opened. Neither the plugin nor an
 agent can add one. `mainPlaceId` stays in sync with the main place, and a project
 written before `places` existed reads back as a single main place.
+
+`rojoProject` names the Rojo project file the project syncs. A place may name
+its own with `places[].rojoProject`, for an experience whose places share code
+but not their tree — a lobby and a game that both mount `code/core` beside their
+own folder. A place without one syncs the top-level file, so a single-place
+project is unchanged, and the field is omitted rather than written as `null`.
+A place's file must be a repository-relative path to a file that exists; any
+other value makes the whole config invalid instead of being dropped, because a
+dropped value would quietly sync that place with the top-level tree. See
+[SB-023](DECISIONS.md#sb-023--a-place-syncs-its-own-rojo-project).
 
 `universeId` is the Roblox universe those places belong to, resolved from the
 main place and stored rather than looked up on each read, per
@@ -216,16 +226,36 @@ start processes.
 | --- | --- |
 | `GET /health` | Service signature and the pinned Rojo version/protocol |
 | `GET /runtimes` | Runtime descriptors for every registered project |
-| `POST /runtimes/{runtimeId}/start` | Serve that project with the pinned Rojo build |
-| `POST /runtimes/{runtimeId}/stop` | Stop that project's Rojo server |
-| `POST /runtimes/{runtimeId}/events` | Studio reports a connect, a sync, or a disconnect |
+| `POST /runtimes/{runtimeId}/start` | With `{ "placeId": n }`, serve the Rojo project that place syncs; without a body, every file the project's places sync |
+| `POST /runtimes/{runtimeId}/stop` | Stop every Rojo server of that project |
+| `POST /runtimes/{runtimeId}/events` | Studio reports a connect, a sync, or a disconnect, with its `placeId` |
+| `ANY /runtimes/{runtimeId}/places/{key}/rojo/...` | Rojo's HTTP API and WebSocket for the file that place syncs |
 | `GET /activity` | Sync history, newest first, optionally for one runtime |
 
-A runtime descriptor carries `runtimeId`, `displayName`, the repository-relative
-`projectFile`, `mainPlaceId`, whether the project is configured, a blocking
-`issue` when there is one, and the current `rojo` state including the loopback
-`url`, `projectName`, `serverVersion`, `protocolVersion`, and whether that
-server matches the pinned protocol. It never carries `repoRoot`.
+A runtime descriptor carries `runtimeId`, `displayName`, the main place's
+repository-relative `projectFile`, `mainPlaceId`, whether the project is
+configured, a blocking `issue` when there is one, and every declared place with
+the `projectFile` it syncs, that file's `rojo` state — the loopback `url` of the
+place's route, `projectName`, `serverVersion`, `protocolVersion`, and whether
+that server matches the pinned protocol — and what Studio last reported for it.
+It never carries `repoRoot` or a Rojo port.
+
+`start` with a `placeId` answers with the descriptor, the matched `place`, and
+the `rojo` session the plugin must sync with. A `placeId` the project does not
+declare is refused with `place_not_declared`; an unpublished place (`0`) is
+served only when every place syncs the same file, and refused with
+`place_required` otherwise. Neither ever falls back to the main place's tree.
+
+The placeless `/runtimes/{runtimeId}/rojo` route and the descriptor's top-level
+`rojo` remain for API 2 plugins, which name no place. They answer while every
+place syncs the same file; once the files differ, the route refuses with
+`place_required` and the top-level `rojo` has no `url` and says to update the
+plugin. `/health` reports API version 3.
+
+A `connected` event carries the DataModel name Rojo synced. The service compares
+it with the name of the Rojo project the reporting place declares; on a mismatch
+it records the error against that place, names the expected and received files,
+and answers `409 wrong_project`, on which the plugin stops the sync.
 
 Projects with a window open are listed first, most recently focused first, and
 starting a runtime opens that project's window when it is not already open: a
@@ -243,7 +273,11 @@ the developer happens to visit cannot enumerate projects or spawn servers.
 
 Rojo is started as `rojo serve <projectFile> --port <free port>` with the
 working directory set to the project repository, using `SANDBLOCK_ROJO_BIN`, the
-pinned fork build beside the app, or `rojo` on `PATH`, in that order. A game
+pinned fork build beside the app, or `rojo` on `PATH`, in that order. There is
+one session per repository and project file: two places naming the same file
+share it, and different files run side by side from port 34900 upwards, each
+port held by its session until it stops so that files started together never
+pick the same one. A game
 repository's own toolchain is deliberately not used: it may pin a different Rojo
 or none at all, while the vendored Studio adapter only speaks the pinned
 protocol. The server is considered running only once it answers `/api/rojo`;
@@ -251,11 +285,9 @@ until then the app reports `starting`, and a failure keeps the last lines Rojo
 printed.
 
 A server the app did not start — `rojo serve` run by hand, or one left by an
-earlier session — is reported as `external` and reused instead of being
-duplicated on a second port. A candidate only counts when the `projectName` it
-reports matches the `name` in that repository's own Rojo project file, so the
-plugin's development server, or another game's, is never mistaken for this
-project. The app never stops an external server: it does not own that process.
+earlier session — is never used, per
+[SB-020](DECISIONS.md#sb-020--rojo-is-part-of-sandblock-code): the app starts its
+own on the next free port.
 
 ## MCP gateway
 
@@ -352,6 +384,9 @@ Studio plugins cannot act as arbitrary inbound local servers. It should:
 - refuse to connect when the Studio `PlaceId` is not one of the selected
   runtime's declared `places`, before any server is started, and name the places
   that are declared;
+- sync with the Rojo session of the place it has open, which the runtime
+  service chooses from its `PlaceId`, and stop when the service reports that the
+  synced tree is another place's;
 - claim exactly one declared place, so Studios on different places of the same
   project connect side by side;
 - auto-open only for an intentional Sandblock launch or when the user opens it;
