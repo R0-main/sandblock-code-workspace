@@ -153,7 +153,13 @@ measured.
 **Current progress:** Credential capture is implemented in the desktop app:
 Roblox sign-in through an isolated session, verification against Roblox before
 storage, keychain-backed secrets, and account metadata surfaced without ever
-exposing the cookie. The analytics tools and the endpoint pin are not built yet.
+exposing the cookie. The endpoints are pinned from a capture of the Creator Hub
+(2026-09-24), and `sandblock-code/packages/creator-hub-mcp` exposes them as
+read-only tools: a full game report, any metric with breakdowns and filters, a
+metric catalogue, funnels, economy, custom events, benchmarks, player feedback,
+the script error report, and live players, all run against a live experience.
+Not done yet: federation into the gateway under an analysis profile, resolving
+each project's `universeId`, snapshots, and the feedback document.
 
 ## Later candidates
 

@@ -175,11 +175,19 @@ describe the current session only.
 
 **Status:** Accepted
 
-Roblox exposes no Open Cloud API for Creator Hub analytics. Reading retention,
-engagement, monetization, acquisition, player feedback, or creator alerts
-requires an authenticated `.ROBLOSECURITY` session against endpoints Roblox does
-not document. Those endpoints are treated as best effort: a tool reports that a
-capability is unavailable rather than inventing a number, and the analytics
+Roblox's Open Cloud Analytics Query API (announced 2026-08-24, API key scope
+`universe.analytics:read`) is not offered to every account: the Sandblock
+account's API key screen does not list the `universe-analytics` system, and
+player feedback, benchmarks, insights, and alerts have no Open Cloud API at all.
+So analytics are read the way the Creator Hub dashboard reads them: an
+authenticated `.ROBLOSECURITY` session against endpoints Roblox does not
+document. The metrics among them run on the same query engine the Open Cloud API
+documents, so its metric reference describes them.
+
+Those endpoints are pinned from the dashboard's own traffic, recorded by
+`sandblock-code/scripts/capture-creator-hub.mjs` while someone browses the
+Creator Hub, never guessed. They are treated as best effort: a tool reports that
+a capability is unavailable rather than inventing a number, and the analytics
 surface degrades one connector at a time.
 
 Sandblock Code owns the credential. It is captured through the genuine Roblox
