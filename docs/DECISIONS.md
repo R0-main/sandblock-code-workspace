@@ -199,7 +199,7 @@ owns Robux or administers a group.
 
 The analytics server runs as its own process so its tools are not loaded while an
 agent is writing game code. It is federated into the existing gateway as an
-additional upstream, enabled by runtime profile. It does not become a second
+additional upstream, enabled per project in that project's settings. It does not become a second
 agent-facing endpoint, which preserves [SB-005](#sb-005--agents-see-one-federated-mcp-gateway).
 
 Its tools are read-only. Publication, moderation, Robux movement, ad campaigns,

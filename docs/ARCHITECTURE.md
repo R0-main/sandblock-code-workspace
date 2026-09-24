@@ -114,7 +114,7 @@ project-state, or Roblox Studio behavior.
 | Area | Current | Target |
 | --- | --- | --- |
 | Desktop | A launcher window lists the registered games; each opens its own Electron/React window, fixed on one project, showing its Skills, assets, config, MCP health, and Studio binding; historical platform/task code is inactive | Add project-bound launch orchestration without expanding back into task management |
-| MCP gateway | TypeScript gateway federates official StudioMCP and custom tools, resolves the plugin-connected Studio's opaque id, and injects it into applicable official calls | Preserve explicit project binding as runtime profiles add optional upstreams |
+| MCP gateway | TypeScript gateway federates official StudioMCP and custom tools, resolves the plugin-connected Studio's opaque id, and injects it into applicable official calls | Preserve explicit project binding as projects turn on optional upstreams |
 | Studio bridge | Luau plugin immediately claims its declared place on the outbound bridge, then long-polls for that place's commands after a manual connect action | Dock UI auto-binds from a valid launch ticket, with manual fallback |
 | Runtime discovery | The plugin lists approved projects from Sandblock Code's loopback runtime service and asks it to serve one | Same service also issues launch tickets and reports agent/gateway binding per runtime |
 | Studio ownership | One Studio per declared place, several projects on one bridge; each place has its own command queue, each agent is tied to its project's endpoint and keeps its own selected place | Preserve deterministic per-place ownership and expose it clearly per runtime |
@@ -347,13 +347,17 @@ Legacy StudioMCP builds that expose a global `set_active_studio` flow remain
 supported: calls are serialized and the active Studio is switched around each
 one, so a shared global cannot be pulled out from under a call in flight.
 
-Not every upstream belongs in every session. A runtime profile decides which
-upstreams the gateway federates, so a development session is not charged the
-context cost of tools it will not call. Creator Hub analytics is the first such
-profiled upstream (**target**, see
+Not every upstream belongs in every session, so a development session is not
+charged the context cost of tools it will not call. Creator Hub analytics is the
+first optional upstream (**current**, see
 [`DECISIONS.md`](DECISIONS.md#sb-017--creator-hub-analytics-is-a-separate-process-behind-the-same-gateway)):
-its own process, its own credential, merged into the same tool registry rather
-than served from a second endpoint.
+a project turns it on in its settings. Sandblock Code then launches the Creator
+Hub process with the Roblox credential and tells the gateway, over its
+utility-process channel, where that process listens and which projects opted
+in. The tools join the same registry only on those projects'
+`/projects/<id>/mcp` endpoints, with the project's own `universeId` filled in by
+the gateway. Turned off, they are neither listed nor callable, and running
+sessions are told the tool list changed.
 
 Useful current visual capabilities include reading the Studio selection,
 inserting instances, rendering GUI elements, capturing workspace or turntable

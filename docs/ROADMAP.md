@@ -140,7 +140,7 @@ rather than by accretion. See
 - Capture, verify, and store a Roblox credential in the OS keychain.
 - Discover the Creator Hub endpoints empirically and pin what actually answers.
 - Resolve and persist each project's `universeId`.
-- Expose coarse read-only analytics tools through an analysis runtime profile.
+- Expose read-only analytics tools to the agents of projects that turn them on.
 - Snapshot metrics locally so trend history outlives the dashboard's own
   retention window and updates can be compared before and after.
 - Draft a feedback document from real data for human review.
@@ -158,8 +158,10 @@ exposing the cookie. The endpoints are pinned from a capture of the Creator Hub
 read-only tools: a full game report, any metric with breakdowns and filters, a
 metric catalogue, funnels, economy, custom events, benchmarks, player feedback,
 the script error report, and live players, all run against a live experience.
-Not done yet: federation into the gateway under an analysis profile, resolving
-each project's `universeId`, snapshots, and the feedback document.
+A project's settings turn those tools on for its agents: the gateway then lists
+them on that project's endpoint only, scoped to the project's `universeId`,
+which is resolved from its main place when missing. Not done yet: a live run of
+the toggle in the packaged app, snapshots, and the feedback document.
 
 ## Later candidates
 
