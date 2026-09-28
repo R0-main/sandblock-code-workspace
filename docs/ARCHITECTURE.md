@@ -322,6 +322,12 @@ inside that project only, and its session id cannot be replayed on another
 project's path. The unscoped `/mcp` keeps working while one project is connected
 and refuses Studio calls once a second connects, naming the project endpoints.
 
+Beside it, `/projects/<projectId>/capture/mcp` serves the same project
+read-only (**current**, see
+[`DECISIONS.md`](DECISIONS.md#sb-024--a-thumbnail-variant-sees-the-game-read-only-and-can-be-continued)):
+finding and inspecting instances, captures, and image assets by id, and nothing
+that changes the place. It is what a thumbnail variant run is given.
+
 The agent Sandblock Code launches receives its project endpoint through
 `--mcp-config` under `--strict-mcp-config`. Agents opened by hand — Claude Code
 in a terminal, the desktop Code tab or an IDE, and Cursor — read `.mcp.json` and
@@ -361,8 +367,8 @@ sessions are told the tool list changed.
 
 Useful current visual capabilities include reading the Studio selection,
 inserting instances, rendering GUI elements, capturing workspace or turntable
-views, obtaining model or styled icons, generating icons, and uploading local
-images. The gateway also exposes device simulator state/control and a
+views, obtaining model or styled icons, showing image assets by id, generating
+icons, and uploading local images. The gateway also exposes device simulator state/control and a
 multi-device playtest matrix that selects each phone or tablet preset, starts
 Play, waits, captures the viewport, reads console output, stops Play, and
 restores the prior simulator state. Tool availability is runtime-discovered;

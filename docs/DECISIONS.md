@@ -403,3 +403,37 @@ place shows the error with the expected and received files in the project's
 window, and the plugin stops the sync. The runtime API moves to version 3. An
 older plugin names no place: it keeps working while every place syncs one file,
 and is refused, with a message to update, once they differ.
+
+## SB-024 — A thumbnail variant sees the game read-only, and can be continued
+
+**Status:** Accepted
+
+A variant run edited a thumbnail knowing only the base image and the
+repository, so the art showed generic characters and effects rather than the
+game's own. And it ended with its image: asking for one more change meant a new
+run from scratch, without what the last one had learned.
+
+A variant run is therefore given the project's **capture** endpoint,
+`/projects/<projectId>/capture/mcp`. It serves the same project as
+`/projects/<projectId>/mcp`, but only tools that cannot change the place: finding
+and inspecting instances, photographing models and UI, and
+`render_2d_asset_id`, which shows image assets such as particle textures by id.
+The filter is at the gateway, so an unlisted tool is not callable by name
+either, and a session opened on one profile cannot be replayed on the other.
+There is no unscoped capture endpoint. Access is chosen per run with a switch
+in the variant dialog: on by default when a Studio has one of the project's
+places open, off otherwise, and off means the run has no MCP server at all.
+
+Codex runs with `--ignore-user-config`, because the person's own `config.toml`
+may declare the full gateway and a `-c` override can add a server but never
+remove one. The capture server is the run's only MCP server, and its tools are
+approved without asking — safe only because the gateway serves it read-only.
+
+A run keeps its Codex session and its scratch directory after a turn ends. A
+follow-up resumes the session, edits the latest image, and files the result in
+Drive as a new variant beside the previous one. The directory is removed when
+the run is finished by hand or the app quits.
+
+**Current:** implemented in `sandblock-code` (gateway, runner, Thumbnails tab)
+and documented in `sandblock-skills`' `roblox-thumbnail-variant`. No Studio
+plugin change: every capture it uses already restores what it touched.
