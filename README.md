@@ -49,6 +49,20 @@ exist, configure missing `origin` remotes with:
 npm run bootstrap:remotes
 ```
 
+Bring everything up to date and reinstall it in one step with:
+
+```bash
+npm run update
+```
+
+It fast-forwards every repository on its current branch (skipping any with
+local changes, no upstream, or diverged history), clones missing ones, runs
+`npm ci` in `sandblock-ui` and `sandblock-code` when their lockfile changed,
+builds the desktop app, builds the Rojo fork with `cargo build --release`, and
+builds the Studio plugin into Roblox's Plugins folder. Restart Studio afterward.
+`--no-pull` skips Git, `--clean` forces the `npm ci`, and `--launch` starts the
+app at the end (`npm run update -- --launch`); `npm run app` starts it without rebuilding. `SANDBLOCK_STUDIO_PLUGINS_DIR` overrides the Plugins folder.
+
 Inspect the parent and all children together with:
 
 ```bash

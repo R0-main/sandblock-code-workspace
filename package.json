@@ -10,6 +10,8 @@
   "scripts": {
     "bootstrap": "node scripts/bootstrap.mjs",
     "bootstrap:remotes": "node scripts/bootstrap.mjs --configure-remotes",
+    "update": "node scripts/update.mjs",
+    "app": "npm --prefix sandblock-code run desktop:start",
     "status": "node scripts/status.mjs",
     "context:check": "node scripts/check-context.mjs"
   }
