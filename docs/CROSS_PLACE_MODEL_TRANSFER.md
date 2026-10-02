@@ -2,7 +2,12 @@
 
 ## Status
 
-**Target:** agreed implementation direction, not current behavior.
+**Current, unvalidated:** the gateway tools and plugin handlers below are
+implemented, but the
+[required Roblox validation](#required-roblox-validation) has not been run. Until a
+real two-place prototype passes it, treat every Roblox-side behavior described
+here as an assumption the code makes, not a fact. [Implementation](#implementation)
+records where the code departs from or narrows the design.
 
 This document is the handoff for implementing model transfer between declared
 Roblox places through Sandblock Code's project-bound MCP gateway and Studio
@@ -259,6 +264,76 @@ The eventual Roblox agent skill should contain this decision rule:
 - Root documentation owns the cross-repository contract. Update
   `ARCHITECTURE.md` and `DECISIONS.md` when the prototype resolves the open
   Roblox questions and the design becomes an accepted implementation contract.
+
+## Implementation
+
+**Current, unvalidated.** The gateway side is `sandblock-code/src/packages.ts`
+(registry, publication queue, idempotency, orchestration) and
+`sandblock-code/src/tools/packages.ts` (the five MCP tools). The Studio side is
+`sandblock-studio-plugin/src/Handlers/Packages.lua`.
+
+The gateway sequences these plugin commands. Each one carries `expectedPlaceId`,
+and the plugin refuses a Studio holding another place:
+
+| Command | Step |
+| --- | --- |
+| `package_inspect_destination` | Resolve `destinationPath`, report the owner and universe, run the Rojo check. |
+| `package_inspect_source` | Resolve `modelPath` and report the owner, universe, and model. |
+| `package_publish` | Publish the shuttle version (`transfer`), a new package (`dedicated`), or a named package's next version (`version`). |
+| `package_insert` | Load an asset version, verify it, insert it, and detach the shuttle copy. |
+| `package_clone_local` | Clone within one place, used when source and destination are the same place. |
+| `package_update_copy` | Replace one package copy with the latest version, keeping its parent, name, and pivot. |
+
+Each command answers `{ ok: true, ... }` or `{ ok: false, code, message,
+retryable }`. The tools return refusals as structured results such as the
+example above.
+
+Choices the design left open, or that the code narrows:
+
+- **The shuttle is a versioned Model asset.** `transfer` mode publishes it with
+  `AssetService:CreateAssetAsync` and `IsPackage = false`, then publishes later
+  versions with `CreateAssetVersionAsync`. Nothing links the shuttle to a
+  `PackageLink`, so detaching only has to remove a link that points at the
+  shuttle. Validation must confirm that a plain Model asset accepts versions. If
+  it does not, publish the shuttle as a package instead.
+- **One shuttle per universe.** The gateway stores
+  `{ universeId → assetId, creator }` in `transfer-packages.json`. The desktop
+  app puts that file in its user data directory through
+  `SANDBLOCK_TRANSFER_PACKAGES_FILE`; without the variable it goes in
+  `~/.sandblock-code/`. A shuttle whose recorded owner differs from the place's
+  current owner is refused rather than replaced.
+- **Exact version.** Right after publishing, while the gateway still holds the
+  owner's publication lock, the plugin polls
+  `InsertService:GetLatestAssetVersionAsync` until it returns a new
+  `assetVersionId`, for up to ten seconds. The destination then loads that id
+  with `InsertService:LoadAssetVersion`. If no new id appears, the transfer fails
+  with `package_version_unresolved` and nothing is inserted.
+- **Version verification.** Each shuttle version carries a fresh
+  `SandblockTransferId` attribute on its envelope. The destination refuses with
+  `transfer_version_mismatch` if the version it loaded carries another id. Even if
+  the version lookup is wrong, the result is a refusal, never the wrong model.
+- **Ownership.** Only places with the same owner (`game.CreatorType` and
+  `game.CreatorId`) can transfer to each other. Different owners are refused with
+  `creator_mismatch`. Explicitly shared assets are not supported yet.
+- **Rojo check.** The plugin keeps the instance map from the live Rojo session.
+  It finds the nearest instance at or above the destination that Rojo syncs and
+  reads that instance's metadata from the Rojo server (`/api/read/<id>`). The
+  destination is refused (`rojo_owned_destination`) unless
+  `ignoreUnknownInstances` is true there. If the place declares a Rojo project
+  but Rojo is not connected in that Studio, the transfer is refused with
+  `rojo_not_connected`.
+- **Size.** Before uploading, the plugin serializes the payload with
+  `SerializationService` and refuses anything over 20 MB. A Studio without that
+  service skips the check, and Roblox's own refusal applies.
+- **Queue.** Publications are serialized per owner, at least three seconds apart
+  and at most 20 per rolling minute. Throttling, timeouts, server errors, and
+  bridge timeouts are retried after 2, 4, 8, and 16 seconds. Permission and
+  moderation refusals are not retried.
+- **Idempotency.** Results are kept in gateway memory for one hour per key. A key
+  reused with different arguments is refused with `idempotency_key_reused`.
+- **`update_package_copy_to_latest`.** It loads the latest version with
+  `InsertService:LoadAsset` and replaces the copy. The old copy is unparented, not
+  destroyed, so Studio's undo restores it. Local edits to that copy are lost.
 
 ## Primary Roblox references
 

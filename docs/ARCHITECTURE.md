@@ -342,7 +342,11 @@ overrides it for a single call with the `place` argument the gateway adds to
 every Studio-facing schema. The selection lives per MCP client, so two agents can
 hold two places at the same time without moving each other's target.
 `list_studio_places` reports the declared places, which have a Studio connected,
-and which one the caller's calls are going to.
+and which one the caller's calls are going to. The one exception is
+`transfer_model_between_places`. It names a source and a destination itself
+(`fromPlace`, `toPlace`) and needs both places connected (**current,
+unvalidated against Roblox**, see
+[`CROSS_PLACE_MODEL_TRANSFER.md`](CROSS_PLACE_MODEL_TRANSFER.md)).
 
 The gateway owns official Studio routing, now per place. It matches each
 connected plugin's Studio fingerprint against `list_roblox_studios`, stores the

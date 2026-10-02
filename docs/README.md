@@ -12,7 +12,7 @@ repository in the Sandblock Code workspace.
 | Accepted cross-repository decisions | [`DECISIONS.md`](DECISIONS.md) |
 | Delivery order and completion gates | [`ROADMAP.md`](ROADMAP.md) |
 | Roblox game production workflow, reuse rules, and reusable library content types (systems, models, UI, VFX, sounds) | [`ROBLOX_DEVELOPMENT_WORKFLOW.md`](ROBLOX_DEVELOPMENT_WORKFLOW.md) |
-| Target cross-place Studio model transfer and package shuttle handoff | [`CROSS_PLACE_MODEL_TRANSFER.md`](CROSS_PLACE_MODEL_TRANSFER.md) |
+| Cross-place Studio model transfer and package tools (implemented, pending Roblox validation) | [`CROSS_PLACE_MODEL_TRANSFER.md`](CROSS_PLACE_MODEL_TRANSFER.md) |
 | Shared visual direction | [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) |
 | Repository locations, branches, and bootstrap configuration | [`../workspace.json`](../workspace.json) |
 
