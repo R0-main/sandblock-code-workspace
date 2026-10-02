@@ -372,7 +372,9 @@ sessions are told the tool list changed.
 Useful current visual capabilities include reading the Studio selection,
 inserting instances, rendering GUI elements, capturing workspace or turntable
 views, obtaining model or styled icons, showing image assets by id, generating
-icons, and uploading local images. The gateway also exposes device simulator state/control and a
+icons, and uploading local assets of any type (`upload_assets`: images through
+Studio, other types through Open Cloud, see
+[SB-025](DECISIONS.md#sb-025--agents-upload-every-kind-of-asset-through-one-tool)). The gateway also exposes device simulator state/control and a
 multi-device playtest matrix that selects each phone or tablet preset, starts
 Play, waits, captures the viewport, reads console output, stops Play, and
 restores the prior simulator state. Tool availability is runtime-discovered;
@@ -445,6 +447,10 @@ baseline.
 - Roblox account credentials are captured through the genuine Roblox login page,
   verified before storage, and held in the OS keychain. They never reach the
   renderer, an agent, a tool result, or a child process argument list.
+- Open Cloud API keys are checked with Roblox's introspection endpoint before
+  storage and held in the same keychain-backed vault. The gateway receives them
+  as a process message and keeps them in memory only, under the same rules as
+  account credentials.
 
 ## Cross-repository contracts
 

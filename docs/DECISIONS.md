@@ -437,3 +437,46 @@ the run is finished by hand or the app quits.
 **Current:** implemented in `sandblock-code` (gateway, runner, Thumbnails tab)
 and documented in `sandblock-skills`' `roblox-thumbnail-variant`. No Studio
 plugin change: every capture it uses already restores what it touched.
+
+## SB-025 — Agents upload every kind of asset through one tool
+
+**Status:** Accepted
+
+Agents could upload only images. Sounds, meshes, animations, and videos had to
+be uploaded by hand in Studio or Creator Hub before an agent could use their ids.
+
+`upload_assets` uploads local files of any type Roblox accepts and returns one
+result per file. It is one tool, not one per type, for three reasons. Every type
+takes the same path, an Open Cloud create-asset call followed by polling the
+operation. A mixed batch is one call. And every extra tool adds context to
+every session. The type comes from the extension; `assetType` is only needed
+for a `.rbxm` that is an animation. `upload_local_images` is removed.
+
+Images still upload through the upstream StudioMCP's `upload_image`. It uses
+Studio's own sign-in, needs no key, and returns an id an `ImageLabel` can show.
+Every other type uses the Open Cloud Assets API with an API key:
+
+- Sandblock Code keeps one key per Roblox owner, user or group. When a key is
+  added, Roblox's introspection endpoint confirms that it can write assets and
+  names the owners it acts for. The key goes into the same keychain-backed vault
+  as the Roblox accounts, and the renderer only ever sees a summary with the
+  last four characters.
+- The app sends the gateway the full set of keys as a process message. It does
+  so when the gateway starts and whenever a key is added or forgotten. The
+  gateway keeps them in memory only. A gateway the app did not start receives
+  no keys.
+- An asset belongs to the owner of the place the call targets, which the
+  gateway looks up from Roblox's public place, universe, and game endpoints.
+  Agents cannot choose an owner. If no place is connected, uploads work only
+  when a single key is held.
+
+Uploads run one at a time. Throttling and server errors are retried after 2, 4,
+8, and 16 seconds, honoring `Retry-After`. A refused key is not retried. An
+upload Roblox is still processing is reported as pending, with its operation
+id, so that it is not uploaded twice. Audio and video count against Roblox's
+upload quotas.
+
+**Current:** implemented in `sandblock-code` (gateway tool, desktop key store,
+Settings section). It has not yet been run against Roblox with a real key. No
+Studio plugin change.
+
