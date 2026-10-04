@@ -75,6 +75,15 @@ For each task the agent should:
 6. use Studio captures when the result is spatial or visual;
 7. report evidence, limitations, and any context that must be updated.
 
+**Current:** games created from `sandblock-game-boilerplate` split this loop
+across three agents. A planner turns the feature into ordered tasks, a builder
+implements each task and cannot finish while the check suite is red, and a
+separate tester re-runs the checks and reviews the diff until it approves.
+`/feature` chains them one task at a time in the single checkout. The tester's
+approval is a gate before human review, not a substitute for it: humans still
+playtest, merge, and mark tasks Done. The boilerplate README describes the
+roles and how to retune them.
+
 The app-provided binding is authoritative. An agent can report its working
 directory for diagnostics, but must not reassign the project by passing a new
 filesystem path to Studio.
