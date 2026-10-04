@@ -73,6 +73,13 @@ owns workflows reusable across games; a game's own Project Skill owns what
 describes that game. Do not wire the extracted system to a skill that still
 lives in the historical monorepository — migrate it instead.
 
+### Game boilerplate
+
+Read [`ROBLOX_DEVELOPMENT_WORKFLOW.md`](../../../docs/ROBLOX_DEVELOPMENT_WORKFLOW.md)
+and [`sandblock-game-boilerplate/README.md`](../../../sandblock-game-boilerplate/README.md).
+The boilerplate owns what every new game starts with; a change there does not
+reach games already created from it.
+
 ### Rojo fork work
 
 Read [`sandblock-rojo/SANDBLOCK.md`](../../../sandblock-rojo/SANDBLOCK.md), then

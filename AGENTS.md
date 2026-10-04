@@ -1,7 +1,7 @@
 # Sandblock Code workspace instructions
 
 This root is a Git meta-repository containing canonical cross-repository
-context and orchestration for four independent child repositories.
+context and orchestration for six independent child repositories.
 
 ## Required startup
 
@@ -26,8 +26,12 @@ more than one repository.
   required by the Sandblock plugin.
 - `sandblock-ui/`: reusable semantic tokens, CSS, React primitives, and the
   component catalog consumed by Sandblock web and Electron projects.
+- `sandblock-skills/`: agent skills and workflows shared across games.
+- `sandblock-game-boilerplate/`: the starting repository for a new Sandblock
+  Roblox game — stack, check gate, example modules, and the agent
+  configuration every new game inherits.
 
-The parent repository ignores all four child directories. Parent commits may
+The parent repository ignores all six child directories. Parent commits may
 change only workspace-level material such as `docs/`, `.agents/`, this file,
 `workspace.json`, or root scripts. Never stage a child repository into the
 parent or replace it with an accidental Git submodule.
@@ -65,5 +69,5 @@ from `workspace.json`. It does not mutate remotes of existing repositories.
 `upstream` remotes; use it only after confirming those remotes exist.
 
 The historical source repository is
-`/Users/romain/sandblock/roblox-studio-ai-automation`. Keep it until the four
+`/Users/romain/sandblock/roblox-studio-ai-automation`. Keep it until the
 extracted repositories build and integrate independently.

@@ -31,6 +31,12 @@
       "path": "sandblock-skills",
       "remote": "git@ssh.git.shulkr.net:roblox/skills.git",
       "defaultBranch": "main"
+    },
+    {
+      "name": "Sandblock Game Boilerplate",
+      "path": "sandblock-game-boilerplate",
+      "remote": "git@ssh.git.shulkr.net:roblox/game-boilerplate.git",
+      "defaultBranch": "main"
     }
   ]
 }

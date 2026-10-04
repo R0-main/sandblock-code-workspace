@@ -2,11 +2,12 @@
 
 ## System overview
 
-Sandblock Code is a coordinated workspace of five independently versioned
+Sandblock Code is a coordinated workspace of six independently versioned
 repositories. The desktop app is the control plane, the Studio plugin is the
 in-Studio execution and feedback surface, the Rojo fork supplies a pinned,
-compatible sync engine, Sandblock UI owns reusable web interface primitives, and
-Sandblock Skills owns the agent skills shared across games.
+compatible sync engine, Sandblock UI owns reusable web interface primitives,
+Sandblock Skills owns the agent skills shared across games, and the game
+boilerplate is the repository every new game starts from.
 
 ```mermaid
 flowchart LR
@@ -101,6 +102,20 @@ migrated out of the historical monorepository, and Sandblock Code resolves
 shared skills from it when launching a coding agent. Per-game configuration —
 subjects, palettes, place bindings — stays in the game repository's own Project
 Skill.
+
+### `sandblock-game-boilerplate`
+
+Owns the starting point of a new Sandblock Roblox game: the native strict Luau
+stack described in
+[`ROBLOX_DEVELOPMENT_WORKFLOW.md`](ROBLOX_DEVELOPMENT_WORKFLOW.md), the
+`./scripts/check.sh` gate, the headless test harness, one worked example of each
+kind of module, and the agent configuration a new game inherits. A game is
+created from it once and then diverges, so a later boilerplate change reaches an
+existing game only when it is copied there deliberately.
+
+**Current:** registered in [`../workspace.json`](../workspace.json) and cloned by
+`npm run bootstrap`. It bundles the `roblox-luau-knit`, `knit`, and `charm`
+skills under `.claude/skills/`.
 
 ### `sandblock-ui`
 

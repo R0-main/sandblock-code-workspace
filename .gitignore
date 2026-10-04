@@ -7,6 +7,7 @@ node_modules/
 /sandblock-rojo/
 /sandblock-ui/
 /sandblock-skills/
+/sandblock-game-boilerplate/
 
 # Local secrets and generated media.
 .env
