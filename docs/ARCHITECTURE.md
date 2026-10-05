@@ -387,9 +387,12 @@ sessions are told the tool list changed.
 Useful current visual capabilities include reading the Studio selection,
 inserting instances, rendering GUI elements, capturing workspace or turntable
 views, obtaining model or styled icons, showing image assets by id, generating
-icons, and uploading local assets of any type (`upload_assets`: images through
+icons, uploading local assets of any type (`upload_assets`: images through
 Studio, other types through Open Cloud, see
-[SB-025](DECISIONS.md#sb-025--agents-upload-every-kind-of-asset-through-one-tool)). The gateway also exposes device simulator state/control and a
+[SB-025](DECISIONS.md#sb-025--agents-upload-every-kind-of-asset-through-one-tool)),
+and downloading assets by id into local files (`download_assets`, through Open
+Cloud, see
+[SB-028](DECISIONS.md#sb-028--agents-download-assets-by-id-through-one-tool)). The gateway also exposes device simulator state/control and a
 multi-device playtest matrix that selects each phone or tablet preset, starts
 Play, waits, captures the viewport, reads console output, stops Play, and
 restores the prior simulator state. Tool availability is runtime-discovered;

@@ -535,3 +535,41 @@ display preference, and "Tidy up" lays the tree out again.
 Thumbnails board). Variants filed before this change have no parent and appear
 in the board's grid. No skill or Studio plugin change: the app files every variant
 itself, so the agent never sees this metadata.
+
+## SB-028 — Agents download assets by id through one tool
+
+**Status:** Accepted
+
+Agents could see an image asset by id with `render_2d_asset_id`, but could not
+get the file of any asset: a sound to trim, a mesh to inspect, a model to take
+apart, an image to edit. Roblox has also refused unauthenticated requests to
+`assetdelivery.roblox.com` since April 2025, so a plain download no longer
+works.
+
+`download_assets` is the reverse of `upload_assets`
+([SB-025](#sb-025--agents-upload-every-kind-of-asset-through-one-tool)): one
+tool for every type, a batch in one call, and one result per asset. It saves
+each asset into a folder the agent names, or a temporary folder. The extension
+comes from the file's own bytes, and the Roblox asset type is reported beside
+the path, because a Model and an Animation are both `.rbxm`. A different file
+already saved under the same name is kept unless the call asks to overwrite it.
+
+It reads Open Cloud's Asset Delivery API (`apis.roblox.com/asset-delivery-api`)
+with the keys Sandblock Code already holds for uploads:
+
+- A key is still added only when it can write assets. Downloads also need the
+  Legacy Asset API (`legacy-asset:manage`) on it; Settings says so, and a
+  download Roblox refuses names the missing permission.
+- The key of the targeted place's owner is tried first. Downloading changes
+  nothing, so when Roblox refuses or does not find the asset, the other keys
+  held are tried after it, for an asset private to another owner.
+- The key goes to `apis.roblox.com` only, never to the CDN the delivery answer
+  points at.
+
+The Roblox account held for Creator Hub analytics is not used. Its cookie stays
+in the main process, and a routine agent download has no reason to reach it.
+
+**Current:** implemented in `sandblock-code` (gateway tool, Settings copy). It
+has not yet been run against Roblox with a real key: the delivery answer's
+shape (`location`, `assetTypeId`) and which assets a key may read are assumed.
+No Studio plugin change.
