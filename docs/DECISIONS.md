@@ -480,3 +480,58 @@ upload quotas.
 Settings section). It has not yet been run against Roblox with a real key. No
 Studio plugin change.
 
+
+## SB-026 — Thumbnail lineage lives in Drive, and the board draws it
+
+**Status:** Accepted
+
+A variant was filed in Drive with no record of what it came from. Only the run
+knew its base, and only until it was closed or the app quit, so nobody could
+see which image a variant was made from or what had been tried along the way.
+
+Each variant now records its parent in Drive:
+
+- A variant's `parent` property is the Drive id of what it was made from. That
+  is the base for a run's first image, and the image the previous turn filed for
+  every later one, because a follow-up edits the run's latest image.
+- What was asked for is stored in the file's Drive `description`, since a
+  request is free text and a property is capped at 124 bytes. When the request
+  is empty, the first line of the agent's reply is stored instead, because it
+  names the axis the agent chose.
+- A base the Roblox CDN serves is saved to Drive as `live` art before the run
+  starts. A lineage then starts at a file, and that file does not expire the way
+  a CDN link does.
+- Images downloaded into Drive carry `src`, a hash of their bytes. The same
+  image is stored once, so a tile saved by hand and then used as a base, or used
+  as a base twice, is a single root.
+- A variant keeps its base's shape. An icon's variants are icons.
+
+The Thumbnails tab adds a **Board** view built with React Flow. Every image in
+the library is a card. A card with a parent has an arrow from it, labelled with
+the request, and lineages are laid out as trees. Images with no parent and no
+child sit in a grid under the trees. A card is drawn square when its image is
+square, whatever its stored shape says, because icon variants filed before this
+change were stored as 16:9. A run in progress appears as a pending card under its
+parent. Selecting a card shows it large with its request and parent. From there
+you can start a new variant from the card or delete it. If a run is still open
+and the card is its latest image, you can also ask that run for the next change.
+
+Images pasted or dropped into a variant request, or into a follow-up, are
+reference images for the change. The app checks their type and size, writes
+them into the run's `references` directory, names them in the prompt, and
+attaches them to the Codex message with `--image`. They are never filed as the
+result.
+
+Image bytes are cached on disk by Drive file id, along with a preview shrunk to
+card width. The cache is correct only because the app never rewrites a file's
+bytes in place: an edit is always a new file. The Drive client stays alive while
+the connection is unchanged, so its access token and folder ids are not fetched
+again on every call. The window shows the last listing at once while a new one
+loads.
+Card positions are kept per project in the window's local storage. They are a
+display preference, and "Tidy up" lays the tree out again.
+
+**Current:** implemented in `sandblock-code` (Drive client, variant handler,
+Thumbnails board). Variants filed before this change have no parent and appear
+in the board's grid. No skill or Studio plugin change: the app files every variant
+itself, so the agent never sees this metadata.
