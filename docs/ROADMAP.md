@@ -60,7 +60,10 @@ launch validation remain.
   bound through `--mcp-config` or the repository's `.mcp.json` (SB-019).
 - Start/stop the gateway and pinned Rojo server per project.
 - Launch the coding agent with the correct working directory and Project Skill.
-- Launch Roblox Studio on the configured main place.
+- Launch Roblox Studio on the configured main place. **Current, unvalidated
+  against Roblox:** agents open any declared place with `open_place`, and
+  disposable copies of a place at an exact version with `open_place_copy`
+  (SB-027).
 - Add health, retry, logs, and partial-failure recovery.
 
 **Exit check:** Two configured projects cannot accidentally share paths,
@@ -72,15 +75,16 @@ runtime identity, place validation, or Rojo state.
 feedback surface.
 
 - Build the Sandblock-branded dock widget in Luau GuiObjects.
-- Implement launch-ticket handshake and automatic opening for intentional app
-  launches.
+- Implement automatic connection: the plugin asks Sandblock Code on load and
+  connects without a click (SB-027). **Current, unvalidated in Studio.**
 - List only approved active runtimes as manual fallback.
 - Validate `PlaceId` before mutation.
 - Surface MCP health, current project, Rojo health, capabilities, and errors.
 
-**Exit check:** Opening Studio from Sandblock Code binds the correct project
-without asking the developer for a path, while a normal Studio launch remains
-non-intrusive.
+**Exit check:** Opening Studio from Sandblock Code, or opening a declared place
+by hand while its project is open, binds the correct project without asking
+the developer for a path or a click, and a place whose automatic connection is
+off stays unconnected.
 
 ## M5 — Integrated pinned Rojo experience
 

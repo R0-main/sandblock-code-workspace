@@ -13,6 +13,7 @@ repository in the Sandblock Code workspace.
 | Delivery order and completion gates | [`ROADMAP.md`](ROADMAP.md) |
 | Roblox game production workflow, reuse rules, and reusable library content types (systems, models, UI, VFX, sounds) | [`ROBLOX_DEVELOPMENT_WORKFLOW.md`](ROBLOX_DEVELOPMENT_WORKFLOW.md) |
 | Cross-place Studio model transfer and package tools (implemented, pending Roblox validation) | [`CROSS_PLACE_MODEL_TRANSFER.md`](CROSS_PLACE_MODEL_TRANSFER.md) |
+| Launching Studio, automatic plugin connection, and disposable place copies for parallel agents (implemented, pending Roblox validation) | [`STUDIO_LAUNCH_AND_PLACE_COPIES.md`](STUDIO_LAUNCH_AND_PLACE_COPIES.md) |
 | Game list (GitLab topic `game`), one-click clone and setup, and in-app updates (target) | [`MACHINE_SETUP_AND_UPDATES.md`](MACHINE_SETUP_AND_UPDATES.md) |
 | Shared visual direction | [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) |
 | Repository locations, branches, and bootstrap configuration | [`../workspace.json`](../workspace.json) |
@@ -43,6 +44,8 @@ Do not silently write target behavior as if it were already implemented.
   `ROBLOX_DEVELOPMENT_WORKFLOW.md`.
 - Cross-place model transfer or Roblox package tooling: read
   `CROSS_PLACE_MODEL_TRANSFER.md`.
+- Opening Studio, plugin auto-connect, place copies, or parallel subagents in
+  Studio: read `STUDIO_LAUNCH_AND_PLACE_COPIES.md`.
 - New-machine setup, cloning a game, or updating the app: read
   `MACHINE_SETUP_AND_UPDATES.md`.
 - UI work: read `DESIGN_SYSTEM.md` and the owning repository's current UI.

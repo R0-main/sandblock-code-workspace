@@ -40,7 +40,7 @@ open Studio by supplying that id.
 
 ## SB-004 — v0 launches the main Roblox place only
 
-**Status:** Accepted
+**Status:** Replaced by [SB-027](#sb-027--agents-open-studio-and-work-in-disposable-place-copies)
 
 Multi-place games may still exist, but v0 configures and opens one main place.
 Additional place orchestration is added only when a real workflow requires it.
@@ -535,6 +535,41 @@ display preference, and "Tidy up" lays the tree out again.
 Thumbnails board). Variants filed before this change have no parent and appear
 in the board's grid. No skill or Studio plugin change: the app files every variant
 itself, so the agent never sees this metadata.
+
+## SB-027 — Agents open Studio and work in disposable place copies
+
+**Status:** Accepted — replaces [SB-004](#sb-004--v0-launches-the-main-roblox-place-only)
+and the rule that a Studio opened by hand stays unconnected until someone clicks
+
+SB-004 limited launching to the main place, and the plugin waited for a click
+before connecting, so that a normal Studio launch stayed non-intrusive. Both
+now block the work. An agent cannot open the place it needs. Several agents
+cannot build in parallel either, because a place holds one Studio and every
+agent's edits land in the same world.
+
+Sandblock Code therefore launches Studio on any declared place, and the plugin
+connects without a click. Sandblock Code decides when a Studio connects, and
+the plugin asks it on load. A Studio connects when Sandblock Code launched it,
+or when someone opened by hand a place that exactly one open project declares.
+Automatic connection can be turned off per place on each machine. The four
+agent tools that open Studio — `open_place`, `get_place_version`,
+`open_place_copy`, `close_place_copy` — can be turned off per project.
+
+An orchestrating agent can give each subagent a disposable copy of a declared
+place at an exact version: the version is downloaded from Roblox and opened as a
+local file, so copies of one snapshot run side by side. A copy is reached only
+through its project's endpoint, syncs its place's Rojo tree, and is deleted when
+it closes. A subagent brings its work back in one transfer of one grouped
+instance. An optional setup script then puts each piece in place in the
+destination, and the destination is left unchanged if that script fails.
+
+The Roblox account already held for Creator Hub analytics downloads the
+versions, from the main process only. The app still never passes a credential
+to Studio.
+
+[`STUDIO_LAUNCH_AND_PLACE_COPIES.md`](STUDIO_LAUNCH_AND_PLACE_COPIES.md) is
+canonical for the behavior, the contracts, and the Roblox facts still to
+validate.
 
 ## SB-028 — Agents download assets by id through one tool
 

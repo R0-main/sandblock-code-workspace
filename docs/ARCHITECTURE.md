@@ -130,11 +130,11 @@ project-state, or Roblox Studio behavior.
 | --- | --- | --- |
 | Desktop | A launcher window lists the registered games; each opens its own Electron/React window, fixed on one project, showing its Skills, assets, config, MCP health, and Studio binding; historical platform/task code is inactive | Add project-bound launch orchestration without expanding back into task management |
 | MCP gateway | TypeScript gateway federates official StudioMCP and custom tools, resolves the plugin-connected Studio's opaque id, and injects it into applicable official calls | Preserve explicit project binding as projects turn on optional upstreams |
-| Studio bridge | Luau plugin immediately claims its declared place on the outbound bridge, then long-polls for that place's commands after a manual connect action | Dock UI auto-binds from a valid launch ticket, with manual fallback |
-| Runtime discovery | The plugin lists approved projects from Sandblock Code's loopback runtime service and asks it to serve one | Same service also issues launch tickets and reports agent/gateway binding per runtime |
+| Studio bridge | Luau plugin asks the runtime service on load whether to connect and connects without a click when Sandblock Code launched it or an open project declares its place, unless that place's automatic connection is off; it then claims the place and long-polls for its commands (**current, unvalidated in Studio**, see [`STUDIO_LAUNCH_AND_PLACE_COPIES.md`](STUDIO_LAUNCH_AND_PLACE_COPIES.md)) | Same, validated in Studio |
+| Runtime discovery | The plugin lists approved projects from Sandblock Code's loopback runtime service and asks it to serve one; the same service decides automatic connection, launches Studio, and serves place versions and copies (**current, unvalidated against Roblox**) | Also reports agent/gateway binding per runtime |
 | Studio ownership | One Studio per declared place, several projects on one bridge; each place has its own command queue, each agent is tied to its project's endpoint and keeps its own selected place | Preserve deterministic per-place ownership and expose it clearly per runtime |
 | Rojo | Fork pinned to `v7.7.0-rc.1`; Sandblock Code starts one `rojo serve` per Rojo project file a project's places sync, from the pinned build, each on its own internal port, when that project's window opens, stops them when the window closes, and serves each place's to Studio at `/runtimes/<id>/places/<key>/rojo` on the runtime service (HTTP and WebSocket); no Rojo it did not start is used | Ship the pinned build with the app, plus automatic binding from a launch ticket |
-| Project launch | Opening a project's window serves it with Rojo; the plugin can ask for a project instead, and its window opens with it | One flow also launches the main place and the agent |
+| Project launch | Opening a project's window serves it with Rojo; the plugin can ask for a project instead, and its window opens with it. Agents open declared places and disposable copies of them with `open_place` and `open_place_copy` (**current, unvalidated against Roblox**) | One flow also launches the main place and the agent |
 | Visual tools | Selection, UI/model/icon rendering and image generation already exist | Productized feedback loop exposed from the selected project and plugin |
 
 ## Project configuration
@@ -215,11 +215,12 @@ rebind a runtime or authorize a different project.
 3. The app creates or reuses the project's MCP gateway and opaque runtime ID.
 4. The app starts the pinned Rojo server for that project, and stops it when the
    window closes.
-5. The app launches Roblox Studio on the configured main place with a
-   short-lived launch ticket discoverable only on loopback.
-6. The plugin opens its dock UI for that valid launch, registers itself, checks
-   `PlaceId`, and selects the approved runtime. If automatic binding fails, it
-   shows a manual selector containing only approved active runtimes.
+5. The app launches Roblox Studio on the configured main place and records
+   that launch on loopback, as `open_place` does (see
+   [`STUDIO_LAUNCH_AND_PLACE_COPIES.md`](STUDIO_LAUNCH_AND_PLACE_COPIES.md)).
+6. The plugin asks the runtime service whether to connect, checks `PlaceId`,
+   and connects to the approved runtime without a click. If automatic binding
+   fails, it shows a manual selector containing only approved active runtimes.
 7. The app launches the coding agent with `cwd` set to `repoRoot`, the Project
    Skill available, and a project-bound MCP endpoint.
 8. The app reports Ready only after gateway, Rojo, plugin, Studio place, and
@@ -246,6 +247,15 @@ start processes.
 | `POST /runtimes/{runtimeId}/events` | Studio reports a connect, a sync, or a disconnect, with its `placeId` |
 | `ANY /runtimes/{runtimeId}/places/{key}/rojo/...` | Rojo's HTTP API and WebSocket for the file that place syncs |
 | `GET /activity` | Sync history, newest first, optionally for one runtime |
+| `POST /studios/hello` | The plugin asks whether this Studio should connect, and to which runtime |
+| `POST /runtimes/{runtimeId}/places/{key}/open` | Launch Studio on a declared place |
+| `GET /runtimes/{runtimeId}/places/{key}/versions` | The place's latest saved versions |
+| `POST /runtimes/{runtimeId}/places/{key}/copies` | Open a disposable copy of a place at a version |
+| `DELETE /runtimes/{runtimeId}/copies/{copyKey}` | Close a copy and delete its file |
+
+The last five routes are specified in
+[`STUDIO_LAUNCH_AND_PLACE_COPIES.md`](STUDIO_LAUNCH_AND_PLACE_COPIES.md#runtime-service),
+which also extends `start` and `events` for copies.
 
 A runtime descriptor carries `runtimeId`, `displayName`, the main place's
 repository-relative `projectFile`, `mainPlaceId`, whether the project is
@@ -265,7 +275,7 @@ The placeless `/runtimes/{runtimeId}/rojo` route and the descriptor's top-level
 `rojo` remain for API 2 plugins, which name no place. They answer while every
 place syncs the same file; once the files differ, the route refuses with
 `place_required` and the top-level `rojo` has no `url` and says to update the
-plugin. `/health` reports API version 3.
+plugin. `/health` reports API version 4.
 
 A `connected` event carries the DataModel name Rojo synced. The service compares
 it with the name of the Rojo project the reporting place declares; on a mismatch
@@ -357,7 +367,11 @@ overrides it for a single call with the `place` argument the gateway adds to
 every Studio-facing schema. The selection lives per MCP client, so two agents can
 hold two places at the same time without moving each other's target.
 `list_studio_places` reports the declared places, which have a Studio connected,
-and which one the caller's calls are going to. The one exception is
+and which one the caller's calls are going to. It also lists the project's
+connected copies — disposable local Studios opened with `open_place_copy` at an
+exact version — under keys such as `main@v42-a1b2`, which are addressed like any
+place (**current, unvalidated against Roblox**, see
+[`STUDIO_LAUNCH_AND_PLACE_COPIES.md`](STUDIO_LAUNCH_AND_PLACE_COPIES.md)). The one exception is
 `transfer_model_between_places`. It names a source and a destination itself
 (`fromPlace`, `toPlace`) and needs both places connected (**current,
 unvalidated against Roblox**, see
@@ -383,6 +397,13 @@ in. The tools join the same registry only on those projects'
 `/projects/<id>/mcp` endpoints, with the project's own `universeId` filled in by
 the gateway. Turned off, they are neither listed nor callable, and running
 sessions are told the tool list changed.
+
+The four Studio launch tools — `open_place`, `get_place_version`,
+`open_place_copy`, `close_place_copy` — are gated the same way, but are on by
+default: the app tells the gateway which projects allow them, and they appear
+only on those projects' endpoints. They ask the runtime service to act, because
+launching processes and holding the Roblox account belong to the main process
+(**current, unvalidated against Roblox**).
 
 Useful current visual capabilities include reading the Studio selection,
 inserting instances, rendering GUI elements, capturing workspace or turntable
@@ -423,12 +444,13 @@ Studio plugins cannot act as arbitrary inbound local servers. It should:
   synced tree is another place's;
 - claim exactly one declared place, so Studios on different places of the same
   project connect side by side;
-- auto-open only for an intentional Sandblock launch or when the user opens it;
+- connect without a click only when the runtime service says so: Sandblock
+  Code launched this Studio, or exactly one open project declares its place and
+  that place's automatic connection is on
+  ([SB-027](DECISIONS.md#sb-027--agents-open-studio-and-work-in-disposable-place-copies));
+- stay disconnected for the rest of the session after a manual disconnect;
 - provide a manual recovery path without asking for raw filesystem paths;
 - expose visual captures so agents can verify spatial or rendered changes.
-
-The current toolbar toggle is a migration step, not the final interaction
-model.
 
 ## Rojo compatibility strategy
 
@@ -441,8 +463,8 @@ The current Studio integration vendors a generated model from
 fork-owned HTTP/WebSocket protocol, initial hydration, reconciliation, and sync
 session lifecycle without upstream Rojo product UI. The Sandblock plugin owns
 the visible controls and status feedback. The adapter connects to the port the
-runtime service reports for the selected project; the saved manual URL is only a
-recovery path used when no project is selected and the app is unreachable.
+runtime service reports for the selected project. There is no manual Rojo URL
+([SB-020](DECISIONS.md#sb-020--rojo-is-part-of-sandblock-code)).
 
 Rojo updates are deliberate, not automatic. Update when there is a relevant
 bug fix, security issue, Roblox Studio compatibility requirement, or valuable

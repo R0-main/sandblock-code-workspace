@@ -42,6 +42,8 @@ Read:
 - [`ARCHITECTURE.md`](../../../docs/ARCHITECTURE.md)
 - [`DECISIONS.md`](../../../docs/DECISIONS.md)
 - [`sandblock-code/docs/repository-layout.md`](../../../sandblock-code/docs/repository-layout.md)
+- [`STUDIO_LAUNCH_AND_PLACE_COPIES.md`](../../../docs/STUDIO_LAUNCH_AND_PLACE_COPIES.md)
+  when the task opens Studio, connects the plugin, or uses place copies
 
 Then load the child repository's own context skill or instructions. Sandblock
 Code owns paths and runtime identity; the Studio plugin consumes approved

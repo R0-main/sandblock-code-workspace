@@ -80,6 +80,12 @@ transfer_model_between_places({
 
 Do not replace this enum with an ambiguous boolean such as `createPackage`.
 
+An optional `setupLuau` runs in the destination after insertion, with `model`
+bound to the inserted instance, and the destination is restored if it raises.
+It exists for agents that build in a disposable copy and bring everything back
+in one grouped instance; see
+[`STUDIO_LAUNCH_AND_PLACE_COPIES.md`](STUDIO_LAUNCH_AND_PLACE_COPIES.md#bringing-work-back-transfers-and-setup).
+
 A successful transfer result must expose what happened:
 
 ```json
@@ -143,6 +149,11 @@ For `packageMode: "transfer"`:
 9. Verify the inserted instance path and return the result.
 10. Release the publication lock and record duration, attempts, owner, package,
     and version in tool history.
+
+**Current:** the publication lock is released once the exact version is
+known, before step 8. Insertion, and the setup when there is one, take a
+separate lock per destination place instead, so a long setup never holds up
+another owner's publication. Loading an exact version id needs no lock.
 
 If the source and destination are the same place, use an ordinary Studio clone
 instead of publishing a transfer version.
@@ -280,13 +291,22 @@ and the plugin refuses a Studio holding another place:
 | `package_inspect_destination` | Resolve `destinationPath`, report the owner and universe, run the Rojo check. |
 | `package_inspect_source` | Resolve `modelPath` and report the owner, universe, and model. |
 | `package_publish` | Publish the shuttle version (`transfer`), a new package (`dedicated`), or a named package's next version (`version`). |
-| `package_insert` | Load an asset version, verify it, insert it, and detach the shuttle copy. |
-| `package_clone_local` | Clone within one place, used when source and destination are the same place. |
+| `package_insert` | Load an asset version, verify it, insert it, and detach the shuttle copy; with `markId`, tag the inserted root for the setup. |
+| `package_clone_local` | Clone within one place, used when source and destination are the same place; with `markId`, tag the clone. |
 | `package_update_copy` | Replace one package copy with the latest version, keeping its parent, name, and pivot. |
 
 Each command answers `{ ok: true, ... }` or `{ ok: false, code, message,
 retryable }`. The tools return refusals as structured results such as the
 example above.
+
+A command addressed to a place copy carries `expectedPlaceId: 0` and, where an
+owner is read or published under, `creator: { creatorType, creatorId }` from the
+other side of the transfer. Transfers add three refusals: `copy_to_copy`,
+`setup_unavailable` (StudioMCP cannot reach the destination; nothing is
+published), and `setup_failed` (the setup does not compile there, in which case
+nothing is published, or it raised after insertion, in which case the
+destination is restored; the result carries `luauError`). See
+[`STUDIO_LAUNCH_AND_PLACE_COPIES.md`](STUDIO_LAUNCH_AND_PLACE_COPIES.md).
 
 Choices the design left open, or that the code narrows:
 
@@ -314,7 +334,9 @@ Choices the design left open, or that the code narrows:
   the version lookup is wrong, the result is a refusal, never the wrong model.
 - **Ownership.** Only places with the same owner (`game.CreatorType` and
   `game.CreatorId`) can transfer to each other. Different owners are refused with
-  `creator_mismatch`. Explicitly shared assets are not supported yet.
+  `creator_mismatch`. Explicitly shared assets are not supported yet. A place
+  copy has no owner, so a transfer from or to a copy uses the other side's
+  owner, and two copies never transfer to each other.
 - **Rojo check.** The plugin keeps the instance map from the live Rojo session.
   It finds the nearest instance at or above the destination that Rojo syncs and
   reads that instance's metadata from the Rojo server (`/api/read/<id>`). The
