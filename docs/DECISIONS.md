@@ -132,7 +132,7 @@ these approvals.
 
 ## SB-014 — No Git worktrees in the Roblox/Rojo workflow
 
-**Status:** Accepted
+**Status:** Replaced by [SB-029](#sb-029--each-agent-codes-in-a-worktree-and-tests-in-a-copy-it-serves)
 
 Feature or task branches are used as appropriate, but the workflow does not
 depend on Git worktrees because they complicate Rojo and Roblox Studio binding.
@@ -608,3 +608,40 @@ in the main process, and a routine agent download has no reason to reach it.
 has not yet been run against Roblox with a real key: the delivery answer's
 shape (`location`, `assetTypeId`) and which assets a key may read are assumed.
 No Studio plugin change.
+
+## SB-029 — Each agent codes in a worktree and tests in a copy it serves
+
+**Status:** Accepted — replaces [SB-014](#sb-014--no-git-worktrees-in-the-robloxrojo-workflow)
+
+SB-014 kept worktrees out because Rojo and Studio are bound to one checkout.
+SB-027 gave each agent its own Studio, but every copy still syncs the main
+checkout's code, so agents cannot change code in parallel: they would share
+one working tree, and none could test its code in Studio before it is merged.
+
+Each worker agent now gets its own branch in its own worktree, and a place copy
+whose Rojo session serves that worktree. The orchestrating agent owns the
+lifecycle through MCP tools, `open_worktree_copy`, `list_worktrees`, and
+`remove_worktree`, not a CLI command, for two reasons. One lifecycle stays on
+one surface, so the app can refuse a second copy on a worktree and stop a
+worktree's Rojo session with its copy. And a worker is kept off that lifecycle
+by denying tool names, which a shell pattern cannot do.
+
+Git is the only record of worktrees: every tool reads
+`git worktree list --porcelain`, so nothing is saved and a restart loses only
+the copies. Worktrees are never registered as projects, so the main checkout
+remains the only project that declares the place, and auto-connect is unchanged.
+
+The worker codes, tests, and commits. The orchestrator merges, then transfers
+the worker's build into the real place, so code and world reach `main`
+together after review. It closes the copy last, because closing deletes
+whatever was not transferred.
+
+Most projects do not need this, so the tools are listed only when a
+per-project **Worktree copies** setting is on. It is off by default, and needs
+Studio launch on.
+
+[`WORKTREE_COPIES.md`](WORKTREE_COPIES.md) is canonical for the behavior and
+the contracts.
+
+**Target:** not implemented. The plugin needs no change: it already syncs
+through the Rojo URL its start answers.

@@ -50,7 +50,8 @@ child.
 - Cross-repository versions are pinned; never follow a moving branch at runtime.
 - Keep loopback services local and validate project and `PlaceId` matches before
   syncing or dispatching Studio mutations.
-- Do not use Git worktrees for the Roblox/Rojo development workflow.
+- Use Git worktrees for Roblox/Rojo work only as SB-029 describes: one per
+  worker, served by its own place copy (`docs/WORKTREE_COPIES.md`).
 - Preserve upstream Rojo license files and notices.
 - Update root documentation in the same change when a cross-repository contract
   or accepted decision changes.

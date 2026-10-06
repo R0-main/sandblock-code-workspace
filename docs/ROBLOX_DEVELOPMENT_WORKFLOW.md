@@ -55,8 +55,11 @@ member or agent. Sandblock Code may launch the work environment, but it does not
 become the task database in v0.
 
 Use a branch per feature or task when isolation is useful. A tiny related fix
-can remain on the active feature branch. Do not use worktrees for Roblox/Rojo
-development.
+can remain on the active feature branch. When agents work in parallel, each
+one codes in its own worktree and tests in a place copy served from it, created
+by the orchestrating agent ([SB-029](DECISIONS.md#sb-029--each-agent-codes-in-a-worktree-and-tests-in-a-copy-it-serves),
+[`WORKTREE_COPIES.md`](WORKTREE_COPIES.md)). Do not point the main Rojo session
+or a declared place at a worktree.
 
 ### 4. Develop in a bound project runtime
 

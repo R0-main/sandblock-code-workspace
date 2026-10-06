@@ -14,6 +14,7 @@ repository in the Sandblock Code workspace.
 | Roblox game production workflow, reuse rules, and reusable library content types (systems, models, UI, VFX, sounds) | [`ROBLOX_DEVELOPMENT_WORKFLOW.md`](ROBLOX_DEVELOPMENT_WORKFLOW.md) |
 | Cross-place Studio model transfer and package tools (implemented, pending Roblox validation) | [`CROSS_PLACE_MODEL_TRANSFER.md`](CROSS_PLACE_MODEL_TRANSFER.md) |
 | Launching Studio, automatic plugin connection, and disposable place copies for parallel agents (implemented, pending Roblox validation) | [`STUDIO_LAUNCH_AND_PLACE_COPIES.md`](STUDIO_LAUNCH_AND_PLACE_COPIES.md) |
+| Worktree copies: one branch, one Studio, one agent, with the orchestrator owning the lifecycle (target) | [`WORKTREE_COPIES.md`](WORKTREE_COPIES.md) |
 | Game list (GitLab topic `game`), one-click clone and setup, and in-app updates (target) | [`MACHINE_SETUP_AND_UPDATES.md`](MACHINE_SETUP_AND_UPDATES.md) |
 | Shared visual direction | [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) |
 | Repository locations, branches, and bootstrap configuration | [`../workspace.json`](../workspace.json) |

@@ -62,7 +62,8 @@ architecture summaries.
 - Generation pipelines for 3D models, VFX, or audio; v0 generates images and
   thumbnails, while the library and reuse rules already cover every asset type.
 - Full multi-place orchestration; v0 opens the main place.
-- Git worktree orchestration for Roblox projects.
+- Git worktree orchestration beyond one worktree per place copy
+  ([SB-029](DECISIONS.md#sb-029--each-agent-codes-in-a-worktree-and-tests-in-a-copy-it-serves)).
 - Creator Hub analytics and post-launch reporting, which arrive after v0
   through SB-017 and M8.
 
