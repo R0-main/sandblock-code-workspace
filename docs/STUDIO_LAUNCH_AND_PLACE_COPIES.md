@@ -127,12 +127,16 @@ is the only way to start from an exact snapshot.
   apart. The file is named `<placeKey>-v<version>-sb<ticket>.rbxl`, where the
   ticket is random and single-use. Studio uses the file name as `game.Name`, so
   the plugin presents it in `POST /studios/hello` and Sandblock Code recognises
-  the copy. The agent-facing key is `<placeKey>@v<version>-<4 characters>`, and
-  `list_studio_places` shows it with `copyOf` and `version`.
-- **Studio routing.** Every copy reports a distinct fingerprint
-  (`JobId|0|<file name>`), so the gateway's existing probe binds each copy to
-  its own StudioMCP `studio_id`. Official tools such as `execute_luau` reach the
-  right copy without anything new.
+  the copy. Rojo's first sync renames the DataModel after its project, so the
+  plugin keeps the file name in the DataModel attribute `SandblockCopyFile` and
+  presents that on any later hello. The agent-facing key is
+  `<placeKey>@v<version>-<4 characters>`, and `list_studio_places` shows it with
+  `copyOf` and `version`.
+- **Studio routing.** A copy's fingerprint adds that attribute
+  (`JobId|0|<name>|<file name>`). After Rojo's rename every copy of a place
+  would otherwise read the same. The gateway's probe reads the same four parts,
+  so it binds each copy to its own StudioMCP `studio_id`, and official tools
+  such as `execute_luau` reach the right copy.
 - **Rojo.** A copy syncs the Rojo project of the place it copies, through the
   same runtime-service route.
 - **Lifecycle.** A copy ends with `close_place_copy`, when its Studio exits,
@@ -301,7 +305,8 @@ No credential is ever passed on the command line: Studio uses its own sign-in.
    (`AssetService:CreateAssetAsync` with an explicit creator).
 5. `ChangeHistoryService:FinishRecording(…, Cancel)` reverts a setup that raised
    when it runs through `execute_luau`.
-6. StudioMCP lists copy Studios and binds each one by fingerprint.
+6. StudioMCP lists copy Studios and binds each one by fingerprint, and a plugin
+   can set an attribute on the DataModel (`game:SetAttribute`).
 
 ## Ownership
 

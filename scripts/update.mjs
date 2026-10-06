@@ -124,7 +124,22 @@ function installDependencies(label, cwd) {
 function studioPluginsDirectory() {
   if (process.env.SANDBLOCK_STUDIO_PLUGINS_DIR) return process.env.SANDBLOCK_STUDIO_PLUGINS_DIR;
   if (isWindows) return join(process.env.LOCALAPPDATA ?? join(homedir(), "AppData", "Local"), "Roblox", "Plugins");
+  // Under WSL, Studio is the Windows one: a Linux home has no Studio to read
+  // ~/Documents/Roblox/Plugins, so an update run there installed nothing.
+  const windowsLocalAppData = process.env.WSL_DISTRO_NAME ? wslWindowsLocalAppData() : null;
+  if (windowsLocalAppData) return join(windowsLocalAppData, "Roblox", "Plugins");
   return join(homedir(), "Documents", "Roblox", "Plugins");
+}
+
+/** `%LOCALAPPDATA%` of the Windows user, as a WSL path, or null when interop is unavailable. */
+function wslWindowsLocalAppData() {
+  try {
+    const windowsPath = execFileSync("cmd.exe", ["/c", "echo %LOCALAPPDATA%"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+    if (!windowsPath || windowsPath.includes("%")) return null;
+    return execFileSync("wslpath", ["-u", windowsPath], { encoding: "utf8" }).trim() || null;
+  } catch {
+    return null;
+  }
 }
 
 try {
