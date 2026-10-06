@@ -643,5 +643,7 @@ Studio launch on.
 [`WORKTREE_COPIES.md`](WORKTREE_COPIES.md) is canonical for the behavior and
 the contracts.
 
-**Target:** not implemented. The plugin needs no change: it already syncs
-through the Rojo URL its start answers.
+**Current:** implemented in `sandblock-code` (desktop and gateway), tested
+against a real Git worktree, not yet run on Windows or against Studio. The
+plugin needs no change: it already syncs through the Rojo URL its start
+answers.

@@ -2,9 +2,12 @@
 
 ## Status
 
-**Target.** Nothing below is implemented. It extends
-[place copies](STUDIO_LAUNCH_AND_PLACE_COPIES.md#copies), which are current but
-not yet validated against Roblox. The accepted decision is
+**Current, unvalidated.** The desktop app and the gateway implement everything
+below, and their tests pass, including a copy served from a real Git worktree
+through its own Rojo session. Nothing has run on Windows, through WSL, or
+against Roblox Studio yet. It extends
+[place copies](STUDIO_LAUNCH_AND_PLACE_COPIES.md#copies), which are in the same
+state. [Implementation](#implementation) records where the code lives. The accepted decision is
 [SB-029](DECISIONS.md#sb-029--each-agent-codes-in-a-worktree-and-tests-in-a-copy-it-serves).
 
 ## Goal
@@ -66,15 +69,15 @@ orchestrator / lead dev
   session on its own port. `RojoManager` already keys sessions by repository
   root and file, so a worktree session never meets the main checkout's.
 - **Route.** That session is reached at
-  `/runtimes/<id>/copies/<copyKey>/rojo`, and the start answers that URL as
-  `rojo.url`. The plugin already syncs through the URL the start answers, so it
+  `/runtimes/<id>/copies/<copyKey>/rojo` (runtime API 5), and the start answers
+  that URL as `rojo.url`. The plugin already syncs through the URL the start answers, so it
   needs no change. A copy without a worktree keeps the place's route and the
   main checkout's session, as today.
 - **Stopping.** The worktree session stops when its copy ends, by any of the
   copy's endings: `close_place_copy`, its Studio exiting, its project window
   closing, or the app quitting.
-- **Rojo-owned trees.** Checks that refuse to write inside a tree Rojo
-  overwrites read the worktree's project file for a worktree copy.
+- **Sync check.** The check that Studio synced its place's own tree reads the
+  project file from the worktree.
 - **Limits.** A worktree copy counts against the project's live copies, like
   any copy. One worktree serves at most one live copy.
 
@@ -90,7 +93,10 @@ both the project's **Studio launch** and **Worktree copies** settings are on
 | `list_worktrees({})` | Every worktree of the project's repository, from Git, with its live copy. |
 | `remove_worktree({ branch, force? })` | Remove a branch's worktree, and delete the branch when it is merged. |
 | `close_place_copy({ place })` | Unchanged; for a worktree copy it also stops the worktree's Rojo session. |
-| `list_studio_places({})` | Also reports `worktree` and `branch` for a worktree copy. |
+
+`list_studio_places` is unchanged: it lists copies from what their plugin
+claims, and the plugin never learns a branch. `list_worktrees` joins each
+worktree to the key of the copy serving it instead.
 
 `open_worktree_copy` answers like `open_place_copy`, plus where the worker
 works:
@@ -147,6 +153,18 @@ Like Studio launch, it belongs to the machine, not the repository.
   `close_place_copy` still closes them, as it does any copy. Worktrees stay on
   disk, and Git removes them by hand.
 
+## Runtime service routes
+
+Beside the [place copy routes](STUDIO_LAUNCH_AND_PLACE_COPIES.md#runtime-service),
+with the same header, refusal shape and gating:
+
+| Route | Caller | Effect |
+| --- | --- | --- |
+| `POST /runtimes/{runtimeId}/places/{placeKey}/worktree-copies` | gateway | `{ branch, version?, base? }`; answers `{ copy, worktree: { branch, path, created } }`. |
+| `GET /runtimes/{runtimeId}/worktrees` | gateway | `{ base, worktrees: [...] }`, as `list_worktrees` answers. |
+| `POST /runtimes/{runtimeId}/worktrees/remove` | gateway | `{ branch, force? }`; answers `{ removed, branch, path, branchDeleted }`. |
+| `/runtimes/{runtimeId}/copies/{copyKey}/rojo/...` | plugin | A worktree copy's Rojo session; 404 for any other copy. |
+
 ## Roles
 
 Sandblock Code can turn the Studio launch tools off per project, not per
@@ -179,7 +197,8 @@ The order matters, because closing a copy deletes whatever was not transferred:
 
 ## Skill guidance
 
-To be added to the Studio launch skill once implemented:
+Carried by the tools' own descriptions, which every agent reads; no skill file
+holds it. In short:
 
 > To run a team on one game, open one worktree copy per worker with
 > `open_worktree_copy(place, version, branch)`, every one at the same version
@@ -200,8 +219,26 @@ To be added to the Studio launch skill once implemented:
 - `sandblock-code` (main process) owns the worktree operations (Git and Wally
   in WSL), the copy-to-worktree binding, the worktree Rojo sessions, and the
   copy Rojo route.
-- `sandblock-code` (gateway) owns the three new tools and the `worktree` and
-  `branch` fields on `list_studio_places`.
+- `sandblock-code` (gateway) owns the three new tools and their gating.
 - `sandblock-studio-plugin` needs no change: it syncs through the `rojo.url`
   its start answers.
-- `sandblock-skills` gets the guidance above.
+
+## Implementation
+
+- Desktop main process, in `sandblock-code/desktop/electron/`:
+  - `worktrees.ts`: Git and Wally, path forms, where worktrees go.
+  - `placeCopies.ts`: a copy's worktree, one copy per worktree, and `onEnded`,
+    which `main.ts` uses to stop the worktree's Rojo session.
+  - `studioPreferences.ts`: the `worktreeCopies` setting.
+  - `studioService.ts`: the three routes' logic and refusals.
+  - `runtimeApi.ts`: the routes, the copy Rojo route, and serving a file from a
+    worktree.
+- Renderer: the **Worktree copies** switch in project settings → Agent tools.
+- Gateway, in `sandblock-code/src/`:
+  - `tools/studioLaunch.ts`: the three tools.
+  - `runtimeService.ts`: their client calls.
+  - `studioLaunch.ts` and `mcpServer.ts`: gating on both settings.
+
+Still to validate on a real machine: Git and Wally through `wsl.exe` from the
+Windows app, the `\\wsl.localhost` form of a worktree path for Rojo, and a
+copy's Studio syncing through the copy route.
