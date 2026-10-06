@@ -132,11 +132,21 @@ is the only way to start from an exact snapshot.
   presents that on any later hello. The agent-facing key is
   `<placeKey>@v<version>-<4 characters>`, and `list_studio_places` shows it with
   `copyOf` and `version`.
-- **Studio routing.** A copy's fingerprint adds that attribute
-  (`JobId|0|<name>|<file name>`). After Rojo's rename every copy of a place
-  would otherwise read the same. The gateway's probe reads the same four parts,
-  so it binds each copy to its own StudioMCP `studio_id`, and official tools
-  such as `execute_luau` reach the right copy.
+- **Studio routing.** A copy's fingerprint reads that attribute in place of
+  the name (`JobId|0|<file name>`). After Rojo's rename every copy of a place
+  would otherwise read the same, and the rename lands after the plugin has
+  claimed, so a fingerprint carrying the name would no longer match the one
+  the plugin claimed with. The gateway's probe reads the same three parts, so
+  it binds each copy to its own StudioMCP `studio_id`, and official tools such
+  as `execute_luau` reach the right copy. The plugin also sends its current
+  fingerprint on every poll: when it changes, the bridge moves the place's
+  binding to it, or probes again if the place had none.
+- **Refused official calls.** When no Studio StudioMCP lists answers with the
+  place's fingerprint, its official calls are refused, and the refusal says
+  which of two cases applies. If StudioMCP does not list that Studio (by
+  PlaceId, or by file name for a copy), the fix is the MCP server setting in
+  that Studio's Assistant. If StudioMCP lists it, that setting is already on,
+  and the agent is told to have the plugin reconnected instead.
 - **Rojo.** A copy syncs the Rojo project of the place it copies, through the
   same runtime-service route.
 - **Lifecycle.** A copy ends with `close_place_copy`, when its Studio exits,
@@ -307,6 +317,12 @@ No credential is ever passed on the command line: Studio uses its own sign-in.
    when it runs through `execute_luau`.
 6. StudioMCP lists copy Studios and binds each one by fingerprint, and a plugin
    can set an attribute on the DataModel (`game:SetAttribute`).
+
+Observed on 2026-10-06 with one live copy: StudioMCP lists the copy's Studio
+under its file name with no PlaceId, its `game.Name` reads the Rojo project
+name after sync, and the plugin's `SandblockCopyFile` attribute holds the file
+name. That covers the listing and attribute halves of item 6. Binding through
+the fingerprint is untested until the updated plugin runs against a copy.
 
 ## Ownership
 
