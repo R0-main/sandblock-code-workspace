@@ -89,10 +89,35 @@ therefore required.
 - **Repositories outside the instance.** `be-the-first-youtuber` is on GitHub,
   so it does not appear until it moves to `git.shulkr.net`. GitHub topics could
   be added later as a second source, with their own token.
-- **Setting the topic.** The app does not create GitLab projects today: a new
-  game gets its remote by hand (`projectCreate.ts`). The topic is added at the
-  same moment, by hand. If the app ever creates the GitLab project, it sets the
-  topic itself, which needs a token with the `api` scope.
+- **Setting the topic.** Covered for new games: see "Creating a game's
+  repository" below. A game created before that, or by hand, gets the topic by
+  hand.
+
+### Creating a game's repository
+
+**Implemented** (`gitlabGames.ts`, `projectCreate.ts`). Creating a game in the
+app also creates its GitLab project in the `roblox/games` group (id 296):
+
+1. Before cloning the template, the app checks that `roblox/games/<slug>` is
+   free. A taken name is refused while nothing exists yet on either side.
+2. After the first local commit, it creates the project through the API:
+   private, empty, topic `game`, so the game list finds it.
+3. It adds that project as `origin` and pushes `main` over SSH, with the
+   developer's own key. The bot only creates the project; the first commit stays
+   the developer's.
+
+If step 2 or 3 fails, the local project is still created and registered, and the
+error says what is left to do. Failing the whole creation would leave a folder
+that blocks a retry under the same name.
+
+The credential is a **group access token** on `roblox/games`, not the personal
+`read_api` token above: GitLab Free has no service accounts, and a group token
+is the equivalent, a bot user that can only reach that group. It needs the `api`
+scope and a role at least the group's "Minimum role required to create
+projects". It is read from `SANDBLOCK_ROBLOX_GAMES_GROUP_TOKEN`, in the
+environment or in the app's `.env`; `SANDBLOCK_GAMES_GROUP` overrides the group
+path. Without it, creation stays local as before. Moving it into the vault
+belongs with the GitLab settings above.
 
 ## 2. One-click clone and setup
 

@@ -117,8 +117,8 @@ See SB-030 in [`DECISIONS.md`](DECISIONS.md) and
 layout, item schema, and agent rules exist, and it holds no item.
 
 **Target:** the gateway searches it and takes items into games, Sandblock Code
-shows it in a Library view and launches the library agent on demand, and a
-daily job runs the agent read-only on every game that changed.
+shows it in a Library view, and the library agent scans every game that
+changed once a day, as a Claude Code `/loop`.
 
 ### `sandblock-game-boilerplate`
 

@@ -672,9 +672,9 @@ builds it. Binaries go to Git LFS as their original files, and Roblox ids are
 recorded per owner, because an animation or a sound uploaded by one owner does
 not play in another's game.
 
-One agent writes it: the library agent. It runs once a day on every game whose
-`main` moved, and on demand. It reads the games read-only, through a group
-service account that can only read. It is outside the game pipeline: workers,
+One agent writes it: the library agent. It runs once a day as a Claude Code
+`/loop` on every game whose `main` moved, and on demand. It never writes to a
+game. It is outside the game pipeline: workers,
 orchestrators, and reviewers only read the library. The agent proposes each
 item as a merge request, and a human merging it is the promotion SB-013
 requires.
@@ -689,7 +689,9 @@ with one tool, and record what they took in `sandblock-library.json`, as they
 record shared skills (SB-021). People browse it in a Library view in Sandblock
 Code. Items carry tags in one form, and a pack groups pieces that belong
 together. Games are not written as tags: the game an item came from and the
-games that use it are derived.
+games that use it are derived. Every item that can be seen is rendered in a
+disposable copy of its game's place, with the gateway's existing capture
+tools.
 
 [`ASSET_LIBRARY.md`](ASSET_LIBRARY.md) is canonical for the design. The
 library's own README is canonical for the item format, and its `AGENTS.md` for
@@ -698,4 +700,5 @@ the agent's rules.
 **Current:** the GitLab project exists with LFS on. The service account and its
 token, in `sandblock-code/.env`, are set up, and `main` is protected. The
 repository's layout, schema, and agent rules are written. No item, tool, view,
-daily job, or read-only account exists yet.
+or daily pass exists yet, and the games token reaches no game until the games
+move into `roblox/games`.
