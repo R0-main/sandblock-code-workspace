@@ -331,11 +331,19 @@ the desktop application at a skill still living there is not an acceptable
 substitute.
 
 **Current:** the repository is registered in `workspace.json`, ignored by the
-meta-repository, and cloned by `npm run bootstrap`. It carries no skill yet.
+meta-repository, and cloned by `npm run bootstrap`. It carries seventeen
+skills, listed in its README: the thumbnail workflow, the orchestrator's guide,
+the team's review conventions, and the creation skills gathered on 2026-10-07
+from `build-tests` and the games (VFX, stud-style models, maps and asset kits,
+animations, sounds, localization, controller glyphs), each with the tools it
+runs. Games receive them as committed copies: the boilerplate's
+`scripts/sync-skills.sh` copies `skills/` into the game's `.claude/skills/` and
+records the commit and a fingerprint per skill in `.claude/sandblock-skills.json`,
+so a skill changed inside a game is reported instead of overwritten. A skill is
+improved in this repository, then synced; never edited in a game.
 
-**Target:** the thumbnail workflow moves out of
-`roblox-studio-ai-automation`, and Sandblock Code resolves shared skills from
-this repository when it launches a coding agent.
+**Target:** Sandblock Code resolves shared skills from this repository when it
+launches a coding agent, or runs the sync for the games it creates.
 
 ## SB-022 — A project window is the project's runtime
 

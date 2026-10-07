@@ -156,7 +156,10 @@ Rules:
   through a shell profile are found.
 
 The Studio plugin and the pinned Rojo are not per-game; the app update below
-installs them.
+installs them. The shared agent skills are not a setup step either: a game
+commits its copies (`scripts/sync-skills.sh`, [SB-021](DECISIONS.md#sb-021--shared-agent-skills-live-in-sandblock-skills)),
+so a fresh clone already has them, and refreshing them is a reviewed change to
+the game like any other.
 
 ## 3. In-app updates
 
