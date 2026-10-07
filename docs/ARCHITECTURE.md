@@ -372,7 +372,7 @@ read-only (**current**, see
 finding and inspecting instances, captures, and image assets by id, and nothing
 that changes the place. It is what a thumbnail variant run is given.
 
-`/scratch/mcp` (**target**, see
+`/scratch/mcp` (**current, unvalidated against Roblox**, see
 [SB-031](DECISIONS.md#sb-031--scratch-places-blank-studios-outside-every-project))
 belongs to no project. It opens Studios on blank or caller-built places and
 serves only those, for work that must not touch a game, such as rendering a

@@ -10,8 +10,8 @@ Roblox fact below as an assumption the code makes.
 [Implementation](#implementation) records where the code narrows or extends
 this design. The accepted decision is
 [SB-027](DECISIONS.md#sb-027--agents-open-studio-and-work-in-disposable-place-copies).
-[Scratch places](#scratch-places-target) are the exception: they are
-**target**, accepted in SB-031, and not implemented.
+[Scratch places](#scratch-places) follow the same state: implemented,
+accepted in SB-031, and not yet run against Roblox.
 
 ## Goal
 
@@ -164,11 +164,13 @@ analytics (the first usable account), from the main process. The cookie never
 reaches the gateway, the plugin, or an agent. That account needs edit access to
 the place; when it lacks it, the tools answer `roblox_refused`.
 
-## Scratch places (target)
+## Scratch places
 
-**Target**, accepted in
+**Current, unvalidated**, accepted in
 [SB-031](DECISIONS.md#sb-031--scratch-places-blank-studios-outside-every-project).
-Nothing below is implemented.
+Implemented in `sandblock-code` (gateway, runtime service, copy manager) and
+`sandblock-studio-plugin`, with tests on both sides, but not yet run against
+Roblox Studio.
 
 A scratch place is a Studio opened on a place that belongs to no project:
 blank, or a place file the caller built. It is for work that must not touch a
@@ -178,42 +180,85 @@ photographing it. The library agent renders items this way
 game's place.
 
 ```text
-open_scratch_place()                         → "scratch-a1b2"   (blank baseplate)
-open_scratch_place({ placeFile })            → "scratch-c3d4"   (e.g. `rojo build` of a game's code)
+open_scratch_place()                          → "scratch-a1b2"   (blank place)
+open_scratch_place({ placeFile })             → "scratch-c3d4"   (e.g. `rojo build -o game.rbxl` of a game's code)
 execute_luau / upload_assets / render_gui_element / get_model_icon … with place = "scratch-a1b2"
-close_scratch_place("scratch-a1b2")          → Studio stopped, file deleted
+close_scratch_place({ place: "scratch-a1b2" }) → Studio stopped, file deleted
 ```
 
 - **Its own endpoint.** `/scratch/mcp` serves scratch places and nothing else.
-  It reaches no project's place, copy, or worktree, and no project endpoint
-  reaches a scratch place. That isolation is what lets it exist without a
-  project: SB-018's allowlist still holds for every game.
+  Bridge sessions are scoped by runtime id, and scratch places live under the
+  reserved one, `sandblock:scratch`. Only the scratch endpoint is tied to it.
+  `/projects/sandblock:scratch/mcp` is refused, and the unscoped `/mcp`
+  ignores scratch places entirely: they are not counted as a project, and they
+  are not reachable from it. No project endpoint reaches a scratch place, so
+  SB-018's allowlist still holds for every game.
 - **Served by the app, not a window.** The endpoint is up whenever Sandblock
   Code runs. Plain `sandblock-code` (without `open`) is enough to start it, and
-  no game is opened.
-- **What it contains.** By default, a blank baseplate the app ships. With
-  `placeFile`, a copy of that `.rbxl` or `.rbxm`. Building a game's code with
-  `rojo build` gives its scripts and packages without its world. There is no
-  Rojo session: a scratch place is a snapshot, not a sync.
+  no game is opened. No setting gates it.
+- **What it contains.** Without `placeFile`, a blank place: the default
+  services, empty, written as XML by the app. Studio adds the camera and the
+  terrain itself.
+
+  With `placeFile`, a copy of that `.rbxl` or `.rbxlx`, which must hold a
+  Roblox place and be at most 512 MB. The caller's file is only read. A WSL
+  path works: the app converts it to the Windows path it can open
+  (`wslpath -w`, or `C:\…` for `/mnt/c/…`). Building a game's code with `rojo
+  build` gives its scripts and packages without its world.
+
+  There is no Rojo session: a scratch place is a snapshot, not a sync.
 - **Identity.** It is a copy without a source. The file is named
-  `scratch-sb<ticket>.rbxl`, it has `PlaceId` 0, and the plugin presents the
-  name in `POST /studios/hello` as a copy does. The agent-facing key is
-  `scratch-<4 characters>`.
-- **Tools.** `open_scratch_place`, `close_scratch_place`, and
-  `list_studio_places` (scratch places only). Also every Studio tool that acts
-  in one place: `execute_luau`, inserting, searching the tree, and the captures
-  (`render_gui_element`, `get_model_icon`, `capture_turntable`,
-  `screen_capture`). Not offered: transfers, place versions, copies,
-  worktrees, Creator Hub, and project metadata.
-- **Uploads.** `upload_assets` normally uploads for the owner of the place a
-  call targets, and a scratch place has none. The call names `owner`, which
-  must be one the held Open Cloud keys act for; with a single key, it defaults
-  to that key's owner.
-- **Lifecycle.** Like a copy: `close_scratch_place`, its Studio exiting, or the
-  app quitting stops the Studio and deletes the file. At most four live at once.
-  Files live under the app's user data directory, in `scratch-places/`.
-- **Connection.** The app launched it, so the plugin connects without a click,
-  as for any Studio the app launches.
+  `scratch-sb<ticket>.rbxl` (or `.rbxlx`), it has `PlaceId` 0, and the plugin
+  presents the name in `POST /studios/hello`, as a copy does. Hello answers
+  `{ connect: true, runtimeId: "sandblock:scratch", reason: "scratch", copy:
+  null, scratch: { key, name } }`.
+
+  The plugin then connects the bridge only, with no project, no place check,
+  and no Rojo. It claims the place as `{ key, name, main: false, scratch: true
+  }` under that runtime id, and its panel shows "Scratch place · no project".
+  The bridge files any claim naming either the scratch runtime id or a scratch
+  place in the scratch scope, without a PlaceId, so the two never disagree.
+
+  The agent-facing key is `scratch-<4 characters>`. It is never a default
+  target: every call names it with `place`.
+- **Tools.** `open_scratch_place`, `close_scratch_place`, and every other tool
+  except the package and transfer tools (`transfer_model_between_places`,
+  `create_package`, `publish_package_version`, `insert_package`,
+  `update_package_copy_to_latest`). Those would carry what a scratch place
+  holds into a game's place, or publish it.
+
+  The project-only tools (Studio launch, copies, worktrees, Creator Hub) are
+  never listed there, because the scratch scope is no project. Upstream
+  StudioMCP tools such as `execute_luau` reach the scratch place through the
+  usual fingerprint binding: without Rojo, `game.Name` stays the unique file
+  name.
+- **Uploads.** `upload_assets` uploads for the owner of the place a call
+  targets, and a scratch place has none. Its `owner` argument (`group:<id>` or
+  `user:<id>`) names one, which must be an owner the held Open Cloud keys act
+  for. With a single key, it defaults to that key's owner.
+
+  On a published place, `owner` is refused unless it is that place's owner
+  (`owner_mismatch`): SB-025's rule that agents cannot choose an owner still
+  holds there. Images still upload through Studio, as the signed-in account.
+- **Lifecycle.** The same as a copy, through the same copy manager. A scratch
+  place ends with `close_scratch_place`, when its Studio exits after its hello,
+  or when the app quits; that stops the Studio and deletes the file. Closing a
+  project's window leaves scratch places alone.
+
+  At most four are live at once, counted apart from every project's copies.
+  Files live under the app's user data directory, in
+  `place-copies/sandblock-scratch/`, and leftovers from a crash are swept like
+  copies.
+- **Runtime service.** API version 6 adds `POST /scratch-places` (`{
+  placeFile? }` → `{ scratch: { key, name } }`) and `DELETE
+  /scratch-places/{key}`. Their refusals are `not_a_place_file`,
+  `place_file_not_found`, `place_file_too_large`, `studio_not_found`,
+  `copy_limit`, and `scratch_not_found` (404). The project routes never reach a
+  scratch place.
+
+Still to validate in Studio: that the blank XML place opens, that the plugin
+connects it by itself, and that images and meshes owned by the games' group
+show in it.
 
 ## Bringing work back: transfers and setup
 

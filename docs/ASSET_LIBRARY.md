@@ -194,8 +194,10 @@ it with the library's `scripts/mcp-call.py --scratch`, which also saves the
 images a tool returns. The agent looks at every image and commits the renders
 as `previews` in the request.
 
-Until scratch places exist, items that can be seen are proposed with the label
-`preview-missing`. Re-rendering from the Library view is later work.
+When a render cannot happen, the item is proposed with the label
+`preview-missing`, with the reason: for example Sandblock Code is not running,
+or it is too old to have scratch places. Re-rendering from the Library view is
+later work.
 
 ## What a game records
 
@@ -324,7 +326,7 @@ It is Toolbox content, not ours.
 | The Library view: a page in each project window and in the launcher | `sandblock-code` | To build |
 | The daily pass: a Claude Code session running `/loop 24h /library-scan` on the always-on machine | that machine | To start |
 | The games in `roblox/games`, where the games token reaches them | GitLab, a human | To move |
-| Scratch places: `/scratch/mcp`, `open_scratch_place`, `close_scratch_place`, a blank baseplate, uploads that name their owner | `sandblock-code`, `sandblock-studio-plugin` | To build ([SB-031](DECISIONS.md#sb-031--scratch-places-blank-studios-outside-every-project)) |
+| Scratch places: `/scratch/mcp`, `open_scratch_place`, `close_scratch_place`, a blank place, uploads that name their owner | `sandblock-code`, `sandblock-studio-plugin` | Implemented, not yet run against Roblox ([SB-031](DECISIONS.md#sb-031--scratch-places-blank-studios-outside-every-project)) |
 | `download_assets` for the library agent: it changes no place, but the capture endpoint does not list it | `sandblock-code` | To decide |
 | Inserting a `.rbxm` from a file | `sandblock-studio-plugin` | To build and validate (`SerializationService:DeserializeInstancesAsync` is the assumed path) |
 | `git-lfs` on each machine | machine setup | Missing on the WSL machine this was written on |

@@ -715,15 +715,19 @@ game's place declared with its PlaceId, and a Roblox account that can download
 it.
 
 Sandblock Code therefore serves `/scratch/mcp`, an endpoint bound to no
-project. It opens Studios on a blank baseplate, or on a place file the caller
+project. It opens Studios on a blank place, or on a place file the caller
 built, such as a `rojo build` of a game's code. These are scratch places,
 identified like copies by a ticket in their file name. The endpoint offers the
 Studio tools that act in one place, including captures and uploads (which name
 their owner), and reaches nothing else. No project endpoint reaches a scratch
 place. That isolation keeps SB-018 intact for every game.
 
-[`STUDIO_LAUNCH_AND_PLACE_COPIES.md`](STUDIO_LAUNCH_AND_PLACE_COPIES.md#scratch-places-target)
+[`STUDIO_LAUNCH_AND_PLACE_COPIES.md`](STUDIO_LAUNCH_AND_PLACE_COPIES.md#scratch-places)
 is canonical for the behavior.
 
-**Current:** not implemented.
+**Current:** implemented in `sandblock-code` (the gateway's scratch scope,
+endpoint, tools and upload `owner`; the runtime service's routes, API version
+6; the copy manager) and in `sandblock-studio-plugin` (connecting a scratch
+place without a project or Rojo). It is tested on both sides, and not yet run
+against Roblox Studio.
 
