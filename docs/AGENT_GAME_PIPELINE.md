@@ -5,8 +5,10 @@
 **Target.** This is the pipeline a team of agents follows to build a whole
 Roblox game from an idea, much faster than by hand. Parts of it exist:
 [worktree copies](WORKTREE_COPIES.md) and the orchestrator's skill
-(`roblox-agent-team` in `sandblock-skills`), the thumbnail skills, and the
-asset and map skills that still live in game repositories. The rest is
+(`roblox-agent-team` in `sandblock-skills`), the thumbnail skills, the
+asset and map skills that still live in game repositories, and the team
+itself, which every game carries as a Paperclip company
+([SB-032](DECISIONS.md#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries)). The rest is
 described here so it can be built against one plan. It does not replace the
 [development workflow](ROBLOX_DEVELOPMENT_WORKFLOW.md): the human approvals,
 quality gates and reuse rules there still apply.
@@ -167,4 +169,4 @@ Launching the ads and choosing the winners stay with the Head of Roblox Pole.
 | Reviewer skill: the test session and the fix list format | `roblox-game-review` v1 in `sandblock-skills` (2026-10-07); to improve by iteration |
 | Generic balancing skill | `game-balancing` v1 in `sandblock-skills` (2026-10-07), AAF's model as the worked example; to improve by iteration |
 | Setting the game's name and description from an agent | No tool yet |
-| Running it all from one place (Paperclip roles) | To configure once the skills exist |
+| Running it all from one place (Paperclip roles) | `paperclip/` and `scripts/paperclip-team.sh` in `sandblock-game-boilerplate` ([SB-032](DECISIONS.md#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries), 2026-10-07): one Paperclip company per game, without the reuse agent yet. Tested on a disposable game, not yet through a whole wave |

@@ -179,6 +179,12 @@ agent. The split between agents is set where each agent is configured
   `remove_worktree`, and `transfer_model_between_places`. Deny lists on MCP tool
   names hold; shell patterns do not, which is why the lifecycle is not a CLI
   command.
+- **Worker in a Paperclip team** ([SB-032](DECISIONS.md#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries)).
+  Paperclip creates the worker's branch and worktree for its task, beside the
+  ones Sandblock Code makes, so the worker also calls `open_worktree_copy` on
+  that branch, with the place and version the orchestrator gave it. The tool
+  reuses the worktree. The rest of its deny list stands; the game's
+  `paperclip/README.md` is canonical for that setup.
 
 ## Bringing work back
 

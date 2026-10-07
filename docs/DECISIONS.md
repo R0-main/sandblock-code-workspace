@@ -732,3 +732,52 @@ place without a project or Rojo). It is tested on both sides. In Studio, on
 Windows, a blank scratch place opens and connects by itself; renders,
 uploads and caller-built place files are not validated yet.
 
+
+## SB-032 — A game's agent team is a Paperclip company the game carries
+
+**Status:** Accepted — amends [SB-029](#sb-029--each-agent-codes-in-a-worktree-and-tests-in-a-copy-it-serves)
+
+The [pipeline](AGENT_GAME_PIPELINE.md)'s agents ran as subagents of one
+Claude Code session. Nothing outlived the session: not the tasks, not who was
+doing what, not the human checkpoints, which were turns of a conversation. And
+every game set its team up again by hand.
+
+Each game now runs its team in [Paperclip](https://github.com/paperclipai/paperclip),
+an open-source orchestrator installed on the machine (in WSL, bound to
+loopback), as one Paperclip company named after the game. The team is defined
+in the game's repository, in `paperclip/`, a company package that every game
+inherits from `sandblock-game-boilerplate`: one Lead dev and the pipeline's
+agents, their instructions, and their configuration. The game's
+`scripts/paperclip-team.sh` imports it and, on every later run, brings Paperclip
+back in line with it, so the team is written once, replicated per game, and
+versioned with the game. One company per game, because Paperclip imports a team
+from a repository only as a whole company (team packages are reserved to its
+own catalog). This also gives each game its own task prefix, budget, and
+history.
+
+- Every agent is Claude Code (Paperclip's `claude_local` adapter on its CLI
+  engine) working in the game's repository. It wakes only for work assigned to
+  it, never on a timer.
+- A worker's task runs in a worktree Paperclip creates from the local `main`,
+  under `<repo parent>/.worktrees/<repo>/`, beside Sandblock Code's own. The
+  worker then opens its own copy with `open_worktree_copy` on its branch:
+  Sandblock Code counts any worktree of the repository, so it reuses that one.
+  **This amends SB-029:** a worker may call `open_worktree_copy` for its own
+  branch. Merging, transferring, closing a worker's copy, and removing a
+  worktree stay with the Lead dev.
+- The split between roles is enforced per agent by `--disallowedTools` on the
+  `mcp__roblox-studio__*` tool names.
+- Paperclip runs Claude with `--strict-mcp-config`, so an agent sees only the
+  MCP servers it is given: the game's `.mcp.json`, which each agent names, and
+  Paperclip's own. The user's claude.ai connectors are not there; the GDD's
+  Notion is reached through a Notion connection in Paperclip.
+- The four human checkpoints are Paperclip confirmations on the task.
+
+The game's [`paperclip/README.md`](../sandblock-game-boilerplate/paperclip/README.md)
+is canonical for the team, its rules, and how a wave runs on Paperclip.
+
+**Current:** the package and the script are in `sandblock-game-boilerplate`,
+tested against Paperclip 2026.1005.0 on a disposable game: import, idempotent
+update, and a worker task realized in its own worktree. Not yet run on a real
+game, against Studio, or through a whole wave. Games created before it do not
+have it: copy `paperclip/` and the script into them.
