@@ -43,7 +43,8 @@ Four human checkpoints, and nothing else waits on a person:
 | Planner | The GDD | `docs/PLAN.md`: tasks, their agent, dependencies, waves | `to-tasks` |
 | Reuse | The plan | Each task annotated with what already exists | `search_library` ([the library](ASSET_LIBRARY.md); tools to build) |
 | Orchestrator / lead dev | The plan | Waves run, branches merged, builds transferred | `roblox-agent-team` |
-| Asset agents | One asset task each | A build in their copy | `stud-models`, `stud-map`, `asset-kit`, `map-assembly`, `map-builder`, the game's UI skill, `vfx-creator`, `stud-animations`, `sound-effects` |
+| Art director | The GDD | The art direction and concept art the asset waves follow | `roblox-game-conventions` |
+| Asset agents, one per trade | One asset task each | A build in their copy | Modeler: `stud-models`, `asset-kit`. Map builder: `stud-map`, `map-builder`, `map-assembly`, `asset-kit`. UI designer: the game's UI skill, `roblox-game-conventions`, `controller-glyphs`. VFX artist: `vfx-creator`. Animator: `stud-animations`. Sound designer: `sound-effects` |
 | Code agents | One feature each | Code and tests on their branch | The game's Project Skill, `tdd`, the packages' skills |
 | Reviewer / tester | The merged game | A fix list | `roblox-game-review`, `roblox-game-conventions` |
 | Balancing | The fixed game and the GDD's targets | Tuned economy and progression numbers, with proof | `game-balancing` |

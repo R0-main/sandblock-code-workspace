@@ -183,7 +183,9 @@ agent. The split between agents is set where each agent is configured
   Paperclip creates the worker's branch and worktree for its task, beside the
   ones Sandblock Code makes, so the worker also calls `open_worktree_copy` on
   that branch, with the place and version the orchestrator gave it. The tool
-  reuses the worktree. The rest of its deny list stands; the game's
+  reuses the worktree. The rest of its deny list stands. The worktree is
+  Paperclip's to remove, when the task's execution workspace is closed, so
+  there the orchestrator does not call `remove_worktree` either. The game's
   `paperclip/README.md` is canonical for that setup.
 
 ## Bringing work back

@@ -763,8 +763,14 @@ history.
   worker then opens its own copy with `open_worktree_copy` on its branch:
   Sandblock Code counts any worktree of the repository, so it reuses that one.
   **This amends SB-029:** a worker may call `open_worktree_copy` for its own
-  branch. Merging, transferring, closing a worker's copy, and removing a
-  worktree stay with the Lead dev.
+  branch. Merging, transferring, and closing a worker's copy stay with the
+  Lead dev. Paperclip owns the worktree it made: the Lead dev closes the task's
+  execution workspace in Paperclip, which removes the worktree and the branch,
+  and nobody calls `remove_worktree`, since removing a worktree Paperclip still
+  tracks fails that task's run.
+- One agent per trade, each with its trade's skills: an Art director, then a
+  Modeler, a Map builder, a UI designer, a VFX artist, an Animator and a Sound
+  designer for the assets, beside the Coder, the Reviewer and the Balancer.
 - The split between roles is enforced per agent by `--disallowedTools` on the
   `mcp__roblox-studio__*` tool names.
 - Paperclip runs Claude with `--strict-mcp-config`, so an agent sees only the
