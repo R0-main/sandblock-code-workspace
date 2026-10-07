@@ -116,8 +116,9 @@ See SB-030 in [`DECISIONS.md`](DECISIONS.md) and
 **Current:** registered in [`../workspace.json`](../workspace.json); its
 layout, item schema, and agent rules exist, and it holds no item.
 
-**Target:** the gateway searches it and takes items into games, and Sandblock
-Code launches the library agent on a game.
+**Target:** the gateway searches it and takes items into games, Sandblock Code
+shows it in a Library view and launches the library agent on demand, and a
+daily job runs the agent read-only on every game that changed.
 
 ### `sandblock-game-boilerplate`
 
@@ -152,7 +153,7 @@ project-state, or Roblox Studio behavior.
 | Rojo | Fork pinned to `v7.7.0-rc.1`; Sandblock Code starts one `rojo serve` per Rojo project file a project's places sync, from the pinned build, each on its own internal port, when that project's window opens, stops them when the window closes, and serves each place's to Studio at `/runtimes/<id>/places/<key>/rojo` on the runtime service (HTTP and WebSocket); no Rojo it did not start is used | Ship the pinned build with the app, plus automatic binding from a launch ticket |
 | Project launch | Opening a project's window serves it with Rojo; the plugin can ask for a project instead, and its window opens with it. Agents open declared places and disposable copies of them with `open_place` and `open_place_copy` (**current, unvalidated against Roblox**) | One flow also launches the main place and the agent |
 | Visual tools | Selection, UI/model/icon rendering and image generation already exist | Productized feedback loop exposed from the selected project and plugin |
-| Reusable library | `sandblock-library` exists with its item format and the library agent's rules; it holds no item and nothing reads it | One search surface on the gateway, `use_library_item`, and the library agent launched on a game ([`ASSET_LIBRARY.md`](ASSET_LIBRARY.md)) |
+| Reusable library | `sandblock-library` exists with its item format and the library agent's rules; it holds no item and nothing reads it | One search surface on the gateway, `use_library_item`, a Library view, and the library agent run daily and on demand ([`ASSET_LIBRARY.md`](ASSET_LIBRARY.md)) |
 
 ## Project configuration
 

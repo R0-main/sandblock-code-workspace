@@ -7,8 +7,8 @@
 `sandblock-library/`. Its README is canonical for the layout and the item
 format, and its `AGENTS.md` for the library agent's rules. Git LFS is on, a
 service account can propose but not merge, and `main` is protected. Nothing
-reads or writes the library yet: it holds no item, no tool searches it, and the
-app does not launch the library agent. The accepted decision is
+reads or writes the library yet: it holds no item, no tool searches it, the
+app has no Library view, and the daily scan does not run. The accepted decision is
 [SB-030](DECISIONS.md#sb-030--one-library-agent-proposes-reusable-content-a-human-merges-it).
 The list of content types stays canonical in
 [`ROBLOX_DEVELOPMENT_WORKFLOW.md`](ROBLOX_DEVELOPMENT_WORKFLOW.md#library-content-types).
@@ -20,9 +20,10 @@ and takes a whole mechanic: its code, its menu, its effect, its model, and its
 sound.
 
 ```text
-game repositories ──read──▶ library agent ──merge request──▶ human merges ──▶ main
-                                                                                │
-reuse agent, workers ◀──── search_library, use_library_item ◀───────────────────┘
+every game's main ──daily, read-only──▶ library agent ──merge request──▶ human merges ──▶ main
+                                                                                          │
+Library view in Sandblock Code ◀──────────────────────────────────────────────────────────┤
+reuse agent, workers ◀──── search_library, use_library_item ◀─────────────────────────────┘
 ```
 
 ## One writer
@@ -42,8 +43,11 @@ the library project only. It can push branches and open merge requests, but
 is the promotion** that [SB-013](DECISIONS.md#sb-013--human-approvals-remain-explicit)
 requires, and closing it is a rejection the agent does not repeat.
 
-GitLab is also the only record of scans. Every request names the game commit
-it scanned, so no state file is kept.
+GitLab is also the only record of scans. Each game has a scan log, the issue
+`Scans: <game>` in the library project. Every scan comments there with the
+commits it read, what it proposed, and what it skipped and why. The last
+comment is where the next scan starts, so no state file is kept, and a human
+can read why something was left out and ask for it.
 
 ## Storage
 
@@ -63,6 +67,15 @@ it scanned, so no state file is kept.
   each owner (`group:<id>`, `user:<id>`) to its id.
 - **`needs` links the pieces of a mechanic.** A search returns them together,
   so a feature does not ship without its effect or its sound.
+- **Tags in one form**: lowercase, singular, English (`tree`, `pine`), with
+  `style` for the look (`stud`, `low-poly`) and `uses` for the purpose. A set
+  of pieces that belong together, such as Stud Trees, is one item, a pack, and
+  each piece has its own tags. The library README is canonical for both.
+- **Games are derived, never written as tags.** The game an item came from is
+  in `origin.repo`, and the games that use it record it in their
+  `sandblock-library.json`. Readers show both as `game:<slug>` tags. Written
+  into `item.json`, every adoption would need a merge request just to stay
+  true.
 - **No committed index.** The app reads every `item.json` when it searches. A
   generated index would conflict between any two open requests.
 
@@ -112,6 +125,41 @@ The reuse agent searches while it annotates the plan
 named in their task. Searching stays conditional
 ([SB-011](DECISIONS.md#sb-011--reuse-search-is-conditional)).
 
+## The Library view (target)
+
+Sandblock Code shows the library in a **Library** page of every project
+window, beside Assets and Thumbnails, and from the launcher, to browse it
+without opening a game.
+
+- **Grid.** One card per item, with its preview, name, type, version, and
+  tags. A pack shows how many pieces it has.
+- **Filters.** Text, type, tags, style, and game (`game:<slug>`, the game it
+  came from or a game that uses it). The tag lists come from the library, with
+  how many items carry each tag.
+- **Item page.**
+  - Its previews, and a pack's pieces as a grid.
+  - Its README, rendered.
+  - Its files, with code highlighted: a system's modules, an effect's build
+    script.
+  - What it `needs` and what needs it, as linked cards.
+  - Its assets with their ids per owner, and a play button for sounds.
+  - Where it came from, with a link to the commit, and the games that use it.
+  - Its history: the commits that changed its folder.
+- **In a project window**, two more things.
+  - A **Used here** filter, and badges when the game's copy was changed or a
+    newer version exists.
+  - **Use in this game**, which does what `use_library_item` does.
+- **Proposals.** The library agent's open merge requests appear as pending
+  cards with their preview. Merging stays in GitLab, under the person's own
+  account.
+
+The view reads the local checkout, so browsing needs no network. Proposals and
+the games that use each item come from the GitLab API with the person's own
+`read_api` token
+([`MACHINE_SETUP_AND_UPDATES.md`](MACHINE_SETUP_AND_UPDATES.md#the-gitlab-token)):
+the open requests, and each game's `sandblock-library.json` for the games of
+the `game` topic. The app never needs write access to GitLab.
+
 ## What a game records
 
 `use_library_item` writes `sandblock-library.json` at the game's root, and it
@@ -146,23 +194,41 @@ manifest, `.claude/sandblock-skills.json`
 
 ## The library agent
 
-- **Started by a human** from Sandblock Code, on one game. It is never started
-  by an orchestrator or a worker. Running it after a release, without being
-  asked, is later work.
-- **Given** the game read-only, meaning its repository and its capture endpoint
-  ([SB-024](DECISIONS.md#sb-024--a-thumbnail-variant-sees-the-game-read-only-and-can-be-continued)).
-  It also gets its own worktree of the library at
-  `<repo parent>/.worktrees/sandblock-library/<branch slug>`, the location rule
-  of [SB-029](DECISIONS.md#sb-029--each-agent-codes-in-a-worktree-and-tests-in-a-copy-it-serves),
-  and the library token for that worktree only.
-- **Never given to a game's agents**, and the token is never given to them
-  either.
-- **Its rules** are in the library's `AGENTS.md`: how to scan, the bar an item
-  must pass, how to write an item and open its request.
+It runs in two ways:
 
-Until the app launches it, it runs by hand. Start a session in a worktree of
-`sandblock-library/`, with `SANDBLOCK_LIBRARY_TOKEN` in its environment, and
-point it at a game.
+- **Once a day, on every game.** A scheduled job on an always-on machine runs
+  first, and it is a script, not an agent:
+  1. It lists the games of the GitLab `game` topic.
+  2. It reads the head of each game's `main` and compares it with the last
+     commit in that game's scan log.
+  3. A game that has not moved costs nothing. For a game that moved, it fetches
+     that commit into a checkout nobody works in, and starts the library agent
+     on it.
+
+  Only `main` is read: a branch is not reviewed yet. This run has no Studio, so
+  its previews come from images the game already committed. When there is
+  none, the request is labelled `preview-missing`.
+- **On demand.** A human starts it from Sandblock Code on one game. It then
+  also gets the game's capture endpoint
+  ([SB-024](DECISIONS.md#sb-024--a-thumbnail-variant-sees-the-game-read-only-and-can-be-continued)),
+  which can photograph items in the place.
+
+Either way, it works in its own worktree of the library, at
+`<repo parent>/.worktrees/sandblock-library/<branch slug>`, the location rule
+of [SB-029](DECISIONS.md#sb-029--each-agent-codes-in-a-worktree-and-tests-in-a-copy-it-serves).
+It opens at most ten requests per run, so the first scan of a long history
+does not flood the review.
+
+It is never started by an orchestrator or a worker. A game's agents get
+neither the agent nor its token. "Adding to the library" means opening the
+request; the item is added when a human merges it.
+
+Its rules are in the library's `AGENTS.md`: the scan, the bar an item must
+pass, the tags, how to write an item and open its request.
+
+Until the job and the app launch it, it runs by hand. Start a session in a
+worktree of `sandblock-library/`, with `SANDBLOCK_LIBRARY_TOKEN` in its
+environment, and point it at a game.
 
 ## Credentials
 
@@ -176,8 +242,22 @@ point it at a game.
 - GitLab confines a project service account to its own project, so the token
   cannot read the games. The agent reads them from the machine's own clones.
 
-**Target.** The main process reads the token and hands it only to library
-agent runs. It is kept like the Roblox keys
+**Target.** The daily job needs to read every game, which the project
+service account cannot do.
+
+- A second account does it: a **group** service account on `roblox`, with the
+  Reporter role on the group and a token with only `read_api` and
+  `read_repository`. It lists the games and fetches them, and can change
+  nothing: both its role and its scopes are read-only.
+- It is kept as `SANDBLOCK_GAMES_READ_TOKEN` beside the library token, on the
+  machine that runs the job. A group Owner creates it in the group's Settings,
+  under Service accounts.
+- Two accounts rather than one keeps writing to the library apart from reading
+  the games. The token that reads every game cannot write anything, and the
+  token that writes can reach only the library.
+
+For on-demand runs, the main process reads the library token and hands it only
+to library agent runs. It is kept like the Roblox keys
 ([SB-025](DECISIONS.md#sb-025--agents-upload-every-kind-of-asset-through-one-tool)).
 
 ## First content
@@ -204,7 +284,10 @@ It is Toolbox content, not ours.
 | Repository, layout, item format and schema, the agent's rules | `sandblock-library` | Written, not pushed |
 | A check for items: schema, files, `needs`, LFS | `sandblock-library` | To write |
 | `search_library`, `get_library_item`, `use_library_item`, reading and fetching the checkout | `sandblock-code` | To build |
+| The Library view: a page in each project window and in the launcher | `sandblock-code` | To build |
 | Launching the library agent on a game, with the token | `sandblock-code` | To build; by hand until then |
+| The daily job: list games, compare heads with scan logs, start the agent | the always-on machine, a script in `sandblock-library` | To build |
+| The read-only group service account and its token | GitLab `roblox` group, a human Owner | To create |
 | `download_assets` for the library agent: it changes no place, but the capture endpoint does not list it | `sandblock-code` | To decide |
 | Inserting a `.rbxm` from a file | `sandblock-studio-plugin` | To build and validate (`SerializationService:DeserializeInstancesAsync` is the assumed path) |
 | `git-lfs` on each machine | machine setup | Missing on the WSL machine this was written on |
@@ -220,10 +303,10 @@ It is Toolbox content, not ours.
 
 ## Ownership
 
-- `sandblock-library`: the content, the item format, the schema, and the
-  library agent's rules.
-- `sandblock-code`: the reading tools, launching the library agent, and the
-  token.
+- `sandblock-library`: the content, the item format, the schema, the library
+  agent's rules, and the daily job's script.
+- `sandblock-code`: the reading tools, the Library view, launching the library
+  agent on demand, and the token for those runs.
 - `sandblock-studio-plugin`: inserting a `.rbxm`.
 - `sandblock-skills`: the skills that make items (`vfx-creator`, `asset-kit`,
   and the others) and the reuse agent's skill.
