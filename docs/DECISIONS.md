@@ -689,9 +689,9 @@ with one tool, and record what they took in `sandblock-library.json`, as they
 record shared skills (SB-021). People browse it in a Library view in Sandblock
 Code. Items carry tags in one form, and a pack groups pieces that belong
 together. Games are not written as tags: the game an item came from and the
-games that use it are derived. Every item that can be seen is rendered in a
-disposable copy of its game's place, with the gateway's existing capture
-tools.
+games that use it are derived. Every item that can be seen is rendered from its
+own code in a scratch place (SB-031), never in its game's place, with the
+gateway's existing capture tools.
 
 [`ASSET_LIBRARY.md`](ASSET_LIBRARY.md) is canonical for the design. The
 library's own README is canonical for the item format, and its `AGENTS.md` for
@@ -702,3 +702,28 @@ token, in `sandblock-code/.env`, are set up, and `main` is protected. The
 repository's layout, schema, and agent rules are written. No item, tool, view,
 or daily pass exists yet, and the games token reaches no game until the games
 move into `roblox/games`.
+
+## SB-031 — Scratch places: blank Studios outside every project
+
+**Status:** Accepted — extends [SB-027](#sb-027--agents-open-studio-and-work-in-disposable-place-copies)
+
+Every Studio an agent could open belonged to a project: a declared place, or a
+copy of one. Some work must not touch any game. The library agent renders an
+item to propose it, and opening a game's place, even as a copy, would expose
+the game's world to an agent that only needs the item. A copy also needs the
+game's place declared with its PlaceId, and a Roblox account that can download
+it.
+
+Sandblock Code therefore serves `/scratch/mcp`, an endpoint bound to no
+project. It opens Studios on a blank baseplate, or on a place file the caller
+built, such as a `rojo build` of a game's code. These are scratch places,
+identified like copies by a ticket in their file name. The endpoint offers the
+Studio tools that act in one place, including captures and uploads (which name
+their owner), and reaches nothing else. No project endpoint reaches a scratch
+place. That isolation keeps SB-018 intact for every game.
+
+[`STUDIO_LAUNCH_AND_PLACE_COPIES.md`](STUDIO_LAUNCH_AND_PLACE_COPIES.md#scratch-places-target)
+is canonical for the behavior.
+
+**Current:** not implemented.
+

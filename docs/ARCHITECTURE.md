@@ -372,6 +372,12 @@ read-only (**current**, see
 finding and inspecting instances, captures, and image assets by id, and nothing
 that changes the place. It is what a thumbnail variant run is given.
 
+`/scratch/mcp` (**target**, see
+[SB-031](DECISIONS.md#sb-031--scratch-places-blank-studios-outside-every-project))
+belongs to no project. It opens Studios on blank or caller-built places and
+serves only those, for work that must not touch a game, such as rendering a
+library item from its code.
+
 The agent Sandblock Code launches receives its project endpoint through
 `--mcp-config` under `--strict-mcp-config`. Agents opened by hand — Claude Code
 in a terminal, the desktop Code tab or an IDE, and Cursor — read `.mcp.json` and

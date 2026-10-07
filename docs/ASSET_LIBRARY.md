@@ -165,11 +165,20 @@ the `game` topic. The app never needs write access to GitLab.
 Every item that can be seen gets rendered previews, so the Library view shows
 it and a reviewer sees it before merging.
 
-**In a disposable copy of the game's place.** The item already exists there,
-or its code is synced there. The agent opens a copy with `open_place_copy`
-([`STUDIO_LAUNCH_AND_PLACE_COPIES.md`](STUDIO_LAUNCH_AND_PLACE_COPIES.md#copies)),
-then places or mounts the item and captures it. Closing the copy deletes it,
-so nothing reaches the game. No place is kept for rendering only.
+**Built from its code, in a scratch place.** The agent never opens a game's
+place, not even a copy. It opens a scratch place
+([SB-031](DECISIONS.md#sb-031--scratch-places-blank-studios-outside-every-project)),
+a Studio that belongs to no project:
+
+1. It opens a blank place, or a `rojo build` of the game's code when a menu
+   needs the game's modules and packages.
+2. It builds the item there from the item's own files: its build script, its
+   modules, its asset ids. Sources that have no id yet are uploaded with
+   `upload_assets`, naming the owner.
+3. It captures the item, then closes the place, which deletes it.
+
+Building there also checks the item for free. The place holds nothing from the
+game's world, so an item whose build fails there still depends on its game.
 
 **With tools the gateway already has:**
 
@@ -180,17 +189,13 @@ so nothing reaches the game. No place is kept for rendering only.
 | VFX | Frozen frames of the effect, taken the way the `vfx-creator` filmstrip takes them | its capture snippets |
 | Sounds, animations | Nothing; the view plays a sound | — |
 
-The library agent's session is not connected to the games' endpoints, which
-exist only once `sandblock-code open` has opened each game. It calls them with
-the library's `scripts/mcp-call.py`, which reaches any project endpoint and
-saves the images a tool returns. Nothing has to be turned on in Sandblock Code
-first. `open` registers a game it has never seen, and the copy tools are on by
-default. A copy still needs the place declared with its PlaceId, a Roblox
-account signed in to the app, and automatic connection left on for that place.
+The library agent's session is not connected to the scratch endpoint. It calls
+it with the library's `scripts/mcp-call.py --scratch`, which also saves the
+images a tool returns. The agent looks at every image and commits the renders
+as `previews` in the request.
 
-The agent looks at every image and commits the renders as `previews` in the
-request. A render it cannot get is labelled `preview-missing`, with the
-reason. Re-rendering from the Library view is later work.
+Until scratch places exist, items that can be seen are proposed with the label
+`preview-missing`. Re-rendering from the Library view is later work.
 
 ## What a game records
 
@@ -239,22 +244,19 @@ Each pass follows the library's `library-scan` skill:
 2. Compare the head of each game's `main` with the last commit in its scan
    log. A game that has not moved is skipped.
 3. For each game that moved:
-   1. Fetch it into its usual checkout, `~/sandblock/<slug>`, cloning it there
-      if it is missing. Nothing is checked out there.
-   2. Read `main` from an export of the head, so that nobody's working tree is
-      touched.
-   3. Open the usual checkout with `sandblock-code open`, which starts the app
-      if it is not running. A second checkout of a game is never opened: it
-      would share the game's `projectId`.
-   4. Scan it, render its items in disposable copies of its place
-      ([Renders](#renders-target)), open the requests, and comment on the scan
-      log.
+   1. Clone it into a temporary folder with the games token.
+   2. Scan it, render its items in scratch places ([Renders](#renders-target)),
+      open the requests, and comment on the scan log.
+   3. Delete the clone.
 
-Only `main` is read: a branch is not reviewed yet. The machine needs Sandblock
-Code and a Studio signed in, for the copies. Its WSL must also run in the
-signed-in Windows session: `sandblock-code` refuses to start an app in session
-0, where it could not be shown. When the app cannot open, the scan still
-proposes, and labels its visual items `preview-missing`.
+The pass never uses a checkout someone works in, and never opens a game in
+Sandblock Code. Only `main` is read, because a branch is not reviewed yet.
+
+Renders need Sandblock Code running and a Studio signed in on that machine,
+and its WSL must run in the signed-in Windows session: `sandblock-code`
+refuses to start an app in session 0, where it could not be shown. When
+renders cannot happen, the scan still proposes, and labels its visual items
+`preview-missing`.
 
 A scan on demand is the same skill, asked for one game.
 
@@ -322,7 +324,7 @@ It is Toolbox content, not ours.
 | The Library view: a page in each project window and in the launcher | `sandblock-code` | To build |
 | The daily pass: a Claude Code session running `/loop 24h /library-scan` on the always-on machine | that machine | To start |
 | The games in `roblox/games`, where the games token reaches them | GitLab, a human | To move |
-| Closing a game's window from the CLI after its scan: `sandblock-code open` has no counterpart | `sandblock-code` | Missing |
+| Scratch places: `/scratch/mcp`, `open_scratch_place`, `close_scratch_place`, a blank baseplate, uploads that name their owner | `sandblock-code`, `sandblock-studio-plugin` | To build ([SB-031](DECISIONS.md#sb-031--scratch-places-blank-studios-outside-every-project)) |
 | `download_assets` for the library agent: it changes no place, but the capture endpoint does not list it | `sandblock-code` | To decide |
 | Inserting a `.rbxm` from a file | `sandblock-studio-plugin` | To build and validate (`SerializationService:DeserializeInstancesAsync` is the assumed path) |
 | `git-lfs` on each machine | machine setup | Missing on the WSL machine this was written on |
@@ -337,13 +339,15 @@ It is Toolbox content, not ours.
 - The `.rbxm` insertion path above.
 - Whether Studio runs unattended on the always-on machine for the daily
   renders, in an open Windows session and signed in.
+- Whether a scratch place, unpublished and with `PlaceId` 0, shows images and
+  meshes owned by the games' group.
 
 ## Ownership
 
 - `sandblock-library`: the content, the item format, the schema, the library
   agent's rules, and its `library-scan` skill.
-- `sandblock-code`: the reading tools, the Library view, and the place copies
-  the renders use.
+- `sandblock-code`: the reading tools, the Library view, and the scratch
+  places the renders use.
 - `sandblock-studio-plugin`: inserting a `.rbxm`.
 - `sandblock-skills`: the skills that make items (`vfx-creator`, `asset-kit`,
   and the others) and the reuse agent's skill.
