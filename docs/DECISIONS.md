@@ -655,3 +655,39 @@ the contracts.
 against a real Git worktree, not yet run on Windows or against Studio. The
 plugin needs no change: it already syncs through the Rojo URL its start
 answers.
+
+## SB-030 — One library agent proposes reusable content, a human merges it
+
+**Status:** Accepted — amends SB-001 and implements SB-011's library
+
+The library that SB-011 searches had no home. The reusable pieces of earlier
+games were scattered across their repositories, places, and skills: effects,
+kits, systems, menus, sounds. A new game rebuilt them, or an agent dug through
+old repositories by hand.
+
+The library is a seventh repository, `sandblock-library`
+(`git@ssh.git.shulkr.net:roblox/sandblock-library.git`). Each item is a folder
+with an `item.json`. Text comes first: an effect or a kit is the script that
+builds it. Binaries go to Git LFS as their original files, and Roblox ids are
+recorded per owner, because an animation or a sound uploaded by one owner does
+not play in another's game.
+
+One agent writes it: the library agent, which a human starts on a game. It is
+outside the game pipeline. Workers, orchestrators, and reviewers only read the
+library. The agent proposes each item as a merge request, and a human merging
+it is the promotion SB-013 requires. GitLab enforces this. The agent's service
+account is a Developer of that project only, and `main` is protected, so only
+Maintainers merge.
+
+Games read the library through one search surface on the gateway, take an item
+with one tool, and record what they took in `sandblock-library.json`, as they
+record shared skills (SB-021).
+
+[`ASSET_LIBRARY.md`](ASSET_LIBRARY.md) is canonical for the design. The
+library's own README is canonical for the item format, and its `AGENTS.md` for
+the agent's rules.
+
+**Current:** the GitLab project exists with LFS on. The service account and its
+token, in `sandblock-code/.env`, are set up, and `main` is protected. The
+repository's layout, schema, and agent rules are written. No item, tool, or
+agent launch exists yet.

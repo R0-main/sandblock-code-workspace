@@ -156,8 +156,10 @@ alone.
 
 ### Library content types
 
-Sandblock's global library is **target** behavior. It is designed to hold every
-kind of production content a game needs, not code alone:
+Sandblock's global library is **target** behavior, with its storage in place:
+the `sandblock-library` repository, described with its single writer and its
+reading tools in [`ASSET_LIBRARY.md`](ASSET_LIBRARY.md). It is designed to hold
+every kind of production content a game needs, not code alone:
 
 - reusable Luau systems and utilities such as shops, daily rewards,
   leaderboards, onboarding, or codes;
@@ -167,9 +169,10 @@ kind of production content a game needs, not code alone:
 - sounds and music such as SFX, ambience, UI feedback, and loops;
 - animations and future asset types.
 
-Items are expected to be searchable through tags and metadata such as category,
-visual or audio style, compatible stack, intended use, source project, version,
-and approval state.
+Items are searchable through tags and metadata such as category, visual or
+audio style, compatible stack, intended use, source project, and version. An
+item on the library's `main` branch is approved by definition: nothing else
+reaches it.
 
 A mechanic is rarely code alone. When an agent builds one, it should be able to
 find the system, the model, the VFX, and the sound through the same search
@@ -197,8 +200,9 @@ Sandblock tools:
 2. inspect it in the relevant UI, Studio, or playback context;
 3. revise or reject it if it does not meet the project need;
 4. keep it project-local by default;
-5. promote it to the global library only after a human explicitly approves the
-   promotion.
+5. never promote it yourself: the library agent proposes it as a merge request,
+   and it enters the global library when a human merges that request
+   ([`ASSET_LIBRARY.md`](ASSET_LIBRARY.md#one-writer)).
 
 Current generation tools cover images and thumbnails. Model, VFX, and audio
 generation is **later** work; when those tools arrive they inherit the same

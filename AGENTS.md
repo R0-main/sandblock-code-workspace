@@ -1,7 +1,7 @@
 # Sandblock Code workspace instructions
 
 This root is a Git meta-repository containing canonical cross-repository
-context and orchestration for six independent child repositories.
+context and orchestration for seven independent child repositories.
 
 ## Required startup
 
@@ -30,8 +30,11 @@ more than one repository.
 - `sandblock-game-boilerplate/`: the starting repository for a new Sandblock
   Roblox game — stack, check gate, example modules, and the agent
   configuration every new game inherits.
+- `sandblock-library/`: the content games reuse — systems, UI, VFX, models,
+  sounds, animations — written only by the library agent through merge
+  requests a human merges.
 
-The parent repository ignores all six child directories. Parent commits may
+The parent repository ignores all seven child directories. Parent commits may
 change only workspace-level material such as `docs/`, `.agents/`, this file,
 `workspace.json`, or root scripts. Never stage a child repository into the
 parent or replace it with an accidental Git submodule.

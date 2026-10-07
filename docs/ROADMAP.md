@@ -126,7 +126,9 @@ task.
 - Generate or refresh a Project Skill from the approved GDD plus coding skill.
 - Validate links, ownership, and one-fact-one-source context routing.
 - Add conditional search of tagged systems, code, models, UI, VFX, and sounds.
-- Add human-reviewed promotion from a project into the global library.
+- Add human-reviewed promotion from a project into the global library: the
+  library agent proposes merge requests and a human merges them
+  ([`ASSET_LIBRARY.md`](ASSET_LIBRARY.md)).
 
 **Exit check:** A fresh agent can recover project vision and conventions from
 the skill, find every reusable piece a mechanic needs—system, model, UI, VFX,

@@ -2,12 +2,13 @@
 
 ## System overview
 
-Sandblock Code is a coordinated workspace of six independently versioned
+Sandblock Code is a coordinated workspace of seven independently versioned
 repositories. The desktop app is the control plane, the Studio plugin is the
 in-Studio execution and feedback surface, the Rojo fork supplies a pinned,
 compatible sync engine, Sandblock UI owns reusable web interface primitives,
-Sandblock Skills owns the agent skills shared across games, and the game
-boilerplate is the repository every new game starts from.
+Sandblock Skills owns the agent skills shared across games, the game
+boilerplate is the repository every new game starts from, and Sandblock Library
+holds the content games reuse.
 
 ```mermaid
 flowchart LR
@@ -95,13 +96,28 @@ to neither a single game repository nor the desktop application. See SB-021 in
 [`DECISIONS.md`](DECISIONS.md) for the ownership test.
 
 **Current:** registered in [`../workspace.json`](../workspace.json) and cloned by
-`npm run bootstrap`; it carries no skill yet.
+`npm run bootstrap`. It carries the shared skills listed in its README, which
+games receive as committed copies through the boilerplate's
+`scripts/sync-skills.sh` (SB-021).
 
-**Target:** it holds the Roblox thumbnail discovery and generation workflow,
-migrated out of the historical monorepository, and Sandblock Code resolves
-shared skills from it when launching a coding agent. Per-game configuration —
-subjects, palettes, place bindings — stays in the game repository's own Project
-Skill.
+**Target:** Sandblock Code resolves shared skills from it when launching a
+coding agent. Per-game configuration — subjects, palettes, place bindings —
+stays in the game repository's own Project Skill.
+
+### `sandblock-library`
+
+Owns the content games reuse: systems, UI and menus, VFX, models and map kits,
+sounds, animations, and images, one folder per item with its `item.json`, its
+build script or files, its binary sources in Git LFS, and its Roblox ids per
+owner. Only the library agent writes it, through merge requests a human merges.
+See SB-030 in [`DECISIONS.md`](DECISIONS.md) and
+[`ASSET_LIBRARY.md`](ASSET_LIBRARY.md).
+
+**Current:** registered in [`../workspace.json`](../workspace.json); its
+layout, item schema, and agent rules exist, and it holds no item.
+
+**Target:** the gateway searches it and takes items into games, and Sandblock
+Code launches the library agent on a game.
 
 ### `sandblock-game-boilerplate`
 
@@ -136,6 +152,7 @@ project-state, or Roblox Studio behavior.
 | Rojo | Fork pinned to `v7.7.0-rc.1`; Sandblock Code starts one `rojo serve` per Rojo project file a project's places sync, from the pinned build, each on its own internal port, when that project's window opens, stops them when the window closes, and serves each place's to Studio at `/runtimes/<id>/places/<key>/rojo` on the runtime service (HTTP and WebSocket); no Rojo it did not start is used | Ship the pinned build with the app, plus automatic binding from a launch ticket |
 | Project launch | Opening a project's window serves it with Rojo; the plugin can ask for a project instead, and its window opens with it. Agents open declared places and disposable copies of them with `open_place` and `open_place_copy` (**current, unvalidated against Roblox**) | One flow also launches the main place and the agent |
 | Visual tools | Selection, UI/model/icon rendering and image generation already exist | Productized feedback loop exposed from the selected project and plugin |
+| Reusable library | `sandblock-library` exists with its item format and the library agent's rules; it holds no item and nothing reads it | One search surface on the gateway, `use_library_item`, and the library agent launched on a game ([`ASSET_LIBRARY.md`](ASSET_LIBRARY.md)) |
 
 ## Project configuration
 
@@ -321,11 +338,12 @@ The agent uses one Sandblock MCP endpoint. The gateway dynamically merges:
 - official StudioMCP tools;
 - Sandblock Studio bridge tools;
 - local utilities such as generation, project metadata, and future library
-  search tools. Library search is **target** and must cover every content type
+  tools. Library search is **target** and must cover every content type
   listed in
   [`ROBLOX_DEVELOPMENT_WORKFLOW.md`](ROBLOX_DEVELOPMENT_WORKFLOW.md)—systems,
   models, UI, VFX, and sounds—through one query surface rather than one tool
-  per asset family.
+  per asset family: `search_library`, `get_library_item`, and
+  `use_library_item`, described in [`ASSET_LIBRARY.md`](ASSET_LIBRARY.md).
 
 Current transports include MCP HTTP, legacy SSE compatibility, and the
 plugin's outbound claim/poll/response bridge. The claim names the place the

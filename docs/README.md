@@ -12,6 +12,7 @@ repository in the Sandblock Code workspace.
 | Accepted cross-repository decisions | [`DECISIONS.md`](DECISIONS.md) |
 | Delivery order and completion gates | [`ROADMAP.md`](ROADMAP.md) |
 | Roblox game production workflow, reuse rules, and reusable library content types (systems, models, UI, VFX, sounds) | [`ROBLOX_DEVELOPMENT_WORKFLOW.md`](ROBLOX_DEVELOPMENT_WORKFLOW.md) |
+| The reusable library: its repository, storage, one writer (the library agent), the reading tools, and what a game records (target, storage in place) | [`ASSET_LIBRARY.md`](ASSET_LIBRARY.md) |
 | Cross-place Studio model transfer and package tools (implemented, pending Roblox validation) | [`CROSS_PLACE_MODEL_TRANSFER.md`](CROSS_PLACE_MODEL_TRANSFER.md) |
 | Launching Studio, automatic plugin connection, and disposable place copies for parallel agents (implemented, pending Roblox validation) | [`STUDIO_LAUNCH_AND_PLACE_COPIES.md`](STUDIO_LAUNCH_AND_PLACE_COPIES.md) |
 | Worktree copies: one branch, one Studio, one agent, with the orchestrator owning the lifecycle (implemented, pending Windows and Roblox validation) | [`WORKTREE_COPIES.md`](WORKTREE_COPIES.md) |

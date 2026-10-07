@@ -99,6 +99,15 @@ The reusable library covers Luau systems, models and map kits, UI and icons,
 VFX, sounds, and animations. When a task builds a mechanic, look for all of the
 pieces it needs, not the code only, and report the ones that are missing.
 
+### Reusable library
+
+Read [`ASSET_LIBRARY.md`](../../../docs/ASSET_LIBRARY.md), then
+[`sandblock-library/README.md`](../../../sandblock-library/README.md) for the
+item format and its [`AGENTS.md`](../../../sandblock-library/AGENTS.md) for the
+library agent's rules. Only the library agent writes the library, through merge
+requests a human merges; no game agent, orchestrator, or reviewer proposes
+items.
+
 ### UI work
 
 Read [`DESIGN_SYSTEM.md`](../../../docs/DESIGN_SYSTEM.md) and inspect the actual
