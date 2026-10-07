@@ -728,6 +728,7 @@ is canonical for the behavior.
 **Current:** implemented in `sandblock-code` (the gateway's scratch scope,
 endpoint, tools and upload `owner`; the runtime service's routes, API version
 6; the copy manager) and in `sandblock-studio-plugin` (connecting a scratch
-place without a project or Rojo). It is tested on both sides, and not yet run
-against Roblox Studio.
+place without a project or Rojo). It is tested on both sides. In Studio, on
+Windows, a blank scratch place opens and connects by itself; renders,
+uploads and caller-built place files are not validated yet.
 

@@ -10,8 +10,8 @@ Roblox fact below as an assumption the code makes.
 [Implementation](#implementation) records where the code narrows or extends
 this design. The accepted decision is
 [SB-027](DECISIONS.md#sb-027--agents-open-studio-and-work-in-disposable-place-copies).
-[Scratch places](#scratch-places) follow the same state: implemented,
-accepted in SB-031, and not yet run against Roblox.
+[Scratch places](#scratch-places) are accepted in SB-031 and implemented;
+opening and connecting one is validated in Studio, the rest is not yet.
 
 ## Goal
 
@@ -166,11 +166,12 @@ the place; when it lacks it, the tools answer `roblox_refused`.
 
 ## Scratch places
 
-**Current, unvalidated**, accepted in
+**Current, partly validated**, accepted in
 [SB-031](DECISIONS.md#sb-031--scratch-places-blank-studios-outside-every-project).
 Implemented in `sandblock-code` (gateway, runtime service, copy manager) and
-`sandblock-studio-plugin`, with tests on both sides, but not yet run against
-Roblox Studio.
+`sandblock-studio-plugin`, with tests on both sides. On 2026-10-07, on
+Windows, `open_scratch_place` opened the blank place in Studio and the plugin
+connected it by itself.
 
 A scratch place is a Studio opened on a place that belongs to no project:
 blank, or a place file the caller built. It is for work that must not touch a
@@ -256,9 +257,10 @@ close_scratch_place({ place: "scratch-a1b2" }) → Studio stopped, file deleted
   `copy_limit`, and `scratch_not_found` (404). The project routes never reach a
   scratch place.
 
-Still to validate in Studio: that the blank XML place opens, that the plugin
-connects it by itself, and that images and meshes owned by the games' group
-show in it.
+Validated in Studio on 2026-10-07: the blank XML place opens, and the plugin
+connects it without a click. Still to validate: renders and `execute_luau`
+in it, a `placeFile` built with `rojo build`, uploads that name their owner,
+and whether images and meshes owned by the games' group show in it.
 
 ## Bringing work back: transfers and setup
 
