@@ -771,6 +771,14 @@ history.
 - One agent per trade, each with its trade's skills: an Art director, then a
   Modeler, a Map builder, a UI designer, a VFX artist, an Animator and a Sound
   designer for the assets, beside the Coder, the Reviewer and the Balancer.
+- The team is organized in departments: the art trades and the Thumbnail
+  artist report to the Art director, the Planner and the Balancer to the Game
+  designer, and those two leads, the Coder, the Reviewer and the Store copy
+  agent to the Lead dev. A lead checks its department's work before the Lead
+  dev merges it.
+- The trades meet in the task tree, not the org chart: one Paperclip issue
+  per feature, one task under it per trade, blocked on the sibling tasks it
+  needs, and the feature lists the names its tasks agree on.
 - The split between roles is enforced per agent by `--disallowedTools` on the
   `mcp__roblox-studio__*` tool names.
 - Paperclip runs Claude with `--strict-mcp-config`, so an agent sees only the

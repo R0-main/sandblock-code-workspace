@@ -51,6 +51,11 @@ Four human checkpoints, and nothing else waits on a person:
 | Thumbnail artist | GDD, art direction | Square icon, thumbnails to test in ads | `roblox-thumbnails`, `roblox-thumbnail-variant` |
 | Store copy | GDD | Game name and description, localized | `roblox-localization` |
 
+On a Paperclip team the agents are organized in departments (art under the Art
+director, the Planner and the Balancer under the Game designer), and the trades
+meet in a task tree with one issue per feature and one task per trade under it
+([SB-032](DECISIONS.md#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries)).
+
 ## 1. Idea to GDD
 
 The design agent questions the idea until every system, screen, and number the
