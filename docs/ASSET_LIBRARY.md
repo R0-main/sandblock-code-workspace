@@ -180,6 +180,14 @@ so nothing reaches the game. No place is kept for rendering only.
 | VFX | Frozen frames of the effect, taken the way the `vfx-creator` filmstrip takes them | its capture snippets |
 | Sounds, animations | Nothing; the view plays a sound | — |
 
+The library agent's session is not connected to the games' endpoints, which
+exist only once `sandblock-code open` has opened each game. It calls them with
+the library's `scripts/mcp-call.py`, which reaches any project endpoint and
+saves the images a tool returns. Nothing has to be turned on in Sandblock Code
+first. `open` registers a game it has never seen, and the copy tools are on by
+default. A copy still needs the place declared with its PlaceId, a Roblox
+account signed in to the app, and automatic connection left on for that place.
+
 The agent looks at every image and commits the renders as `previews` in the
 request. A render it cannot get is labelled `preview-missing`, with the
 reason. Re-rendering from the Library view is later work.
