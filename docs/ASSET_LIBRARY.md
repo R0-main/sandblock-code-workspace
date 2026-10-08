@@ -8,7 +8,7 @@
 format, and its `AGENTS.md` for the library agent's rules. Git LFS is on, a
 service account can propose but not merge, and `main` is protected. Nothing
 reads or writes the library yet: it holds no item, no tool searches it, the
-app has no Library view, and the daily `/loop` does not run. The accepted decision is
+app has no Library view, and the daily routine has not scanned a game yet. The accepted decision is
 [SB-030](DECISIONS.md#sb-030--one-library-agent-proposes-reusable-content-a-human-merges-it).
 The list of content types stays canonical in
 [`ROBLOX_DEVELOPMENT_WORKFLOW.md`](ROBLOX_DEVELOPMENT_WORKFLOW.md#library-content-types).
@@ -20,7 +20,7 @@ and takes a whole mechanic: its code, its menu, its effect, its model, and its
 sound.
 
 ```text
-every game's main ──/loop daily──▶ library agent ──merge request──▶ human merges ──▶ main
+every game's main ──daily routine──▶ library agent ──merge request──▶ human merges ──▶ main
                                                                                           │
 Library view in Sandblock Code ◀──────────────────────────────────────────────────────────┤
 reuse agent, workers ◀──── search_library, use_library_item ◀─────────────────────────────┘
@@ -233,12 +233,25 @@ manifest, `.claude/sandblock-skills.json`
 
 ## The library agent
 
-It runs as a **Claude Code `/loop`**, in a session on the always-on machine
-whose working directory is a checkout of `sandblock-library`:
+It is the **Library Curator**, an agent of the studio's Paperclip company,
+Sandblock Labs (Paperclip is installed as SB-032 describes). Its settings:
 
-```text
-/loop 24h /library-scan
-```
+- adapter `claude_local` on the CLI engine, with Opus 5.5;
+- working directory: the machine's `sandblock-library` checkout, so it follows
+  that repository's `AGENTS.md`;
+- it wakes only for work assigned to it, and runs one pass at a time.
+
+The routine **"Scan quotidien de la bibliothèque"** in the project "Sandblock
+Library" assigns it an issue every day at 10:00, Europe/Paris. If a pass is
+still running, the next one joins it; if the machine was off, the missed pass
+is skipped. The routine's optional `game` variable runs the same pass on one
+game from Paperclip's "Run now". The agent posts its report on that issue,
+one line per game.
+
+It runs with permission prompts on. The library's `.claude/settings.json`
+allows what a pass needs, such as Git, `curl`, the repository's scripts, and
+`sandblock-code`. Anything else is refused, and the report says so. The agent
+lives only in the Paperclip instance, created through its API.
 
 Each pass follows the library's `library-scan` skill:
 
@@ -324,7 +337,7 @@ It is Toolbox content, not ours.
 | A check for items: schema, files, `needs`, LFS | `sandblock-library` | To write |
 | `search_library`, `get_library_item`, `use_library_item`, reading and fetching the checkout | `sandblock-code` | To build |
 | The Library view: a page in each project window and in the launcher | `sandblock-code` | To build |
-| The daily pass: a Claude Code session running `/loop 24h /library-scan` on the always-on machine | that machine | To start |
+| The daily pass: the Library Curator in Sandblock Labs, woken at 10:00 by its Paperclip routine | Paperclip on this machine | Set up 2026-10-08; no game scanned yet |
 | The games in `roblox/games`, where the games token reaches them | GitLab, a human | To move |
 | Scratch places: `/scratch/mcp`, `open_scratch_place`, `close_scratch_place`, a blank place, uploads that name their owner | `sandblock-code`, `sandblock-studio-plugin` | Implemented; opening and connecting validated in Studio, renders not yet ([SB-031](DECISIONS.md#sb-031--scratch-places-blank-studios-outside-every-project)) |
 | `download_assets` for the library agent: it changes no place, but the capture endpoint does not list it | `sandblock-code` | To decide |

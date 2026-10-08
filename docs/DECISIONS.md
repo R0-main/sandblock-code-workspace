@@ -672,8 +672,9 @@ builds it. Binaries go to Git LFS as their original files, and Roblox ids are
 recorded per owner, because an animation or a sound uploaded by one owner does
 not play in another's game.
 
-One agent writes it: the library agent. It runs once a day as a Claude Code
-`/loop` on every game whose `main` moved, and on demand. It never writes to a
+One agent writes it: the library agent, the Library Curator in the studio's
+Paperclip company. A Paperclip routine wakes it once a day for every game whose
+`main` moved, and a human can run it on demand. It never writes to a
 game. It is outside the game pipeline: workers,
 orchestrators, and reviewers only read the library. The agent proposes each
 item as a merge request, and a human merging it is the promotion SB-013

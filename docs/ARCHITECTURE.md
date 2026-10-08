@@ -118,7 +118,7 @@ layout, item schema, and agent rules exist, and it holds no item.
 
 **Target:** the gateway searches it and takes items into games, Sandblock Code
 shows it in a Library view, and the library agent scans every game that
-changed once a day, as a Claude Code `/loop`.
+changed once a day, as a Paperclip routine of Sandblock Labs.
 
 ### `sandblock-game-boilerplate`
 
