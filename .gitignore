@@ -9,6 +9,7 @@ node_modules/
 /sandblock-skills/
 /sandblock-game-boilerplate/
 /sandblock-library/
+/sandblock-paperclip/
 
 # Local secrets and generated media.
 .env
