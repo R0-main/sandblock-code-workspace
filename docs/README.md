@@ -16,6 +16,7 @@ repository in the Sandblock Code workspace.
 | Cross-place Studio model transfer and package tools (implemented, pending Roblox validation) | [`CROSS_PLACE_MODEL_TRANSFER.md`](CROSS_PLACE_MODEL_TRANSFER.md) |
 | Launching Studio, automatic plugin connection, disposable place copies for parallel agents (implemented, pending Roblox validation), and scratch places outside every project (implemented, opening validated in Studio) | [`STUDIO_LAUNCH_AND_PLACE_COPIES.md`](STUDIO_LAUNCH_AND_PLACE_COPIES.md) |
 | The agent pipeline from idea to released game: agents, waves, review session, store work (target) | [`AGENT_GAME_PIPELINE.md`](AGENT_GAME_PIPELINE.md) |
+| The autonomous studio: trends and ideas, store, ads, analytics, community, live ops, and Discord as the only human surface (target) | [`AUTONOMOUS_STUDIO.md`](AUTONOMOUS_STUDIO.md) |
 | Worktree copies: one branch, one Studio, one agent, with the orchestrator owning the lifecycle (implemented, pending Windows and Roblox validation) | [`WORKTREE_COPIES.md`](WORKTREE_COPIES.md) |
 | Game list (GitLab topic `game`), one-click clone and setup, and in-app updates (target) | [`MACHINE_SETUP_AND_UPDATES.md`](MACHINE_SETUP_AND_UPDATES.md) |
 | Shared visual direction | [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) |
@@ -49,6 +50,9 @@ Do not silently write target behavior as if it were already implemented.
   `CROSS_PLACE_MODEL_TRANSFER.md`.
 - Opening Studio, plugin auto-connect, place copies, or parallel subagents in
   Studio: read `STUDIO_LAUNCH_AND_PLACE_COPIES.md`.
+- Automating games beyond the build (ideas, store, ads, analytics, community,
+  live ops) or the Discord bot: read `AUTONOMOUS_STUDIO.md`, then
+  `AGENT_GAME_PIPELINE.md`.
 - New-machine setup, cloning a game, or updating the app: read
   `MACHINE_SETUP_AND_UPDATES.md`.
 - UI work: read `DESIGN_SYSTEM.md` and the owning repository's current UI.

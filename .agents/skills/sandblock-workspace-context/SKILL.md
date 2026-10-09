@@ -108,6 +108,15 @@ library agent's rules. Only the library agent writes the library, through merge
 requests a human merges; no game agent, orchestrator, or reviewer proposes
 items.
 
+### Autonomous studio and the Discord bot
+
+Read [`AUTONOMOUS_STUDIO.md`](../../../docs/AUTONOMOUS_STUDIO.md) for the
+vision beyond the build (trends, ideas, store, ads, analytics, community, live
+ops) and the Discord surface, then
+[`AGENT_GAME_PIPELINE.md`](../../../docs/AGENT_GAME_PIPELINE.md) for the build
+itself. Humans decide through Discord only; one project manager per game talks
+to them.
+
 ### UI work
 
 Read [`DESIGN_SYSTEM.md`](../../../docs/DESIGN_SYSTEM.md) and inspect the actual

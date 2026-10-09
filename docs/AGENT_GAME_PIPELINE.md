@@ -11,7 +11,9 @@ itself, which every game carries as a Paperclip company
 ([SB-032](DECISIONS.md#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries)). The rest is
 described here so it can be built against one plan. It does not replace the
 [development workflow](ROBLOX_DEVELOPMENT_WORKFLOW.md): the human approvals,
-quality gates and reuse rules there still apply.
+quality gates and reuse rules there still apply. What comes before the idea
+and after the release (trends, ads, analytics, community, live ops, and
+Discord as the human surface) is in [`AUTONOMOUS_STUDIO.md`](AUTONOMOUS_STUDIO.md).
 
 ## The chain
 
