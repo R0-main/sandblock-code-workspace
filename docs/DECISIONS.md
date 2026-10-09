@@ -772,7 +772,8 @@ history.
 
 - Every agent is Claude Code (Paperclip's `claude_local` adapter on its CLI
   engine) working in the game's repository. It wakes only for work assigned to
-  it, never on a timer.
+  it, except the Lead dev, which also wakes every 10 minutes as a safety net:
+  a lost event once left the whole team stopped.
 - A worker's task runs in a worktree Paperclip creates from the local `main`,
   under `<repo parent>/.worktrees/<repo>/`, beside Sandblock Code's own. The
   worker then opens its own copy with `open_worktree_copy` on its branch:
@@ -800,7 +801,12 @@ history.
   MCP servers it is given: the game's `.mcp.json`, which each agent names, and
   Paperclip's own. The user's claude.ai connectors are not there; the GDD's
   Notion is reached through a Notion connection in Paperclip.
-- The four human checkpoints are Paperclip confirmations on the task.
+- Only the Lead dev talks to the board, which follows the team in Discord
+  (`sandblock-discord-bot`). Every other agent brings its questions and
+  decisions to its superior as a card addressed to it; department leads bring
+  to the Lead dev what they cannot settle, and the Lead dev asks the board
+  with its own card. Answers come back down the same chain. The four human
+  checkpoints are the Lead dev's confirmations to the board.
 
 The game's [`paperclip/README.md`](../sandblock-game-boilerplate/paperclip/README.md)
 is canonical for the team, its rules, and how a wave runs on Paperclip.
@@ -810,3 +816,54 @@ tested against Paperclip 2026.1005.0 on a disposable game: import, idempotent
 update, and a worker task realized in its own worktree. Not yet run on a real
 game, against Studio, or through a whole wave. Games created before it do not
 have it: copy `paperclip/` and the script into them.
+
+## SB-033 — The store page is a file in the game, published with the connected account
+
+**Status:** Accepted
+
+The team makes the game's name, description, icon and thumbnails, but nothing
+put them on Roblox: the Store copy agent handed its text back in an issue, and
+the art stayed in the Drive library.
+
+The store page is declared in the game's repository, in `roblox-store.yml` at
+its root, beside the images it names:
+
+```yaml
+title: Throw a Weapon
+description: |
+  Throw anything at anyone.
+icon: store/icon.png
+thumbnails:          # in display order, 10 at most
+  - store/thumbnails/01-hero.png
+  - store/thumbnails/02-boss.png
+```
+
+- Proposing a change is editing the file and committing it, so the store page
+  is reviewed like code, and the diff is what a human approves.
+- Publishing compares the file with the live page and sends only what differs.
+  A key left out is not managed; `thumbnails`, once present, is the whole list,
+  so a live thumbnail it does not name is deleted. Roblox re-encodes images, so
+  Sandblock Code remembers which bytes became which thumbnail, per project on
+  the machine, and does not upload an unchanged image again.
+- It is written with the Roblox account connected in Sandblock Code, the one
+  the Creator Hub tools read through, on the endpoints the Creator Hub itself
+  uses: the root place's configuration for the title and description, and the
+  game's icon and thumbnail endpoints. Open Cloud was set aside: its icon and
+  thumbnail routes are experimental, meant for translations, and need a key
+  with extra scopes. The cookie stays in the app's main process.
+- Agents reach it through two tools on the project's endpoint,
+  `preview_store_page` and `publish_store_page`; the app's settings have the
+  same preview and a Publish button.
+- A per-project **Store page** setting, this machine's and off by default like
+  the Creator Hub tools, gates it. Off, the tools are neither listed nor
+  routed, and the runtime service refuses the routes (API 8).
+
+The Drive library stays where candidates and their lineage live
+([SB-026](#sb-026--thumbnail-lineage-lives-in-drive-and-the-board-draws-it));
+the images chosen for the store are copied into the repository.
+
+**Current:** implemented in `sandblock-code` (`desktop/electron/storePage.ts`,
+`robloxStore.ts`, `src/tools/storePage.ts`, the Store page row of a project's
+settings), tested against a fake Roblox. Not yet run against a real game, so
+the Roblox endpoints are unverified. The boilerplate's Store copy and
+Thumbnail artist agents do not write the file yet.
