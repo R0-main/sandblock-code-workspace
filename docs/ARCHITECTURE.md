@@ -174,17 +174,34 @@ root. The current versioned format is:
     { "key": "lobby", "name": "Lobby", "placeId": 2345678901, "main": false, "rojoProject": "lobby.project.json" }
   ],
   "projectSkill": ".agents/skills/project-context/SKILL.md",
-  "assetRoots": ["assets", "generated"]
+  "assetRoots": ["assets", "generated"],
+  "paperclip": {
+    "companyId": "…",
+    "companyName": "Game name",
+    "projectManagerAgentId": "…",
+    "leadDevAgentId": "…",
+    "projectId": "…",
+    "syncedAt": "2026-10-09T20:00:00.000Z"
+  }
 }
 ```
+
+`paperclip` is the game's agent team on this machine's Paperclip, as the
+game's `scripts/paperclip-team.sh --json` last reported it when Sandblock Code
+ran it — at the game's creation, or from `sandblock-code team` and Settings ›
+Agent team ([SB-036](DECISIONS.md#sb-036--a-new-game-comes-with-its-agent-team-and-its-discord-channel)).
+It is omitted until then, and a damaged entry is dropped rather than making the
+config invalid, since running the step again recreates it.
 
 `places` is the allowlist of Roblox places the project owns, and the only set an
 agent can act on. Exactly one place is `main`: every agent session starts there.
 Sandblock Code is the only writer — the desktop declares places by picking from
 the Studios open on the machine, at game creation and in project settings, or
 declares the start place of a game it has just created on Roblox, so a project
-is never bound to a place id somebody typed. Neither the plugin nor an agent can
-add one. `mainPlaceId` stays in sync with the main place, and a project
+is never bound to a place id somebody typed — except `sandblock-code new
+--universe --place`, which the app accepts only once Roblox confirms, read-only,
+that the place is in that universe and a connected account or one of its groups
+owns it (SB-036). Neither the plugin nor an agent can add one. `mainPlaceId` stays in sync with the main place, and a project
 written before `places` existed reads back as a single main place.
 
 `rojoProject` names the Rojo project file the project syncs. A place may name
@@ -274,6 +291,16 @@ start processes.
 | `GET /runtimes/{runtimeId}/thumbnails` | The project's thumbnail library, newest first, for the gateway's `list_thumbnails` (API 7) |
 | `POST /runtimes/{runtimeId}/thumbnails` | File an image an agent made, with its lineage (`file_thumbnail`, API 7) |
 | `POST /runtimes/{runtimeId}/thumbnails/live` | File the store art Roblox shows today (`file_live_thumbnails`, API 7) |
+| `GET`/`POST /runtimes/{runtimeId}/store-page` | Preview or publish the store page from `roblox-store.yml`, refused while the project's setting is off (API 8, [SB-033](DECISIONS.md#sb-033--the-store-page-is-a-file-in-the-game-published-with-the-connected-account)) |
+| `POST /roblox/game-requests` | Ask for a new Roblox game; the app's policy and a human decide (API 9, [SB-034](DECISIONS.md#sb-034--an-agent-may-ask-for-a-new-roblox-game-a-human-creates-it)) |
+| `GET /roblox/game-requests/{requestId}` | That request's outcome, waiting up to `?wait=<s>` while it is pending (API 9) |
+| `GET /roblox/game-requests/pending` | The remote approver: the request waiting for an answer, with owner, repository, quota and expiry, or `null` (API 10, approver key, [SB-035](DECISIONS.md#sb-035--a-roblox-game-request-can-be-answered-from-discord)) |
+| `POST /roblox/game-requests/{requestId}/decision` | The remote approver answers it: `{decision: "approve"\|"refuse", decidedBy: {id, name}, reason?}`; `409 not_pending` once answered, expired or unknown (API 10, approver key) |
+| `GET /roblox/game-requests/recent` | The latest outcomes, with who decided, and the latest settings changes, with who made them (API 10, approver key) |
+| `GET /roblox/game-requests/owners` | The owners the connected accounts reach, and whether each is allowed (API 10, approver key) |
+| `GET`/`POST /roblox/game-requests/settings` | The policy, or one change to it — switch, owner, quota — attributed to a Discord person (API 10, approver key) |
+| `POST /projects` | Create a game as the New game form does: `{name, gdd, parent?, universeId?, placeId?}` — repository, GitLab project, an existing Roblox game declared after a read-only ownership check, the Paperclip team; `status` is `created`, `partial`, `not_allowed`, `busy`, `failed` or `invalid_request` (API 11, [SB-036](DECISIONS.md#sb-036--a-new-game-comes-with-its-agent-team-and-its-discord-channel)) |
+| `POST /projects/team` | Set up, or bring back in line, a registered game's Paperclip team: `{repo}`; `status` is `synced`, `failed` (with the step's `code`), `not_registered`, `busy` or `invalid_request` (API 11) |
 
 The five routes after `/studios/hello` are specified in
 [`STUDIO_LAUNCH_AND_PLACE_COPIES.md`](STUDIO_LAUNCH_AND_PLACE_COPIES.md#runtime-service),
@@ -297,7 +324,14 @@ The placeless `/runtimes/{runtimeId}/rojo` route and the descriptor's top-level
 `rojo` remain for API 2 plugins, which name no place. They answer while every
 place syncs the same file; once the files differ, the route refuses with
 `place_required` and the top-level `rojo` has no `url` and says to update the
-plugin. `/health` reports API version 7.
+plugin. `/health` reports API version 11.
+
+The API 10 routes want `Authorization: Bearer <approver key>`, a 32-byte key
+the app writes in its userData (`roblox-approver.key`) for the Discord bot to
+read from WSL. Without it, or with another key, they answer `401` without
+saying why, and the attempt is logged; the key is compared in constant time
+and never returned by any route. The routes that only ask —
+`POST /roblox/game-requests` and the outcome — need no key, as before.
 
 A `connected` event carries the DataModel name Rojo synced. The service compares
 it with the name of the Rojo project the reporting place declares; on a mismatch

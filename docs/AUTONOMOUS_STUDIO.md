@@ -11,8 +11,10 @@ community, live ops), and the Discord surface where people take every decision.
 
 What exists today: the build pipeline's agents and skills, each game's team as a
 Paperclip company ([SB-032](DECISIONS.md#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries)),
-the studio's own company (Sandblock Labs, with the Library Curator), and the
-Discord bot's repository `sandblock-discord-bot` (version 0 in progress).
+the studio's own company (Sandblock Labs, with the Library Curator), the
+Discord bot's repository `sandblock-discord-bot` (version 0 in progress), and
+a new game created with its team and its channel in one command
+([SB-036](DECISIONS.md#sb-036--a-new-game-comes-with-its-agent-team-and-its-discord-channel)).
 Everything else on this page is target or later.
 
 ## Principles
@@ -64,7 +66,10 @@ Everything else on this page is target or later.
 - **Idea finder**: turns trends into game ideas and keeps them in a list. It
   posts each idea in `#studio`: "this one could work, do we take it?".
   - **Accept**: the game is created (repository from the boilerplate, its
-    Paperclip company, its Discord channel) and its GDD starts.
+    Paperclip company, its Discord channel) and its GDD starts. The creation
+    itself is current: `sandblock-code new` makes the repository, its GitLab
+    project and its Paperclip team, and the bot opens the channel when the
+    company appears (SB-036). The accept button calling it is target.
   - **Reject**: the idea is dropped.
   - **Discuss**: a person replies or mentions the bot to develop the idea
     further before deciding.
@@ -157,6 +162,13 @@ its own: it is a bridge, and the intelligence lives in the Paperclip agents.
 - **One channel per Paperclip company** (one game = one company, SB-032).
   `#studio` is Sandblock Labs. Each approval and each presented update gets
   its own thread.
+- **A new game's channel opens by itself** ([SB-036](DECISIONS.md#sb-036--a-new-game-comes-with-its-agent-team-and-its-discord-channel),
+  current): when the bot sees a game company — its head agent is the
+  boilerplate's Project manager — with no channel, it creates `#<game>` in
+  the games' category with the same permissions as the other game channels,
+  binds it to the company, its Project manager and its project, and says
+  hello in French. It never opens a second one, and a failure is said once
+  in `#studio`.
 - **Agents ping people when something needs them.** They batch the rest into
   a daily digest, so the pings keep their weight.
 - **Approvals are buttons** (approve, reject, discuss). The bot checks that
@@ -165,6 +177,17 @@ its own: it is a bridge, and the intelligence lives in the Paperclip agents.
 - **Talking to the project manager**: an @mention of the bot, or a reply to
   one of its messages, by an authorized person in the prod server. Every other
   message in the channel is ignored.
+- **New Roblox games** ([SB-035](DECISIONS.md#sb-035--a-roblox-game-request-can-be-answered-from-discord),
+  current): the bot is Sandblock Code's remote approver. When an agent asks
+  for a game (`sandblock-code roblox create-game`, SB-034), `#studio` gets a
+  card in its own thread that pings the authorized people. Creating takes two
+  clicks — "Créer sur Roblox", then an ephemeral "Oui, créer" that expires
+  with the request — since Roblox cannot delete a game; refusing takes one.
+  The first answer, here or in the app's dialog, wins. `/roblox-requests`
+  shows and changes the policy (switch, allowed owners, quota) from the
+  phone; every change is announced in the channel. The bot proves itself to
+  the app with a key the app writes in its userData, and warns loudly about
+  any decision or change attributed to Discord that it did not make.
 
 ## Roblox Open Cloud APIs this relies on
 
@@ -187,7 +210,7 @@ is fixed in one place.
 | Piece | State |
 | --- | --- |
 | Discord bot: prod server bridge to Paperclip, approvals as buttons | `sandblock-discord-bot` version 0 in progress (2026-10-09) |
-| Project manager agent at the head of each game's company | Not in the boilerplate's `paperclip/` yet |
+| Project manager agent at the head of each game's company | In the boilerplate's `paperclip/` (SB-032); its channel opens by itself (SB-036) |
 | Trend scout and idea finder in Sandblock Labs | Not started; the scouting choices are decided |
 | Roblox design skills (monetization, simplicity, genre codes) for the GDD writer | Partly in the GDD template; no dedicated skill |
 | Open Cloud tool layer (ads, analytics, publishing) | Not started; the store page has its own tools (SB-033) |
@@ -195,7 +218,7 @@ is fixed in one place.
 | Analytics skills and the daily stats report | Not started; needs funnel events in the boilerplate |
 | Community digest (Haiku) and Roblox feedback reading | Later |
 | Live ops: events, community server setup, publish and rollback | Later |
-| One-click new game from an accepted idea | Later |
+| One-click new game from an accepted idea | The creation is one command, `sandblock-code new` (SB-036): repository, GitLab, team, channel. The idea finder's accept button calling it is later |
 
 ## Notes
 

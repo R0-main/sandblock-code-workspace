@@ -233,6 +233,12 @@ is picked by the developer, from the connected accounts and their groups, and
 the creation runs on that account's session, because Open Cloud cannot create a
 universe. Only a project with no published place declared is offered it.
 
+A second exception came with [SB-036](#sb-036--a-new-game-comes-with-its-agent-team-and-its-discord-channel):
+`sandblock-code new --universe <id> --place <id>` declares an existing game by
+typed ids, which the app accepts only after checking, read-only, that the
+place belongs to that universe and that a connected account or one of its
+groups owns it.
+
 The Studio plugin refuses to connect from an undeclared place, and names the
 declared ones instead of failing vaguely. It claims exactly one place on the
 bridge, so Studios on different places of the same project connect side by side,
@@ -834,7 +840,14 @@ is canonical for the team, its rules, and how a wave runs on Paperclip.
 tested against Paperclip 2026.1005.0 on a disposable game: import, idempotent
 update, and a worker task realized in its own worktree. Not yet run on a real
 game, against Studio, or through a whole wave. Games created before it do not
-have it: copy `paperclip/` and the script into them.
+have it: copy `paperclip/` and the script into them. Since
+[SB-036](#sb-036--a-new-game-comes-with-its-agent-team-and-its-discord-channel),
+Sandblock Code runs the script when it creates a game, with `--json`: the
+progress lines go to stderr and stdout carries one object (`companyId`,
+`companyName`, `created`, `projectId`, `projectName`,
+`projectManagerAgentId`, `leadDevAgentId`, `agents`, `changes`, `dryRun`),
+which the app records in `.sandblock-code.json`. Without `--json` it prints
+as before.
 
 ## SB-033 — The store page is a file in the game, published with the connected account
 
@@ -896,3 +909,230 @@ settings), tested against a fake Roblox. Not yet run against a real game, so
 the Roblox endpoints are unverified. The Art director's store page work is
 in `sandblock-game-boilerplate`'s `paperclip/`; games created before it do
 not have it.
+
+## SB-034 — An agent may ask for a new Roblox game; a human creates it
+
+**Status:** Accepted
+
+An agent setting up a game needs a Roblox game to work in, and so far only a
+human could make one, from a project's settings
+([SB-018](#sb-018--a-project-declares-the-places-its-agents-may-reach)). But
+Roblox has no way to delete a game: every creation is permanent, and an
+agent looping on a failed step could leave a trail of them on the studio's
+account. So an agent may only *ask*, and every safeguard sits in the app's
+main process, where the cookie already is:
+
+```bash
+sandblock-code roblox create-game --name "Neon Drift" --owner group:77 [--repo .] [--json]
+```
+
+- The command posts the request to the runtime service
+  (`POST /roblox/game-requests`, API 9) and waits for its outcome
+  (`GET /roblox/game-requests/{id}?wait=<s>`), starting the app first when
+  it is not running. It never sees a cookie, and no route, flag or tool can
+  approve a request or change what is allowed.
+- The app refuses at once, in this order, unless: **Allow agents to request
+  new Roblox games** is on (off by default); the owner — a connected
+  account, `user:<userId>`, or one of its groups, `group:<groupId>` — is
+  checked in Settings (none is by default); fewer than the **daily quota**
+  of approved attempts happened in the last 24 hours (3 by default, 10 at
+  most); the name is 1 to 50 characters with no control or invisible
+  character; and, with `--repo`, the repository is a registered project
+  with no published place. Those three settings live on the machine, in
+  Settings › Agent game requests, and change from there only.
+- Then a **human** answers a native dialog, brought to the front, naming the
+  owner, the name, the project and the quota used. Its default and cancel
+  button is **Refuse**, so Enter, Escape or closing it refuse; unanswered
+  after two minutes it is refused. One request waits at a time; another is
+  answered `busy`.
+- The game is created **private from the Baseplate** through the same
+  function as the settings form, which re-runs the account and project
+  checks. With `--repo` it becomes the project's main place and universe,
+  as the form does. Nothing else can be asked for: an unknown field is
+  refused rather than ignored.
+- Every request carries an **idempotency key**, `--request-id`, by default
+  derived from the owner, the name and the repository. A request a human
+  answered, or that reached Roblox, is stored with its outcome on the
+  machine, and the same key returns it instead of asking or creating again,
+  after a restart too. A creation is stored before it leaves for Roblox, so
+  an app that stopped mid-way reports "may exist", never "never happened".
+  A key reused for another request is refused.
+- Every request, whatever its outcome, is written to the Activity log; the
+  latest stored ones show in Settings.
+
+The command exits with one code per outcome: 0 created, 3 refused by a
+human, 4 timed out, 5 not allowed by policy, 6 Roblox error (the game may
+exist), 7 app unreachable, 8 busy, 2 usage, 1 anything else.
+
+Approving from Discord, when nobody is at the screen, is
+[SB-035](#sb-035--a-roblox-game-request-can-be-answered-from-discord).
+
+**Later:** an MCP tool for the same request, and adding places to an
+existing universe. Each would go through the same policy and leave the
+human's approval where it is.
+
+**Current:** implemented in `sandblock-code`
+(`desktop/electron/robloxGameRequests.ts`, `createGameFor` in
+`robloxGames.ts`, the routes in `runtimeApi.ts`, the dialog in `main.ts`,
+`scripts/robloxGameRequest.mjs`, Settings › Agent game requests), tested
+with a fake Roblox and fake dialogs. Not yet run against Roblox or with the
+real dialog on Windows.
+
+## SB-035 — A Roblox game request can be answered from Discord
+
+**Status:** Accepted
+
+[SB-034](#sb-034--an-agent-may-ask-for-a-new-roblox-game-a-human-creates-it)
+asks a human in a dialog on the screen, and an agent working while the
+human is away gets nothing but a timeout. The human's surface away from the
+screen is Discord ([AUTONOMOUS_STUDIO.md](AUTONOMOUS_STUDIO.md#discord)),
+so `sandblock-discord-bot` becomes the app's **remote approver**. Nothing
+else changes: the same policy, the same one request at a time, the same
+creation path, and every approval stays a deliberate act of an allowlisted
+person.
+
+- **First answer wins.** A pending request is answered by the native
+  dialog *or* the remote approver; the first answer closes the other (the
+  dialog is aborted; the bot finds the request no longer pending). The
+  outcome, the state file and the Activity log record who decided:
+  `app`, or `discord:<userId>/<username>`.
+- **A longer wait with the bot.** While the bot polls (an authenticated
+  call in the last 30 seconds), a new request waits ten minutes
+  (`REMOTE_APPROVAL_TIMEOUT_MS`) instead of two: a phone notification takes
+  time. The command's default `--timeout` (660 s) outlasts it. With the bot
+  connected, a dialog that fails to show is no refusal: Discord can answer.
+- **The approver key.** The approver routes of the runtime service (API 10:
+  `pending`, `{id}/decision`, `recent`, `owners`, `settings`) want
+  `Authorization: Bearer <key>`, compared in constant time. The app
+  generates the key (32 random bytes) and writes it to
+  `roblox-approver.key` in its userData — on Windows
+  `%APPDATA%\sandblock-code\`, which the bot reads from WSL as
+  `/mnt/c/Users/<user>/AppData/Roaming/sandblock-code/roblox-approver.key`.
+  It is never logged, never returned by a route or an IPC channel, and the
+  renderer can only rotate it (Settings › Agent game requests); the bot
+  reads the file on every call, so a rotation needs no restart. A missing
+  or wrong key is a `401` that says nothing about the key, logged at most
+  once a minute. The routes that only ask stay unauthenticated, as in
+  SB-034.
+- **What the key is worth.** It is a same-user secret. It stops an agent
+  from approving by accident or in passing — the unauthenticated routes and
+  the command line still cannot decide — but a process of the same Windows
+  or WSL user that sets out to read the file can. Hence **tamper
+  evidence**: the bot records in its state file every decision and every
+  settings change it sends, *before* sending, and watches `recent`. Any
+  decision or change attributed to Discord that it did not send is posted
+  in the channel as a loud warning to the authorized people, with the
+  advice to rotate the key. Changes made in the app are announced too.
+- **In Discord.** The card goes in `#studio` (the channel bound to Sandblock
+  Labs, `robloxGameRequests.channel`), in its own thread like every
+  decision, and pings the authorized people: game name, owner (account or
+  group), requesting repository, quota used, expiry, and "⚠️ Irréversible :
+  Roblox ne permet pas de supprimer un jeu". Its buttons follow the rules
+  of every decision (prod server, that channel or its thread, a person on
+  `prod.authorized`). **Approving takes two steps**: "Créer sur Roblox"
+  only answers with an ephemeral "Confirmer la création de … ? C'est
+  définitif." whose "Oui, créer" expires with the request; refusing is one
+  click and an optional reason. The card is then edited for every ending —
+  approved and created (universe, start place, Creator Hub link), refused
+  here or in the app, timed out, refused by the rules after approval,
+  Roblox error — and its thread archived.
+- **Settings from Discord.** `/roblox-requests` (registered in the prod
+  server only, same authorization): `status`, `enable`, `disable`,
+  `allow-owner`, `disallow-owner` (autocompleted from the owners the
+  connected accounts reach), `quota <1-10>`. `enable` and `allow-owner`
+  take the same two-step confirmation. Only an owner a connected account
+  reaches can be allowed. Every change is said publicly in the channel and
+  lands in the Activity log with its author; Settings shows the last
+  change and who made it.
+
+On approval the SB-034 path runs unchanged, and it now re-checks the switch,
+the owner and the quota, since any of them can change during a ten-minute
+wait.
+
+**Current:** implemented in `sandblock-code` (`approverKey.ts`, the remote
+side of `robloxGameRequests.ts`, the API 10 routes in `runtimeApi.ts`,
+Settings › Agent game requests) and `sandblock-discord-bot`
+(`robloxRequests.ts`, `robloxController.ts`, `robloxApp.ts`,
+`robloxDiscord.ts`, the `robloxGameRequests` config section), tested with
+fakes on both sides. Not yet run against the live app, Discord, or
+Roblox.
+
+## SB-036 — A new game comes with its agent team and its Discord channel
+
+**Status:** Accepted — amends [SB-018](#sb-018--a-project-declares-the-places-its-agents-may-reach) and [SB-032](#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries)
+
+Creating a game made its repository and its GitLab project, but its agent
+team and its Discord channel were set up by hand: run the game's
+`scripts/paperclip-team.sh`, look up the company, its Project manager and
+its project, create a channel, copy its permissions, add a binding to the
+bot's config, restart the bot. That was done for Heaven To Hell, and it
+needs someone at the screen; the studio is run from a phone and Discord.
+
+Now the game's creation sets up both, and it can be started from a shell:
+
+```bash
+sandblock-code new --name "Throw a Weapon" --gdd GDD.md [--parent <dir>] \
+  [--universe <id> --place <id>] [--json]
+sandblock-code team [<repo>] [--json]
+```
+
+- **One path.** The launcher's New game form and `sandblock-code new`
+  (`POST /projects` on the runtime service, API 11, which starts the app
+  first like the other commands) run the same steps in the app: the
+  repository from the boilerplate, its GitLab project, the existing Roblox
+  game if one is given, then the **agent team**. The default parent is the
+  folder the registered games live in. A Markdown GDD's local images are
+  copied under `docs/gdd/` and its links rewritten.
+- **The team step** runs the game's own `scripts/paperclip-team.sh --json`
+  in WSL, after pointing the agents at the project's MCP endpoint
+  (`.mcp.json`), and records what it answers in `.sandblock-code.json`:
+  `paperclip: {companyId, companyName, projectManagerAgentId,
+  leadDevAgentId, projectId, syncedAt}`. The ids are this machine's
+  Paperclip's. The app never talks to Paperclip itself: the script stays
+  the one contract with it. The app then commits `.sandblock-code.json` and
+  `.mcp.json` locally, since the team's workers run in worktrees made from
+  the local `main`.
+- **A failed step loses nothing.** Once the repository exists it is
+  registered whatever happens next; a failed GitLab, Roblox declaration or
+  team step is reported beside it (`new` exits 9), and the team step is
+  retried on its own with `sandblock-code team` or Settings › Agent team.
+  It is idempotent: the script finds the company by the game's name and
+  changes only what differs. A game without the script (older than
+  SB-032), or whose script predates `--json`, is told so.
+- **An existing Roblox game, by id (amends SB-018).** `--universe` and
+  `--place` declare a game that already exists — typically one a human just
+  created through [SB-034](#sb-034--an-agent-may-ask-for-a-new-roblox-game-a-human-creates-it)
+  — as the main place and universe. These ids are typed, which SB-018
+  avoided, so they are checked first, read-only and without a cookie, and
+  refused before anything is created unless the place belongs to that
+  universe and the universe is owned by a connected account or one of its
+  groups. A typo then lands on nothing, and somebody else's game is refused.
+  Nothing is ever created on Roblox by this command.
+- **The Discord channel** is the bot's job, driven by Paperclip rather than
+  by the app: the bot, which polls Paperclip, sees a **game company** with no
+  channel bound, opens `#<game-slug>` in the prod server — in the template
+  game channel's category, with its permission overwrites, limited to what
+  the bot may grant — binds it to the company, its Project manager and its
+  project, and posts a welcome in French naming the game and its project
+  manager. A game company is one whose head agent is the boilerplate's
+  Project manager (Paperclip slug `project-manager`); Sandblock Labs has
+  none and is excluded in the config, archived companies are skipped.
+- **Never a second channel.** The bindings the bot makes live in its state
+  file and are merged with `config/bot.json`, which it never rewrites; the
+  config wins. The channel's topic carries `company <id>`, so a channel
+  opened just before a crash or a lost state file is found again. A failure
+  (the bot lacks Manage Channels, a channel of that name exists) is logged
+  and posted in `#studio` once, then retried with a doubling wait; `#studio`
+  hears when it finally works. The invite now asks for Manage Channels: a
+  bot invited before needs to be invited again.
+
+**Current:** implemented in `sandblock-code` (`newGame.ts`,
+`paperclipTeam.ts`, `existingGame.ts`, the GDD's images in
+`projectCreate.ts`, the API 11 routes in `runtimeApi.ts`,
+`scripts/projectCommands.mjs`, Settings › Agent team),
+`sandblock-game-boilerplate` (`scripts/paperclip-team.sh --json`) and
+`sandblock-discord-bot` (`autoChannels.ts`, `autoChannelsDiscord.ts`, the
+`autoChannels` config section). Tested with fakes: a fake team script and
+Roblox in the app, a fake Paperclip API and CLI for the script, a fake
+Discord and Paperclip for the bot. Not yet run against the live app,
+Paperclip, GitLab, Discord or Roblox.
