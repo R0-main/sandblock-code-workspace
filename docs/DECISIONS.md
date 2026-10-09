@@ -725,11 +725,31 @@ gateway's existing capture tools.
 library's own README is canonical for the item format, and its `AGENTS.md` for
 the agent's rules.
 
+**Amended 2026-10-10: games read the checkout.** A game's agents read the
+library as a git checkout, directly, not through gateway tools. The machine's
+checkout (`$HOME/sandblock/sandblock-code-workspace/sandblock-library`, or
+`SANDBLOCK_LIBRARY`) is updated with `git pull --ff-only` and searched with
+`grep` and `jq` over the items' `item.json`. Paperclip runs agents without
+permission prompts, so any agent reads it at that absolute path. Each game's
+team gains a **Reuse scout**, under the Game designer. Once the Planner has
+created the plan's tasks, and before the board confirms the plan, it
+annotates each task with the item to start from (or none), and it does the
+same for tasks added later. Workers take the item their task names and record
+it in `sandblock-library.json`, whose format adds the game's `owner`. The
+`library-reuse` skill in `sandblock-skills` holds the recipe. The one-writer
+rule is unchanged: game agents only pull and read. The gateway's
+`search_library`, `get_library_item` and `use_library_item`, and the Library
+view, become **later, maybe**: they would be built only if reading the
+checkout proves too slow or too loose.
+
 **Current:** the GitLab project exists with LFS on. The service account and its
 token, in `sandblock-code/.env`, are set up, and `main` is protected. The
-repository's layout, schema, and agent rules are written. No item, tool, view,
-or daily pass exists yet, and the games token reaches no game until the games
-move into `roblox/games`.
+repository's layout, schema, and agent rules are written. `main` holds 30 UI
+items (`ui/*`): the cartoon menu kit and the 27 items built on it, plus two
+standalone components. The Reuse scout and the workers' procedure are in the
+boilerplate's `paperclip/` and in Throw a Weapon's, and have not yet run on a
+plan. No tool or view exists, and the games token reaches no game until the
+games move into `roblox/games`.
 
 ## SB-031 — Scratch places: blank Studios outside every project
 
@@ -800,9 +820,12 @@ history.
 - One agent per trade, each with its trade's skills: an Art director, then a
   Modeler, a Map builder, a UI designer, a VFX artist, an Animator and a Sound
   designer for the assets, beside the Coder, the Reviewer and the Balancer.
+  A Reuse scout (on Haiku, without Studio tools, edits or git writes) annotates
+  the plan's tasks with the library items to start from before the board
+  confirms the plan (SB-030, amended 2026-10-10).
 - The team is organized in departments: the art trades and the Thumbnail
-  artist report to the Art director, the Planner and the Balancer to the Game
-  designer, and those two leads, the Coder and the Reviewer to the Lead dev
+  artist report to the Art director, the Planner, the Reuse scout and the
+  Balancer to the Game designer, and those two leads, the Coder and the Reviewer to the Lead dev
   (the Store copy agent was removed by
   [SB-033](#sb-033--the-store-page-is-a-file-in-the-game-published-with-the-connected-account)). A lead checks its department's work before the Lead
   dev merges it.

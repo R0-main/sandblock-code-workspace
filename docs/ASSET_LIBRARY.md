@@ -2,14 +2,28 @@
 
 ## Status
 
-**Target, with its storage in place.** The repository exists:
-`roblox/sandblock-library` (GitLab project 160), cloned in the workspace as
-`sandblock-library/`. Its README is canonical for the layout and the item
-format, and its `AGENTS.md` for the library agent's rules. Git LFS is on, a
-service account can propose but not merge, and `main` is protected. Nothing
-reads or writes the library yet: it holds no item, no tool searches it, the
-app has no Library view, and the daily routine has not scanned a game yet. The accepted decision is
-[SB-030](DECISIONS.md#sb-030--one-library-agent-proposes-reusable-content-a-human-merges-it).
+**Current, in part.** The repository exists: `roblox/sandblock-library`
+(GitLab project 160), cloned in the workspace as `sandblock-library/`. Its
+README is canonical for the layout and the item format, and its `AGENTS.md`
+for the library agent's rules. Git LFS is on, a service account can propose
+but not merge, and `main` is protected.
+
+- **Content.** `main` holds 30 items, all UI (`ui/*`), merged by a human from
+  the library agent's requests: the `ui/cartoon-menu-kit` builder and the 27
+  items built on it (menus, HUD widgets, popups, a prize wheel, world
+  templates), and two standalone components (`ui/sandblock-components`,
+  `ui/styled-title`). No system, VFX, model, sound or animation yet.
+- **Reading (current).** A game's agent team reads the library as a git
+  checkout: the Reuse scout annotates the plan's tasks with the items to
+  start from, and the workers take them
+  ([Reading the library](#reading-the-library)). This is in the boilerplate's
+  team and has not yet run on a game.
+- **Later, maybe.** The gateway's reading tools and the app's Library view
+  are not built, and may never be needed.
+
+The accepted decision is
+[SB-030](DECISIONS.md#sb-030--one-library-agent-proposes-reusable-content-a-human-merges-it),
+amended on 2026-10-10 to make the checkout the way games read.
 The list of content types stays canonical in
 [`ROBLOX_DEVELOPMENT_WORKFLOW.md`](ROBLOX_DEVELOPMENT_WORKFLOW.md#library-content-types).
 
@@ -22,8 +36,8 @@ sound.
 ```text
 every game's main ──daily routine──▶ library agent ──merge request──▶ human merges ──▶ main
                                                                                           │
-Library view in Sandblock Code ◀──────────────────────────────────────────────────────────┤
-reuse agent, workers ◀──── search_library, use_library_item ◀─────────────────────────────┘
+reuse scout, workers ◀──── git pull of the library's checkout (current) ◀───────────────────┤
+Library view, search_library, use_library_item (later, maybe) ◀───────────────────────────┘
 ```
 
 ## One writer
@@ -90,10 +104,31 @@ Rejected:
 - **Wally for library code.** It needs a hosted registry, and games adapt the
   code they take. Wally stays for third-party packages.
 
-## Reading the library (target)
+## Reading the library
 
-Three tools on the project endpoint form one search surface for every content
-type:
+**Current: the checkout.** A game's agents read the library as a git
+checkout, with no tool of the app's. The machine's checkout is the
+workspace's `sandblock-library/`
+(`$HOME/sandblock/sandblock-code-workspace/sandblock-library`), or the path in
+`SANDBLOCK_LIBRARY`. Every pass starts with `git pull --ff-only`, and agents
+only read: they never commit, branch or check out there. Paperclip runs every
+agent without permission prompts (`claude_local` passes
+`--dangerously-skip-permissions`), so an agent reads the checkout at its
+absolute path from the game's checkout or from its worktree, and needs no
+`--add-dir`. The pull uses the machine's own SSH access to GitLab.
+
+- The **Reuse scout** of each game's team searches it with `grep` and `jq`
+  over every `item.json`, reads the READMEs and looks at the previews, then
+  annotates each task of the plan with the item to start from
+  ([pipeline §3](AGENT_GAME_PIPELINE.md#3-reuse)).
+- The **workers** take the item their task names: its `needs` first, its
+  `install.files` copied or its `install.build` run in their own copy, then
+  adapted, with owner-bound assets uploaded again under the game's owner.
+  They record it in `sandblock-library.json` ([below](#what-a-game-records)).
+- Both follow the `library-reuse` skill in `sandblock-skills`.
+
+**Later, maybe: tools on the gateway.** Three tools on the project endpoint
+would form one search surface for every content type:
 
 | Tool | Does |
 | --- | --- |
@@ -115,17 +150,18 @@ addressed place, the same owner `upload_assets` uploads for
 ([SB-025](DECISIONS.md#sb-025--agents-upload-every-kind-of-asset-through-one-tool)).
 An id that owner already has is reused. Otherwise the source is uploaded.
 
-The app reads `main` of a library checkout. That is the workspace's
-`sandblock-library/`, or its own clone on a machine without the workspace
+These tools would read `main` of the same checkout, or the app's own clone
+on a machine without the workspace
 ([`MACHINE_SETUP_AND_UPDATES.md`](MACHINE_SETUP_AND_UPDATES.md)), fetched when
 a project window opens. Reading needs only the person's own GitLab access.
+They are worth building only if reading the checkout proves too slow or too
+loose for the agents.
 
-The reuse agent searches while it annotates the plan
-([pipeline §3](AGENT_GAME_PIPELINE.md#3-reuse)), and workers take the items
-named in their task. Searching stays conditional
-([SB-011](DECISIONS.md#sb-011--reuse-search-is-conditional)).
+Searching stays conditional either way
+([SB-011](DECISIONS.md#sb-011--reuse-search-is-conditional)): the plan's
+tasks are all checked once, while fixes and balancing skip the search.
 
-## The Library view (target)
+## The Library view (later, maybe)
 
 Sandblock Code shows the library in a **Library** page of every project
 window, beside Assets and Thumbnails, and from the launcher, to browse it
@@ -201,14 +237,17 @@ later work.
 
 ## What a game records
 
-`use_library_item` writes `sandblock-library.json` at the game's root, and it
-is committed with the game. It follows the same principle as the skills
-manifest, `.claude/sandblock-skills.json`
+Every game has `sandblock-library.json` at its root, committed with the game.
+The boilerplate ships it empty. The worker that takes an item writes its
+entry on its branch, and the Lead dev's merge keeps the entries of both sides.
+(Later, `use_library_item` would write it.) It follows the same principle as
+the skills manifest, `.claude/sandblock-skills.json`
 ([SB-021](DECISIONS.md#sb-021--shared-agent-skills-live-in-sandblock-skills)):
 
 ```json
 {
   "library": "git@ssh.git.shulkr.net:roblox/sandblock-library.git",
+  "owner": "group:1234567",
   "items": {
     "systems/daily-rewards": {
       "version": "1.2.0",
@@ -223,7 +262,15 @@ manifest, `.claude/sandblock-skills.json`
 }
 ```
 
-- `files` holds a fingerprint of each copied file. A copy changed in the game
+- `owner` is the Roblox owner of the game's places (`group:<id>` or
+  `user:<id>`), which the ids under `ids` belong to. The Lead dev fills it
+  from the real place (`game.CreatorType`, `game.CreatorId`). A worker in a
+  copy names it to `upload_assets`, since a copy has no owner of its own.
+- `items` holds one entry per item taken, its `needs` included: its
+  `version` and the library `commit` it was read at. Only items with copied
+  files have `files`.
+- `files` holds a fingerprint of each copied file, as it came from the
+  library. A copy changed in the game
   is reported and never overwritten without asking. The library agent reads
   the change as a possible new version of the item.
 - `ids` holds the uploads made for this game's owner, until the library agent
@@ -335,20 +382,24 @@ It is Toolbox content, not ours.
 | --- | --- | --- |
 | Repository, layout, item format and schema, the agent's rules, the `library-scan` skill | `sandblock-library` | Written |
 | A check for items: schema, files, `needs`, LFS | `sandblock-library` | To write |
-| `search_library`, `get_library_item`, `use_library_item`, reading and fetching the checkout | `sandblock-code` | To build |
-| The Library view: a page in each project window and in the launcher | `sandblock-code` | To build |
+| Reading the checkout from a game's team: the Reuse scout, the workers' procedure, `sandblock-library.json` | `sandblock-game-boilerplate` (`paperclip/`), `sandblock-skills` (`library-reuse`) | Written 2026-10-10; in Throw a Weapon, not yet run |
+| `search_library`, `get_library_item`, `use_library_item`, reading and fetching the checkout | `sandblock-code` | Later, maybe |
+| The Library view: a page in each project window and in the launcher | `sandblock-code` | Later, maybe |
 | The daily pass: the Library Curator in Sandblock Labs, woken at 10:00 by its Paperclip routine | Paperclip on this machine | Set up 2026-10-08; no game scanned yet |
 | The games in `roblox/games`, where the games token reaches them | GitLab, a human | To move |
 | Scratch places: `/scratch/mcp`, `open_scratch_place`, `close_scratch_place`, a blank place, uploads that name their owner | `sandblock-code`, `sandblock-studio-plugin` | Implemented; opening and connecting validated in Studio, renders not yet ([SB-031](DECISIONS.md#sb-031--scratch-places-blank-studios-outside-every-project)) |
 | `download_assets` for the library agent: it changes no place, but the capture endpoint does not list it | `sandblock-code` | To decide |
 | Inserting a `.rbxm` from a file | `sandblock-studio-plugin` | To build and validate (`SerializationService:DeserializeInstancesAsync` is the assumed path) |
 | `git-lfs` on each machine | machine setup | Missing on the WSL machine this was written on |
-| The reuse agent's skill | `sandblock-skills` | To write |
+| The reuse agent's skill | `sandblock-skills` | `library-reuse`, 2026-10-10 |
 
 ## To validate with Roblox
 
 - Whether images and meshes uploaded by one owner render in another owner's
-  experiences. This is assumed; animations and audio are known not to.
+  experiences. This was assumed, and animations and audio are known not to.
+  `vfx-creator` records the opposite for particle textures (a user's upload
+  drew nothing in a group's game), so a worker checks that every image
+  draws in its copy.
 - Whether every game is published under one group. If so, most items need one
   id.
 - The `.rbxm` insertion path above.
@@ -365,5 +416,8 @@ It is Toolbox content, not ours.
   places the renders use.
 - `sandblock-studio-plugin`: inserting a `.rbxm`.
 - `sandblock-skills`: the skills that make items (`vfx-creator`, `asset-kit`,
-  and the others) and the reuse agent's skill.
+  and the others) and the reuse agent's skill, `library-reuse`.
+- `sandblock-game-boilerplate`: the Reuse scout and the workers' procedure in
+  its `paperclip/`, and the empty `sandblock-library.json` every game starts
+  with.
 - Each game: its `sandblock-library.json`.

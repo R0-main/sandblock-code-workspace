@@ -6,8 +6,9 @@
 Roblox game from an idea, much faster than by hand. Parts of it exist:
 [worktree copies](WORKTREE_COPIES.md) and the orchestrator's skill
 (`roblox-agent-team` in `sandblock-skills`), the thumbnail skills, the
-asset and map skills that still live in game repositories, and the team
-itself, which every game carries as a Paperclip company
+asset and map skills that still live in game repositories, the reuse step
+(a Reuse scout reading the [library](ASSET_LIBRARY.md) as a git checkout),
+and the team itself, which every game carries as a Paperclip company
 ([SB-032](DECISIONS.md#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries)). The rest is
 described here so it can be built against one plan. It does not replace the
 [development workflow](ROBLOX_DEVELOPMENT_WORKFLOW.md): the human approvals,
@@ -33,7 +34,7 @@ idea ─▶ GDD ─▶ plan ─▶ reuse check ─▶ orchestrator
 Four human checkpoints, and nothing else waits on a person:
 
 1. **GDD approved.**
-2. **Plan approved.**
+2. **Plan approved**, once the reuse check has annotated it.
 3. **Art direction approved**, on the first assets of the asset waves.
 4. **Release approved**, after a human playtest that judges the fun.
 
@@ -43,7 +44,7 @@ Four human checkpoints, and nothing else waits on a person:
 | --- | --- | --- | --- |
 | Design | The idea | A complete GDD | `grill-design`, `grill-me`, `to-questionnaire` |
 | Planner | The GDD | `docs/PLAN.md`: tasks, their agent, dependencies, waves | `to-tasks` |
-| Reuse | The plan | Each task annotated with what already exists | `search_library` ([the library](ASSET_LIBRARY.md); tools to build) |
+| Reuse scout | The plan's tasks, then tasks added later | Each task annotated with the library item it starts from, or "nothing" | `library-reuse` ([the library](ASSET_LIBRARY.md), read as a git checkout) |
 | Orchestrator / lead dev | The plan | Waves run, branches merged, builds transferred | `roblox-agent-team` |
 | Art director | The GDD, then the Thumbnail artist's images | The art direction and concept art the asset waves follow; then the store page (`roblox-store.yml`: title, description, the chosen icon and thumbnails), which it publishes once the board confirms it | `roblox-game-conventions` |
 | Asset agents, one per trade | One asset task each | A build in their copy | Modeler: `stud-models`, `asset-kit`. Map builder: `stud-map`, `map-builder`, `map-assembly`, `asset-kit`. UI designer: the game's UI skill, `roblox-game-conventions`, `controller-glyphs`. VFX artist: `vfx-creator`. Animator: `stud-animations`. Sound designer: `sound-effects` |
@@ -53,7 +54,7 @@ Four human checkpoints, and nothing else waits on a person:
 | Thumbnail artist | GDD, art direction | Square icon, thumbnails to test in ads | `roblox-thumbnails`, `roblox-thumbnail-variant` |
 
 On a Paperclip team the agents are organized in departments (art under the Art
-director, the Planner and the Balancer under the Game designer), and the trades
+director, the Planner, the Reuse scout and the Balancer under the Game designer), and the trades
 meet in a task tree with one issue per feature and one task per trade under it
 ([SB-032](DECISIONS.md#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries)).
 
@@ -75,7 +76,7 @@ is used. For each task:
 - **what it depends on**: a model before its icon, an icon before the menu
   that shows it;
 - **its wave**, from the order below;
-- **reuse**: empty until the reuse agent fills it.
+- **reuse**: empty until the Reuse scout fills it (§3).
 
 Waves follow one order, because code written against a hierarchy that later
 moves breaks:
@@ -96,14 +97,41 @@ waves run. At most four run at once.
 
 ## 3. Reuse
 
-The reuse agent goes through the plan and, for each task, looks for code or an
-asset the team already has. When it finds one, it writes the item's id (such as
-`vfx/lightning-strike`) into the task, and the worker takes it with
-`use_library_item` instead of starting from nothing.
+**Current** in the boilerplate's team (2026-10-10), not yet run on a game.
+Once the Planner has created the plan's tasks, and before the plan goes to the
+board, the Reuse scout goes through every task and looks for an item of the
+[library](ASSET_LIBRARY.md) to start from. The board then confirms a plan that
+already says what is reused.
 
-It searches the global [library](ASSET_LIBRARY.md). Its storage exists but
-its reading tools do not yet; until they do, this step is skipped, or done by
-hand on earlier games' repositories.
+- **How it reads the library.** As a git checkout: the machine's
+  `sandblock-library` (by default
+  `$HOME/sandblock/sandblock-code-workspace/sandblock-library`, or
+  `SANDBLOCK_LIBRARY`), which it updates with `git pull --ff-only` and
+  searches with `grep` and `jq` over the `item.json` files, the READMEs and
+  the previews (the `library-reuse` skill). Paperclip runs agents without
+  permission prompts, so an agent working in the game's checkout or in a
+  worktree reads it at its absolute path. No gateway tool is involved.
+- **What it writes.** On each task, one comment: the item and its version,
+  the library commit, what it `needs`, how to install it (`build` and what it
+  `produces`, or the files to copy), what to adapt, and its asset ids that the
+  game's owner does not own. A match also gets the label `library`. With no
+  match it writes "nothing in the library, build from scratch". The Planner
+  copies the verdicts into the `Reuse:` line of each task in `docs/PLAN.md`.
+- **What it never does.** It never writes the library, and never changes a
+  task's scope. A task the library would change significantly becomes a
+  question issue to the Game designer.
+- **Again later.** Tasks added after the plan (a board request, a feature the
+  plan missed) wait on a `Reuse · …` issue before anyone is assigned. Fixes
+  and balancing skip it ([SB-011](DECISIONS.md#sb-011--reuse-search-is-conditional)).
+- **The worker** starts from the item its task names. It brings the item's
+  `needs` first, runs its `build.luau` in its own copy or copies its files,
+  adapts it, and uploads again under the game's owner the animations and
+  sounds that owner does not own. It records the item, its version and the
+  library commit in the game's `sandblock-library.json`.
+
+**Later, maybe:** the gateway tools `search_library`, `get_library_item` and
+`use_library_item` would do the same through the project endpoint
+([`ASSET_LIBRARY.md`](ASSET_LIBRARY.md#reading-the-library)).
 
 Nothing in this pipeline writes the library. What a game adds to it is decided
 afterwards by the library agent, started by a human, and merged by a human
@@ -182,9 +210,9 @@ Launching the ads and choosing the winners stay with the Head of Roblox Pole.
 | Piece | State |
 | --- | --- |
 | Planner skill, writing `docs/PLAN.md` | `to-tasks` v1 in `sandblock-skills` (2026-10-07); to improve by iteration |
-| Reuse agent | Waits for the library's reading tools (`search_library`, `use_library_item`) |
+| Reuse agent | The Reuse scout and `library-reuse` (2026-10-10), reading the library's checkout directly; in the boilerplate and Throw a Weapon's `paperclip/`, not yet run on a plan |
 | Asset and map skills in `sandblock-skills` | Gathered 2026-10-07 with their tools; games get them through `scripts/sync-skills.sh`. Still per game: `aura-icons`, `create-boss`, `ui-builder` |
 | Reviewer skill: the test session and the fix list format | `roblox-game-review` v1 in `sandblock-skills` (2026-10-07); to improve by iteration |
 | Generic balancing skill | `game-balancing` v1 in `sandblock-skills` (2026-10-07), AAF's model as the worked example; to improve by iteration |
 | Setting the game's name, description, icon and thumbnails from an agent | `roblox-store.yml` and `publish_store_page` in `sandblock-code` ([SB-033](DECISIONS.md#sb-033--the-store-page-is-a-file-in-the-game-published-with-the-connected-account)), not yet run against a real game. In the boilerplate, the Art director writes and publishes it |
-| Running it all from one place (Paperclip roles) | `paperclip/` and `scripts/paperclip-team.sh` in `sandblock-game-boilerplate` ([SB-032](DECISIONS.md#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries), 2026-10-07): one Paperclip company per game, without the reuse agent yet. Tested on a disposable game, not yet through a whole wave |
+| Running it all from one place (Paperclip roles) | `paperclip/` and `scripts/paperclip-team.sh` in `sandblock-game-boilerplate` ([SB-032](DECISIONS.md#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries), 2026-10-07): one Paperclip company per game, with the Reuse scout since 2026-10-10. Tested on a disposable game, not yet through a whole wave |

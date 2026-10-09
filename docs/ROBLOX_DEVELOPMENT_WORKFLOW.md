@@ -156,10 +156,12 @@ alone.
 
 ### Library content types
 
-Sandblock's global library is **target** behavior, with its storage in place:
-the `sandblock-library` repository, described with its single writer and its
-reading tools in [`ASSET_LIBRARY.md`](ASSET_LIBRARY.md). It is designed to hold
-every kind of production content a game needs, not code alone:
+Sandblock's global library is **current in part**: the `sandblock-library`
+repository holds UI items, which a game's agent team reads as a git checkout
+(the Reuse scout annotates the plan, workers take the items). It is described,
+with its single writer and how games read it, in
+[`ASSET_LIBRARY.md`](ASSET_LIBRARY.md). It is designed to hold every kind of
+production content a game needs, not code alone:
 
 - reusable Luau systems and utilities such as shops, daily rewards,
   leaderboards, onboarding, or codes;

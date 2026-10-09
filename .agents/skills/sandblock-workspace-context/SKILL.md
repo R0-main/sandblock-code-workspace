@@ -106,7 +106,9 @@ Read [`ASSET_LIBRARY.md`](../../../docs/ASSET_LIBRARY.md), then
 item format and its [`AGENTS.md`](../../../sandblock-library/AGENTS.md) for the
 library agent's rules. Only the library agent writes the library, through merge
 requests a human merges; no game agent, orchestrator, or reviewer proposes
-items.
+items. Game teams read it as a git checkout: the Reuse scout annotates the
+plan and workers take the items (`library-reuse` in `sandblock-skills`, SB-030
+amended 2026-10-10).
 
 ### Autonomous studio and the Discord bot
 
