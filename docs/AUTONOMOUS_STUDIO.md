@@ -12,8 +12,8 @@ community, live ops), and the Discord surface where people take every decision.
 What exists today: the build pipeline's agents and skills, each game's team as a
 Paperclip company ([SB-032](DECISIONS.md#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries)),
 the studio's own company (Sandblock Labs, with the Library Curator), and the
-Discord bot's repository `sandblock-discord` (version 0 in progress, no
-remote yet). Everything else on this page is target or later.
+Discord bot's repository `sandblock-discord-bot` (version 0 in progress).
+Everything else on this page is target or later.
 
 ## Principles
 
@@ -135,12 +135,12 @@ the previous one, it rolls back to the previous place version.
 
 ## Discord
 
-One bot, `sandblock-discord`, running on the machine beside Paperclip. It
+One bot, `sandblock-discord-bot`, running on the machine beside Paperclip. It
 connects out to Discord, so Paperclip stays on loopback. The bot has no LLM of
 its own: it is a bridge, and the intelligence lives in the Paperclip agents.
 
 ```text
-                          sandblock-discord (one bot)
+                        sandblock-discord-bot (one bot)
                                      │
         ┌────────────────────────────┴─────────────────────────────┐
         ▼                                                          ▼
@@ -182,7 +182,7 @@ is fixed in one place.
 
 | Piece | State |
 | --- | --- |
-| Discord bot: prod server bridge to Paperclip, approvals as buttons | `sandblock-discord` version 0 in progress (2026-10-09); no remote yet |
+| Discord bot: prod server bridge to Paperclip, approvals as buttons | `sandblock-discord-bot` version 0 in progress (2026-10-09) |
 | Project manager agent at the head of each game's company | Not in the boilerplate's `paperclip/` yet |
 | Trend scout and idea finder in Sandblock Labs | Not started; the scouting choices are decided |
 | Roblox design skills (monetization, simplicity, genre codes) for the GDD writer | Partly in the GDD template; no dedicated skill |

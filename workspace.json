@@ -49,6 +49,12 @@
       "path": "sandblock-paperclip",
       "remote": "git@ssh.git.shulkr.net:roblox/sandblock-paperclip.git",
       "defaultBranch": "main"
+    },
+    {
+      "name": "Sandblock Discord Bot",
+      "path": "sandblock-discord-bot",
+      "remote": "git@ssh.git.shulkr.net:roblox/sandblock-discord-bot.git",
+      "defaultBranch": "main"
     }
   ]
 }

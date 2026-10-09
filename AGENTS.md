@@ -1,7 +1,7 @@
 # Sandblock Code workspace instructions
 
 This root is a Git meta-repository containing canonical cross-repository
-context and orchestration for eight independent child repositories.
+context and orchestration for nine independent child repositories.
 
 ## Required startup
 
@@ -37,8 +37,11 @@ more than one repository.
   instance, which runs the games' agent teams (SB-032) — pinned version,
   config, systemd service, the studio's company. Its state stays in
   `~/.paperclip`.
+- `sandblock-discord-bot/`: the Discord bot, the only human surface of the
+  agent teams: one channel per Paperclip company, approvals as buttons, the
+  project manager reached by mention or reply (`docs/AUTONOMOUS_STUDIO.md`).
 
-The parent repository ignores all eight child directories. Parent commits may
+The parent repository ignores all nine child directories. Parent commits may
 change only workspace-level material such as `docs/`, `.agents/`, this file,
 `workspace.json`, or root scripts. Never stage a child repository into the
 parent or replace it with an accidental Git submodule.

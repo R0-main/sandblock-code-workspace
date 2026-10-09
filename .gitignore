@@ -10,6 +10,7 @@ node_modules/
 /sandblock-game-boilerplate/
 /sandblock-library/
 /sandblock-paperclip/
+/sandblock-discord-bot/
 
 # Local secrets and generated media.
 .env
