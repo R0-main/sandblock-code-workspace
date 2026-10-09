@@ -789,8 +789,9 @@ history.
   designer for the assets, beside the Coder, the Reviewer and the Balancer.
 - The team is organized in departments: the art trades and the Thumbnail
   artist report to the Art director, the Planner and the Balancer to the Game
-  designer, and those two leads, the Coder, the Reviewer and the Store copy
-  agent to the Lead dev. A lead checks its department's work before the Lead
+  designer, and those two leads, the Coder and the Reviewer to the Lead dev
+  (the Store copy agent was removed by
+  [SB-033](#sb-033--the-store-page-is-a-file-in-the-game-published-with-the-connected-account)). A lead checks its department's work before the Lead
   dev merges it.
 - The trades meet in the task tree, not the org chart: one Paperclip issue
   per feature, one task under it per trade, blocked on the sibling tasks it
@@ -862,8 +863,18 @@ The Drive library stays where candidates and their lineage live
 ([SB-026](#sb-026--thumbnail-lineage-lives-in-drive-and-the-board-draws-it));
 the images chosen for the store are copied into the repository.
 
+On a game's Paperclip team
+([SB-032](#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries)),
+the **Art director owns the store page**: it writes the name and the
+description, chooses the icon and the thumbnails among the Thumbnail
+artist's, and is the only agent allowed `publish_store_page`. The Store copy
+agent is removed. Publishing waits for the Lead dev's merge, since the app
+reads the file in the main checkout, and for the board's confirmation,
+which reaches the board through the Lead dev.
+
 **Current:** implemented in `sandblock-code` (`desktop/electron/storePage.ts`,
 `robloxStore.ts`, `src/tools/storePage.ts`, the Store page row of a project's
 settings), tested against a fake Roblox. Not yet run against a real game, so
-the Roblox endpoints are unverified. The boilerplate's Store copy and
-Thumbnail artist agents do not write the file yet.
+the Roblox endpoints are unverified. The Art director's store page work is
+in `sandblock-game-boilerplate`'s `paperclip/`; games created before it do
+not have it.

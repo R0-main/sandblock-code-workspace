@@ -79,9 +79,12 @@ the [pipeline](AGENT_GAME_PIPELINE.md) builds the game. Its human checkpoints
 ### 3. Store
 
 Near the end of the build, the team produces the icon, the thumbnails, the name
-and the description, and **uploads them itself**. They go through Open Cloud
-(Universes API for name and description; game-thumbnails and Thumbnail
-Personalization APIs for images), which today has no tool in the pipeline.
+and the description, and **uploads them itself**. They are declared in the
+game's `roblox-store.yml` and published with `publish_store_page`, with the
+Roblox account connected in Sandblock Code
+([SB-033](DECISIONS.md#sb-033--the-store-page-is-a-file-in-the-game-published-with-the-connected-account)).
+The home page thumbnails (Thumbnail Personalization API) are not covered: that
+API takes only Roblox's own OAuth.
 
 ### 4. Launch and ads (marketing agent)
 
@@ -174,8 +177,9 @@ is fixed in one place.
 | Campaigns: create, budget, pause, status | Ads Manager API |
 | Retention, funnels, revenue, DAU | Analytics Query API (performance metrics: 28 days only) |
 | Home thumbnails and their targeting | Thumbnail Personalization API |
-| Game thumbnails | game-thumbnails endpoints |
-| Name, description, settings | Universes API (v2, update mask) |
+| Game icon and thumbnails | Not Open Cloud: the account's own endpoints, through `publish_store_page` (SB-033) |
+| Name and description | Not Open Cloud: the root place's configuration, through `publish_store_page` (SB-033) |
+| Other universe settings | Universes API (v2, update mask) |
 | Publishing a place version | Place publishing API |
 
 ## What is missing
@@ -186,7 +190,7 @@ is fixed in one place.
 | Project manager agent at the head of each game's company | Not in the boilerplate's `paperclip/` yet |
 | Trend scout and idea finder in Sandblock Labs | Not started; the scouting choices are decided |
 | Roblox design skills (monetization, simplicity, genre codes) for the GDD writer | Partly in the GDD template; no dedicated skill |
-| Open Cloud tool layer (store, ads, analytics, thumbnails, publishing) | Not started |
+| Open Cloud tool layer (ads, analytics, publishing) | Not started; the store page has its own tools (SB-033) |
 | Test places on Roblox, beside the local copies | Not started: today's copies are local only |
 | Analytics skills and the daily stats report | Not started; needs funnel events in the boilerplate |
 | Community digest (Haiku) and Roblox feedback reading | Later |

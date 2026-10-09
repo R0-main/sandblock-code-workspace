@@ -45,13 +45,12 @@ Four human checkpoints, and nothing else waits on a person:
 | Planner | The GDD | `docs/PLAN.md`: tasks, their agent, dependencies, waves | `to-tasks` |
 | Reuse | The plan | Each task annotated with what already exists | `search_library` ([the library](ASSET_LIBRARY.md); tools to build) |
 | Orchestrator / lead dev | The plan | Waves run, branches merged, builds transferred | `roblox-agent-team` |
-| Art director | The GDD | The art direction and concept art the asset waves follow | `roblox-game-conventions` |
+| Art director | The GDD, then the Thumbnail artist's images | The art direction and concept art the asset waves follow; then the store page (`roblox-store.yml`: title, description, the chosen icon and thumbnails), which it publishes once the board confirms it | `roblox-game-conventions` |
 | Asset agents, one per trade | One asset task each | A build in their copy | Modeler: `stud-models`, `asset-kit`. Map builder: `stud-map`, `map-builder`, `map-assembly`, `asset-kit`. UI designer: the game's UI skill, `roblox-game-conventions`, `controller-glyphs`. VFX artist: `vfx-creator`. Animator: `stud-animations`. Sound designer: `sound-effects` |
 | Code agents | One feature each | Code and tests on their branch | The game's Project Skill, `tdd`, the packages' skills |
 | Reviewer / tester | The merged game | A fix list | `roblox-game-review`, `roblox-game-conventions` |
 | Balancing | The fixed game and the GDD's targets | Tuned economy and progression numbers, with proof | `game-balancing` |
 | Thumbnail artist | GDD, art direction | Square icon, thumbnails to test in ads | `roblox-thumbnails`, `roblox-thumbnail-variant` |
-| Store copy | GDD | Game name and description, localized | `roblox-localization` |
 
 On a Paperclip team the agents are organized in departments (art under the Art
 director, the Planner and the Balancer under the Game designer), and the trades
@@ -162,8 +161,12 @@ Started once the GDD and the art direction are approved, beside the build:
   against each other in Roblox ads. The thumbnail skills start from what
   performs in the genre and change one thing per variant; the app's Thumbnails
   tab keeps the lineage.
-- **Store copy**: the game's name and description, written for the genre's
-  search terms, then localized.
+- **Art director**: the store page. It writes the game's name and description
+  for the genre's search terms, chooses the icon and the thumbnails among the
+  Thumbnail artist's, and declares them in `roblox-store.yml`. Once the Lead
+  dev has merged it and the board has confirmed it, the Art director alone
+  publishes it with `publish_store_page`
+  ([SB-033](DECISIONS.md#sb-033--the-store-page-is-a-file-in-the-game-published-with-the-connected-account)).
 
 Launching the ads and choosing the winners stay with the Head of Roblox Pole.
 
@@ -176,5 +179,5 @@ Launching the ads and choosing the winners stay with the Head of Roblox Pole.
 | Asset and map skills in `sandblock-skills` | Gathered 2026-10-07 with their tools; games get them through `scripts/sync-skills.sh`. Still per game: `aura-icons`, `create-boss`, `ui-builder` |
 | Reviewer skill: the test session and the fix list format | `roblox-game-review` v1 in `sandblock-skills` (2026-10-07); to improve by iteration |
 | Generic balancing skill | `game-balancing` v1 in `sandblock-skills` (2026-10-07), AAF's model as the worked example; to improve by iteration |
-| Setting the game's name and description from an agent | No tool yet |
+| Setting the game's name, description, icon and thumbnails from an agent | `roblox-store.yml` and `publish_store_page` in `sandblock-code` ([SB-033](DECISIONS.md#sb-033--the-store-page-is-a-file-in-the-game-published-with-the-connected-account)), not yet run against a real game. In the boilerplate, the Art director writes and publishes it |
 | Running it all from one place (Paperclip roles) | `paperclip/` and `scripts/paperclip-team.sh` in `sandblock-game-boilerplate` ([SB-032](DECISIONS.md#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries), 2026-10-07): one Paperclip company per game, without the reuse agent yet. Tested on a disposable game, not yet through a whole wave |
