@@ -119,6 +119,24 @@ environment or in the app's `.env`; `SANDBLOCK_GAMES_GROUP` overrides the group
 path. Without it, creation stays local as before. Moving it into the vault
 belongs with the GitLab settings above.
 
+### Creating the game on Roblox
+
+**Implemented** (`robloxGames.ts`), not yet run against Roblox. The new-game
+form asks whether the Roblox game already exists. If it does, its places are
+picked from the open Studios as before. If not, the developer picks an owner:
+a connected Roblox account, or a group that account belongs to. After the
+repository is created, the app creates a private game from the Baseplate
+template with that account's session (`POST
+apis.roblox.com/universes/v1/universes/create`, `?groupId=` for a group, the
+endpoint Studio and Mantle use), names its start place after the game, and
+declares it as the main place with its `universeId`.
+
+The repository goes first: Roblox has no way to delete a game, so a name refused
+locally or on GitLab must not leave one behind. If Roblox refuses, for instance
+a group role that may not create experiences, the project is still created and
+Settings › Roblox places offers the same creation again, for as long as no
+published place is declared.
+
 ## 2. One-click clone and setup
 
 ### Clone

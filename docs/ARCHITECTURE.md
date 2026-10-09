@@ -181,9 +181,10 @@ root. The current versioned format is:
 `places` is the allowlist of Roblox places the project owns, and the only set an
 agent can act on. Exactly one place is `main`: every agent session starts there.
 Sandblock Code is the only writer — the desktop declares places by picking from
-the Studios open on the machine, at game creation and in project settings, so a
-project is never bound to a place nobody has opened. Neither the plugin nor an
-agent can add one. `mainPlaceId` stays in sync with the main place, and a project
+the Studios open on the machine, at game creation and in project settings, or
+declares the start place of a game it has just created on Roblox, so a project
+is never bound to a place id somebody typed. Neither the plugin nor an agent can
+add one. `mainPlaceId` stays in sync with the main place, and a project
 written before `places` existed reads back as a single main place.
 
 `rojoProject` names the Rojo project file the project syncs. A place may name

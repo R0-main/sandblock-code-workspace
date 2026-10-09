@@ -226,6 +226,13 @@ picking from the Studios open on the machine — at game creation, and in projec
 settings — so a place cannot be declared by typing a number nobody has opened.
 Neither the plugin nor an agent can add one.
 
+A game the desktop creates on Roblox itself is the one exception to "open in
+Studio": its start place becomes the main place directly. The point stands,
+since nobody typed that id either; Roblox handed it back to the app. The owner
+is picked by the developer, from the connected accounts and their groups, and
+the creation runs on that account's session, because Open Cloud cannot create a
+universe. Only a project with no published place declared is offered it.
+
 The Studio plugin refuses to connect from an undeclared place, and names the
 declared ones instead of failing vaguely. It claims exactly one place on the
 bridge, so Studios on different places of the same project connect side by side,
