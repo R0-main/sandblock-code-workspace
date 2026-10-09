@@ -796,6 +796,11 @@ history.
 - The trades meet in the task tree, not the org chart: one Paperclip issue
   per feature, one task under it per trade, blocked on the sibling tasks it
   needs, and the feature lists the names its tasks agree on.
+- A code task whose whole check is headless is labelled `no-studio`: its
+  Coder works in its worktree and opens no copy, so it stays outside the four
+  live copies and starts once its blockers are done, without waiting for its
+  wave (at most three at once). The Lead dev brings it in with a merge and a
+  test of the real place.
 - The split between roles is enforced per agent by `--disallowedTools` on the
   `mcp__roblox-studio__*` tool names.
 - Paperclip runs Claude with `--strict-mcp-config`, so an agent sees only the

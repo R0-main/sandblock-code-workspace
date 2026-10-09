@@ -87,7 +87,12 @@ moves breaks:
 3. **Code**: one task per feature, in parallel, written against the real
    assets already in the place.
 
-A wave holds at most four workers: a project runs four live copies at once.
+A wave holds at most four workers with a Studio copy: a project runs four live
+copies at once. A code task whose whole check is headless (pure logic, the
+save, config, remotes) is marked `no-studio`: its worker codes and tests in its
+worktree only, outside the four, and starts as soon as its blockers have
+landed instead of waiting for its wave, so pure logic is built while the asset
+waves run. At most three run at once.
 
 ## 3. Reuse
 
@@ -119,6 +124,8 @@ the next wave opens only from a version saved after the last transfer.
   they stand for.
 - **Each code worker tests its own feature**: the boilerplate's code tests,
   then a test in its own Studio through Konsole commands and `execute_luau`.
+  A `no-studio` task stops at the code tests; the orchestrator's test of the
+  merged real place is its Studio check.
 - The orchestrator reviews and merges each branch, transfers each build, tests
   the merged result, and cleans up.
 
