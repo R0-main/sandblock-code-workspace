@@ -772,7 +772,7 @@ history.
 
 - Every agent is Claude Code (Paperclip's `claude_local` adapter on its CLI
   engine) working in the game's repository. It wakes only for work assigned to
-  it, except the Lead dev, which also wakes every 10 minutes as a safety net:
+  it, except the Lead dev, which also wakes every 5 minutes as a safety net:
   a lost event once left the whole team stopped.
 - A worker's task runs in a worktree Paperclip creates from the local `main`,
   under `<repo parent>/.worktrees/<repo>/`, beside Sandblock Code's own. The
