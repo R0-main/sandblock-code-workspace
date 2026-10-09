@@ -807,12 +807,18 @@ history.
   MCP servers it is given: the game's `.mcp.json`, which each agent names, and
   Paperclip's own. The user's claude.ai connectors are not there; the GDD's
   Notion is reached through a Notion connection in Paperclip.
-- Only the Lead dev talks to the board, which follows the team in Discord
-  (`sandblock-discord-bot`). Every other agent brings its questions and
-  decisions to its superior as a card addressed to it; department leads bring
-  to the Lead dev what they cannot settle, and the Lead dev asks the board
-  with its own card. Answers come back down the same chain. The four human
-  checkpoints are the Lead dev's confirmations to the board.
+- Only the Project manager talks to the board, which follows the team in
+  Discord (`sandblock-discord-bot`). It runs on Haiku, several runs at once,
+  without Studio tools, edits or git writes; the Lead dev reports to it. Every
+  other agent brings its questions to its superior as a question issue (a
+  child assigned to it), never as a card addressed to an agent: Paperclip
+  cancels the run of an agent woken on an issue it is not assigned to.
+  Department leads bring up what they cannot settle, and the Project manager
+  asks the board with its own card. The four human checkpoints go straight to
+  the Project manager.
+- Paperclip 2026.1005.0 loses the wake-up of a hand-off made at the end of a
+  run. The machine's watchdog (`sandblock-paperclip`, "Watchdog") wakes the
+  assignee of a task left without a run 90 seconds after its hand-off.
 
 The game's [`paperclip/README.md`](../sandblock-game-boilerplate/paperclip/README.md)
 is canonical for the team, its rules, and how a wave runs on Paperclip.
