@@ -55,6 +55,12 @@
       "path": "sandblock-discord-bot",
       "remote": "git@ssh.git.shulkr.net:roblox/sandblock-discord-bot.git",
       "defaultBranch": "main"
+    },
+    {
+      "name": "Roblox Lua Devtools",
+      "path": "roblox_lua_devtools",
+      "remote": "git@github.com:R0-main/roblox_lua_devtools.git",
+      "defaultBranch": "main"
     }
   ]
 }
