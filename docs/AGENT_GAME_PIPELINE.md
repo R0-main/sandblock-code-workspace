@@ -92,7 +92,7 @@ copies at once. A code task whose whole check is headless (pure logic, the
 save, config, remotes) is marked `no-studio`: its worker codes and tests in its
 worktree only, outside the four, and starts as soon as its blockers have
 landed instead of waiting for its wave, so pure logic is built while the asset
-waves run. At most three run at once.
+waves run. At most four run at once.
 
 ## 3. Reuse
 
