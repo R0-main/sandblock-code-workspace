@@ -270,8 +270,11 @@ start processes.
 | `GET /runtimes/{runtimeId}/places/{key}/versions` | The place's latest saved versions |
 | `POST /runtimes/{runtimeId}/places/{key}/copies` | Open a disposable copy of a place at a version |
 | `DELETE /runtimes/{runtimeId}/copies/{copyKey}` | Close a copy and delete its file |
+| `GET /runtimes/{runtimeId}/thumbnails` | The project's thumbnail library, newest first, for the gateway's `list_thumbnails` (API 7) |
+| `POST /runtimes/{runtimeId}/thumbnails` | File an image an agent made, with its lineage (`file_thumbnail`, API 7) |
+| `POST /runtimes/{runtimeId}/thumbnails/live` | File the store art Roblox shows today (`file_live_thumbnails`, API 7) |
 
-The last five routes are specified in
+The five routes after `/studios/hello` are specified in
 [`STUDIO_LAUNCH_AND_PLACE_COPIES.md`](STUDIO_LAUNCH_AND_PLACE_COPIES.md#runtime-service),
 which also extends `start` and `events` for copies.
 
@@ -293,7 +296,7 @@ The placeless `/runtimes/{runtimeId}/rojo` route and the descriptor's top-level
 `rojo` remain for API 2 plugins, which name no place. They answer while every
 place syncs the same file; once the files differ, the route refuses with
 `place_required` and the top-level `rojo` has no `url` and says to update the
-plugin. `/health` reports API version 4.
+plugin. `/health` reports API version 7.
 
 A `connected` event carries the DataModel name Rojo synced. The service compares
 it with the name of the Rojo project the reporting place declares; on a mismatch
@@ -429,6 +432,16 @@ default: the app tells the gateway which projects allow them, and they appear
 only on those projects' endpoints. They ask the runtime service to act, because
 launching processes and holding the Roblox account belong to the main process
 (**current, unvalidated against Roblox**).
+
+Every project endpoint also lists three thumbnail library tools:
+`file_thumbnail`, `list_thumbnails` and `file_live_thumbnails` (**current,
+unvalidated against Drive**, see
+[SB-026](DECISIONS.md#sb-026--thumbnail-lineage-lives-in-drive-and-the-board-draws-it)).
+They file an agent's images into the project's folder of the Google shared
+drive, with their parent and request, so the Thumbnails board draws them. Like
+the launch tools, they ask the runtime service: the main process holds the
+service account key and decides which files a project's agents may file. The
+unscoped `/mcp`, the capture endpoint and `/scratch/mcp` do not list them.
 
 Useful current visual capabilities include reading the Studio selection,
 inserting instances, rendering GUI elements, capturing workspace or turntable

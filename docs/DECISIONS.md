@@ -541,8 +541,22 @@ display preference, and "Tidy up" lays the tree out again.
 
 **Current:** implemented in `sandblock-code` (Drive client, variant handler,
 Thumbnails board). Variants filed before this change have no parent and appear
-in the board's grid. No skill or Studio plugin change: the app files every variant
-itself, so the agent never sees this metadata.
+in the board's grid. The app files every variant run's images itself, so a
+variant run never sees this metadata.
+
+Other agents, such as a game's Thumbnail artist in Paperclip, file their own
+through three tools on a project's endpoint: `file_thumbnail` files an image
+they made with its `parentId` and `note`, `list_thumbnails` finds the id of an
+earlier image, and `file_live_thumbnails` files the store's current art as a
+lineage root. The main process keeps the service account key and does the
+filing through the runtime service (API 7, `/runtimes/{id}/thumbnails`). It
+reads only files inside the game's repository or its Git worktrees, under
+`~/Downloads/<projectId>-thumbnails/`, or saved by the gateway's own capture and
+generation tools. A parent must be in the same project's library. Images filed
+by agents carry `src` and are stored once. Tested against fakes; not yet run
+against the real drive or from a Paperclip agent. No Studio plugin change.
+The boilerplate's Thumbnail artist files each candidate this way instead of
+attaching it to a task.
 
 ## SB-027 — Agents open Studio and work in disposable place copies
 
