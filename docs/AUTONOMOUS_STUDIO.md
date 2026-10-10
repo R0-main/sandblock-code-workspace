@@ -80,6 +80,11 @@ A GDD writer agent works out every aspect of the game with the Roblox design
 skills (monetization, simplicity, the genre's codes) and writes the GDD. Then
 the [pipeline](AGENT_GAME_PIPELINE.md) builds the game. Its human checkpoints
 (GDD, plan, art direction, release) become approvals in the game's channel.
+Before the plan's approval, the board answers the design challenger's batch
+once, in the channel: numbered questions with recommendations and a block to
+copy, edit and send back
+([SB-037](DECISIONS.md#sb-037--a-design-challenger-asks-the-board-once-and-every-agent-reads-the-roblox-dna)).
+The bot posts such a long message in full, in several messages.
 
 ### 3. Store
 

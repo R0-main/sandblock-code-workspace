@@ -8,6 +8,8 @@ Roblox game from an idea, much faster than by hand. Parts of it exist:
 (`roblox-agent-team` in `sandblock-skills`), the thumbnail skills, the
 asset and map skills that still live in game repositories, the reuse step
 (a Reuse scout reading the [library](ASSET_LIBRARY.md) as a git checkout),
+the design calls (a Design challenger asking the board once,
+[SB-037](DECISIONS.md#sb-037--a-design-challenger-asks-the-board-once-and-every-agent-reads-the-roblox-dna)),
 and the team itself, which every game carries as a Paperclip company
 ([SB-032](DECISIONS.md#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries)). The rest is
 described here so it can be built against one plan. It does not replace the
@@ -19,7 +21,7 @@ Discord as the human surface) is in [`AUTONOMOUS_STUDIO.md`](AUTONOMOUS_STUDIO.m
 ## The chain
 
 ```text
-idea ─▶ GDD ─▶ plan ─▶ reuse check ─▶ orchestrator
+idea ─▶ GDD ─▶ plan ─▶ reuse check ─▶ design calls ─▶ orchestrator
                                          │
          ┌───────────────────────────────┴───────────────────────────────┐
          ▼                                                               ▼
@@ -34,7 +36,9 @@ idea ─▶ GDD ─▶ plan ─▶ reuse check ─▶ orchestrator
 Four human checkpoints, and nothing else waits on a person:
 
 1. **GDD approved.**
-2. **Plan approved**, once the reuse check has annotated it.
+2. **Plan approved**, once the reuse check has annotated it and the board has
+   answered the design challenger's batch (the batch is part of this
+   checkpoint, answered once).
 3. **Art direction approved**, on the first assets of the asset waves.
 4. **Release approved**, after a human playtest that judges the fun.
 
@@ -45,6 +49,7 @@ Four human checkpoints, and nothing else waits on a person:
 | Design | The idea | A complete GDD | `grill-design`, `grill-me`, `to-questionnaire` |
 | Planner | The GDD | `docs/PLAN.md`: tasks, their agent, dependencies, waves | `to-tasks` |
 | Reuse scout | The plan's tasks, then tasks added later | Each task annotated with the library item it starts from, or "nothing" | `library-reuse` ([the library](ASSET_LIBRARY.md), read as a git checkout) |
+| Design challenger | The GDD and the draft plan, after the reuse check | One batch of questions for the board, each with a recommendation and a copy-paste answer block; the answers become the GDD's design calls | `design-challenge` |
 | Orchestrator / lead dev | The plan | Waves run, branches merged, builds transferred | `roblox-agent-team` |
 | Art director | The GDD, then the Thumbnail artist's images | The art direction and concept art the asset waves follow; then the store page (`roblox-store.yml`: title, description, the chosen icon and thumbnails), which it publishes once the board confirms it | `roblox-game-conventions` |
 | Asset agents, one per trade | One asset task each | A build in their copy | Modeler: `stud-models`, `asset-kit`. Map builder: `stud-map`, `map-builder`, `map-assembly`, `asset-kit`. UI designer: the game's UI skill, `roblox-game-conventions`, `controller-glyphs`. VFX artist: `vfx-creator`. Animator: `stud-animations`. Sound designer: `sound-effects` |
@@ -53,8 +58,13 @@ Four human checkpoints, and nothing else waits on a person:
 | Balancing | The fixed game and the GDD's targets | Tuned economy and progression numbers, with proof | `game-balancing` |
 | Thumbnail artist | GDD, art direction | Square icon, thumbnails to test in ads | `roblox-thumbnails`, `roblox-thumbnail-variant` |
 
+Every agent reads `roblox-game-dna` (`sandblock-skills`) at the start of every
+run: what makes a Roblox game a Roblox game, with a short block per role in its
+instructions.
+
 On a Paperclip team the agents are organized in departments (art under the Art
-director, the Planner, the Reuse scout and the Balancer under the Game designer), and the trades
+director, the Planner, the Reuse scout, the Design challenger and the Balancer
+under the Game designer), and the trades
 meet in a task tree with one issue per feature and one task per trade under it
 ([SB-032](DECISIONS.md#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries)).
 
@@ -76,7 +86,9 @@ is used. For each task:
 - **what it depends on**: a model before its icon, an icon before the menu
   that shows it;
 - **its wave**, from the order below;
-- **reuse**: empty until the Reuse scout fills it (§3).
+- **reuse**: empty until the Reuse scout fills it (§3);
+- **acceptance criteria**: written once the design calls are in (§3, "The
+  design calls"), each citing a GDD section or a design call (`DC-<n>`).
 
 Waves follow one order, because code written against a hierarchy that later
 moves breaks:
@@ -136,6 +148,30 @@ already says what is reused.
 Nothing in this pipeline writes the library. What a game adds to it is decided
 afterwards by the library agent, started by a human, and merged by a human
 ([`ASSET_LIBRARY.md`](ASSET_LIBRARY.md#one-writer)).
+
+### The design calls
+
+**Current** in the boilerplate's and Throw a Weapon's team (2026-10-10), not
+yet run on a plan
+([SB-037](DECISIONS.md#sb-037--a-design-challenger-asks-the-board-once-and-every-agent-reads-the-roblox-dna)).
+Once the reuse annotations are in, the Design challenger reads the GDD with the
+draft plan, applying `roblox-game-dna` and its challenger questions, and asks
+the board everything that changes what is built, once:
+
+- **Triage.** Values the GDD leaves to tune are the Balancer's, never asked.
+  Only what changes a task, a system, a screen or a product goes to the board;
+  minor points are listed as assumptions, decided by the recommendation.
+- **The batch**, in French: grouped by feature, deduplicated, numbered by
+  impact, each question with the tasks it changes, options when useful and a
+  recommendation; then a copy-paste block pre-filled with the
+  recommendations. The Project manager posts it unchanged and brings the
+  reply back verbatim. Partial answers ("ok sauf 3 et 7") are fine: the
+  challenger asks once more only for what is left, then takes its
+  recommendation « par défaut ».
+- **One home.** The Game designer records the answers as `DC-<n>` entries in
+  the GDD's "Design calls" section; the Planner adjusts the tasks and gives
+  each acceptance criteria citing them. Then the board confirms the plan.
+- **Again later** only for added tasks that raise a new question.
 
 ## 4. Build chapters
 
@@ -210,9 +246,10 @@ Launching the ads and choosing the winners stay with the Head of Roblox Pole.
 | Piece | State |
 | --- | --- |
 | Planner skill, writing `docs/PLAN.md` | `to-tasks` v1 in `sandblock-skills` (2026-10-07); to improve by iteration |
-| Reuse agent | The Reuse scout and `library-reuse` (2026-10-10), reading the library's checkout directly; in the boilerplate and Throw a Weapon's `paperclip/`, not yet run on a plan |
+| Reuse agent | The Reuse scout and `library-reuse` (2026-10-10), reading the library's checkout directly; in the boilerplate and Throw a Weapon's `paperclip/`, first run on Throw a Weapon's plan (THR-131) |
+| Design challenge and the Roblox DNA | The Design challenger, `design-challenge` and `roblox-game-dna` (2026-10-10, SB-037); in the boilerplate and Throw a Weapon, not yet run. The DNA's game-feel and genre references are stubs, still being researched |
 | Asset and map skills in `sandblock-skills` | Gathered 2026-10-07 with their tools; games get them through `scripts/sync-skills.sh`. Still per game: `aura-icons`, `create-boss`, `ui-builder` |
 | Reviewer skill: the test session and the fix list format | `roblox-game-review` v1 in `sandblock-skills` (2026-10-07); to improve by iteration |
 | Generic balancing skill | `game-balancing` v1 in `sandblock-skills` (2026-10-07), AAF's model as the worked example; to improve by iteration |
 | Setting the game's name, description, icon and thumbnails from an agent | `roblox-store.yml` and `publish_store_page` in `sandblock-code` ([SB-033](DECISIONS.md#sb-033--the-store-page-is-a-file-in-the-game-published-with-the-connected-account)), not yet run against a real game. In the boilerplate, the Art director writes and publishes it |
-| Running it all from one place (Paperclip roles) | `paperclip/` and `scripts/paperclip-team.sh` in `sandblock-game-boilerplate` ([SB-032](DECISIONS.md#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries), 2026-10-07): one Paperclip company per game, with the Reuse scout since 2026-10-10. Tested on a disposable game, not yet through a whole wave |
+| Running it all from one place (Paperclip roles) | `paperclip/` and `scripts/paperclip-team.sh` in `sandblock-game-boilerplate` ([SB-032](DECISIONS.md#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries), 2026-10-07): one Paperclip company per game, with the Reuse scout and the Design challenger since 2026-10-10. Tested on a disposable game, not yet through a whole wave |

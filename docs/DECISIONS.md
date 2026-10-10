@@ -822,10 +822,14 @@ history.
   designer for the assets, beside the Coder, the Reviewer and the Balancer.
   A Reuse scout (on Haiku, without Studio tools, edits or git writes) annotates
   the plan's tasks with the library items to start from before the board
-  confirms the plan (SB-030, amended 2026-10-10).
+  confirms the plan (SB-030, amended 2026-10-10). Then a Design challenger
+  (on Opus, without Studio tools, edits or git writes) has the board answer,
+  in one batch, every question that changes what the plan builds
+  ([SB-037](#sb-037--a-design-challenger-asks-the-board-once-and-every-agent-reads-the-roblox-dna),
+  2026-10-10).
 - The team is organized in departments: the art trades and the Thumbnail
-  artist report to the Art director, the Planner, the Reuse scout and the
-  Balancer to the Game designer, and those two leads, the Coder and the Reviewer to the Lead dev
+  artist report to the Art director, the Planner, the Reuse scout, the Design
+  challenger and the Balancer to the Game designer, and those two leads, the Coder and the Reviewer to the Lead dev
   (the Store copy agent was removed by
   [SB-033](#sb-033--the-store-page-is-a-file-in-the-game-published-with-the-connected-account)). A lead checks its department's work before the Lead
   dev merges it.
@@ -1159,3 +1163,62 @@ sandblock-code team [<repo>] [--json]
 Roblox in the app, a fake Paperclip API and CLI for the script, a fake
 Discord and Paperclip for the bot. Not yet run against the live app,
 Paperclip, GitLab, Discord or Roblox.
+
+## SB-037 — A Design challenger asks the board once, and every agent reads the Roblox DNA
+
+**Status:** Accepted — amends [SB-032](#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries)
+
+Two gaps showed on Throw a Weapon's first plan. The plan went to the board
+with the GDD's open questions scattered across tasks (`design-call`) and
+nobody asking them, while the board answers from a phone in Discord and
+prefers one batch it can answer by copying recommendations and editing a few
+("ok pour tout sauf 3 et 7"). And nothing told the agents what makes a
+Roblox game a Roblox game (a phone, a 10-year-old, friends in the server, a
+minute to convince), so a plan could be complete and still not be a Roblox.
+
+- **`roblox-game-dna`**, a shared skill (`sandblock-skills`), holds that: a
+  short `SKILL.md` (the ten commandments and the rules that change decisions,
+  under 250 lines) that every agent reads at the start of every run (the
+  team's rule 1, and each role's `AGENTS.md`) and every non-Paperclip session
+  (the game's `CLAUDE.md`), and `references/` for the long version, each
+  role's rules, the challenger's questions and the sources. It complements
+  `roblox-game-conventions`, `roblox-luau-knit`, `game-balancing` and
+  `roblox-thumbnails` and repeats none of them. Each role's `AGENTS.md`
+  carries a short Roblox block.
+- **A Design challenger** joins the design department (reports to the Game
+  designer), with the `design-challenge` skill. The Planner creates its
+  `Challenge · plan` issue with the `Reuse · plan` one, blocked on it, and
+  waits on both. The challenger reads the GDD with the draft plan and its
+  reuse annotations, and sorts what it finds: values the GDD leaves to tune
+  are the Balancer's and never asked; only what changes a task goes to the
+  board; minor points become assumptions decided by its recommendation. It
+  writes one batch in French (grouped by feature, numbered by impact, each
+  question with the tasks it changes and a recommendation, then a copy-paste
+  answer block pre-filled with the recommendations), which the Project
+  manager posts to the board unchanged as a hand-off issue and whose reply it
+  brings back verbatim. Partial answers are accepted; the challenger asks
+  once more only for what is left, then takes its recommendation « par
+  défaut » and the plan's card names those.
+- **The GDD's "Design calls made after GDD approval" section is the single
+  home of the answers**, numbered `DC-<n>`. One writer per file: the Game
+  designer writes them (it checks the challenger's final list against the
+  board's words), the Planner then adjusts the tasks and gives each one
+  acceptance criteria citing GDD sections and design calls, never copying
+  them. Only then does the board confirm the plan.
+- It runs on Opus: sorting what changes the build and recommending answers
+  the board copies as they are is judgement, and it runs about once per plan.
+  Tasks added later go through it only when they raise a new question.
+- `grill-design` stays the one-question interview; `design-challenge` is a
+  separate skill because its input (a whole GDD and plan), its output (one
+  batch with an answer block) and its reader (a phone) differ.
+- The Discord bot posts a long Project manager comment, and a long hand-off
+  description, in full, split into messages of at most 2,000 characters at
+  paragraph boundaries, code blocks kept whole or split into valid blocks.
+
+**Current:** written 2026-10-10 in `sandblock-skills` (`roblox-game-dna`,
+`design-challenge`, `to-tasks` and `grill-design` updated),
+`sandblock-game-boilerplate` and Throw a Weapon's `paperclip/` and
+`.claude/skills/`, and `sandblock-discord-bot`; not yet run on a plan.
+**Target:** Throw a Weapon's current plan (THR-3) goes through it before the
+board confirms it. **Later:** the game-feel and genre-playbook references of
+`roblox-game-dna`, still being researched, replace their stubs.
