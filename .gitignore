@@ -12,6 +12,7 @@ node_modules/
 /sandblock-paperclip/
 /sandblock-discord-bot/
 /roblox_lua_devtools/
+/sandblock-conductor/
 
 # Local secrets and generated media.
 .env

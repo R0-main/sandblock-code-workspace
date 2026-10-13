@@ -61,6 +61,12 @@
       "path": "roblox_lua_devtools",
       "remote": "git@github.com:R0-main/roblox_lua_devtools.git",
       "defaultBranch": "main"
+    },
+    {
+      "name": "Sandblock Conductor",
+      "path": "sandblock-conductor",
+      "remote": "git@ssh.git.shulkr.net:roblox/sandblock-conductor.git",
+      "defaultBranch": "main"
     }
   ]
 }
