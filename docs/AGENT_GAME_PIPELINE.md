@@ -196,6 +196,14 @@ the next wave opens only from a version saved after the last transfer.
 After the assets, a VFX pass and an animation pass add effects and animated
 props, as asset waves of their own.
 
+A hero character (a boss, the mascot) is the exception: one task labelled
+`hero`, which the Modeler takes from the model in T-pose to its rig, its own
+effects and its animations in a single run, judged against the GDD's own
+picture until flawless
+([SB-039](DECISIONS.md#sb-039--a-hero-character-is-built-from-its-picture-in-one-run-and-judged-until-flawless)).
+Every worker judges its visible work against its reference before handing it
+over.
+
 ## 5. Review session
 
 When every feature is merged, the reviewer runs one long test session on the

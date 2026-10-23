@@ -25,7 +25,10 @@ Everything else on this page is target or later.
   player. A human watches every game and can stop any project at any time.
 - **Discord is the only human surface.** Nobody needs to open Paperclip to work.
   Agents ask, present and report in Discord, and a person answers with a button
-  or a reply.
+  or a reply. One input comes from elsewhere: a playtest review, the screen
+  and the voice recorded in Sandblock Code while a person plays, which reaches
+  the project manager as an issue
+  ([SB-038](DECISIONS.md#sb-038--a-playtest-review-is-recorded-in-sandblock-code-and-goes-to-the-games-project-manager)).
 - **One agent per game talks to people: its project manager.** It speaks for
   the whole team, and passes feedback to the department it concerns.
 - **Roblox game design is its own discipline.** It is built on monetization and

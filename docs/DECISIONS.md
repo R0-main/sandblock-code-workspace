@@ -1222,3 +1222,114 @@ minute to convince), so a plan could be complete and still not be a Roblox.
 **Target:** Throw a Weapon's current plan (THR-3) goes through it before the
 board confirms it. **Later:** the game-feel and genre-playbook references of
 `roblox-game-dna`, still being researched, replace their stubs.
+
+## SB-038 — A playtest review is recorded in Sandblock Code and goes to the game's project manager
+
+**Status:** Accepted — complements [SB-032](#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries)
+and [SB-036](#sb-036--a-new-game-comes-with-its-agent-team-and-its-discord-channel)
+
+The board plays each build and has a lot to say about it, faster spoken
+than typed, and most of it is about what is on screen at that moment. Typed
+from memory into Discord afterwards, the feedback loses where and when.
+
+- **Sandblock Code records it**, from the game's window, page **Reviews**:
+  the chosen screen or window (Roblox's own window first) with the
+  microphone, a microphone level to catch a muted one, and a global shortcut
+  (`Alt+Shift+R`) that stops from inside the game. The app is the place
+  because it runs on Windows beside Roblox and already knows the game's
+  Paperclip team (`.sandblock-code.json` › `paperclip`). Discord stays the
+  surface where people decide; this one only feeds the project manager.
+- **The recording stays on the machine**, in the app's userData
+  (`reviews/<id>/`: the WebM video, a still every 2 seconds, the record).
+  Nothing goes into the game's repository.
+- **Gemini turns it into feedback**: the video goes through the Files API
+  (deleted after) to a Flash model (`gemini-3.6-flash`, `GEMINI_REVIEW_MODEL`
+  to change it), with the `GEMINI_API_KEY` of the app's `.env`. It returns a
+  summary, the transcript and one item per distinct piece of feedback: time,
+  kind (bug, ux, design, art, audio, performance, monetization, other),
+  severity (blocker, major, minor, idea), title, detail located by what is on
+  screen, and the reviewer's words. Feedback comes from the voice; the
+  picture locates it, and adds only an obvious on-screen error.
+- **The reviewer checks it before it goes**: keep or drop each item, fix a
+  title, a kind or a severity, add a note.
+- **Sending creates one Paperclip issue** in the game's company, assigned to
+  its project manager (which wakes it), in its project, priority high,
+  written in French. Its description tells the project manager what to do —
+  turn each item into a task for the department it concerns, blockers and
+  majors first, ideas to the backlog unless they touch the GDD — then holds
+  the note, the summary, the kept items and the transcript. The still of each
+  kept item is attached, and the video when it fits Paperclip's 10 MB
+  attachment limit; the description also gives the review's folder as an
+  agent in WSL reaches it.
+- No game's `paperclip/` changes: the instructions travel in the issue, so
+  every team set up before this works as it is.
+
+**Current:** written 2026-10-13 in `sandblock-code`
+(`desktop/electron/playtestReview.ts`, `desktop/renderer/src/reviews*.ts*`),
+unit-tested; not yet run in the Windows app against a live Gemini and
+Paperclip. **Later:** the project manager answering in the game's Discord
+channel (the bot relays only issues bound to a thread today); markers dropped
+with a shortcut while playing.
+
+## SB-039 — A hero character is built from its picture, in one run, and judged until flawless
+
+**Status:** Accepted — amends [SB-032](#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries)
+
+Throw a Weapon's bosses came out boxy, while the same bosses built in the
+build-tests lab (SumoBoss, OniBoss, ShogunBoss, October 2026) came out
+clean from one prompt each. The model was the same (Opus). The way the
+work was organized was not:
+
+- **The reference.** The lab worked from the user's own picture, measured
+  on a pixel grid. The team's Modeler followed the Art director's generated
+  concept sheet, which had cut the limbs into blocks.
+- **The scope.** The lab built one boss in T-pose, then its rig, effects
+  and animations, in one session. The team's task held the boss, its
+  minion, its weapon, the rig, six hit boxes and the attachments. Red
+  Shogun and The Butcher took 19 minutes each, against about 3 hours for
+  the lab's Shogun alone.
+- **The judgement.** The lab's agent found its own faults over 5 to 7
+  Blender passes. The team's worker loop said "build what the brief says"
+  and hand it over with a screenshot. The review checked that the features
+  were present: the Art director approved The Butcher in 73 seconds.
+- **Paperclip never resumes a session.** A task handed back starts a fresh
+  Claude session (wake reason `issue_assigned`). Paperclip 2026.1005.0 also
+  puts the run's own instructions path into the prompt bundle key, so the
+  CLI adapter refuses every saved session. Of Throw a Weapon's 1,707
+  `claude_local` runs between 2026-10-07 and 2026-10-14, none resumed. A
+  chain of trades or of review rounds rebuilds from files what its first
+  run knew.
+
+So:
+
+- **Every worker judges visible work until it is flawless**, as a new step
+  of "How a worker works" (boilerplate `paperclip/README.md`). It compares
+  the work with its reference at the same angle and with close-ups, fixes,
+  and looks again, for as many passes as that takes; there is no fixed
+  count. The hand-off carries the final side by side and the pass log, and
+  the Art director sends back visible work that lacks them. No defect quota:
+  with the right reference and approach the first pass can be right.
+- **The GDD's own picture is the shape reference.** A concept drawn from it
+  tells the material, scale and mood only (Art director, Modeler).
+- **A hero character** (a boss, the mascot) is one 🧊 task labelled `hero`.
+  The Modeler takes it through every stage in a single run: the model in
+  T-pose with its weapon as its own Model, then the rig, pose, hit boxes
+  and attachments, then its own effects, then its animations. It commits
+  and comments after each stage, so a run that dies can be resumed from
+  files. It hands the task over once, and the Art director may send back
+  one stage by naming it. Minions and game-wide effects stay tasks of
+  their own trades. The Planner, `to-tasks`, the Animator and the VFX
+  artist say so.
+- **`stud-models` §1c** holds the lab's method for hero characters: the
+  original picture measured on a grid, T-pose first, its own module, no
+  plain box (body profiles, plates bent on them, raycast straps, rounded
+  cloth), face rules, close-up sheets, and the lab's three bosses as
+  worked examples.
+
+**Current:** written 2026-10-14 in `sandblock-game-boilerplate`
+(`paperclip/`, the `hero` label in `scripts/paperclip-team.sh`) and
+`sandblock-skills` (`stud-models` 1.2.0, `to-tasks` 1.1.0). Not yet run on a
+game; Throw a Weapon's team still has the previous instructions until its
+`paperclip/` is updated. **Later:** session resume in Paperclip, which needs
+the prompt bundle key fixed and the Art director's hand-back routed through
+Paperclip's review stages (`execution_changes_requested`).
