@@ -130,7 +130,7 @@ New failure codes, beside the place copy codes:
 | --- | --- |
 | `worktree_copies_disabled` | The project's Worktree copies setting is off. |
 | `branch_checked_out` | The branch is checked out in the main checkout. |
-| `worktree_busy` | A live copy already serves this worktree. |
+| `worktree_busy` | A live, connected copy already serves this worktree. A copy of it whose Studio connected and then dropped for over a minute is closed and replaced instead (`replaced` in the answer). |
 | `worktree_not_found` | No worktree has that branch checked out. |
 | `worktree_dirty` | The worktree has uncommitted changes; `force` removes it anyway. |
 | `branch_not_merged` | The branch is not merged into the default branch; `force` removes it anyway. |
