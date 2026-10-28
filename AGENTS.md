@@ -41,6 +41,11 @@ more than one repository.
 - `sandblock-discord-bot/`: the Discord bot, the only human surface of the
   agent teams: one channel per Paperclip company, approvals as buttons, the
   project manager reached by mention or reply (`docs/AUTONOMOUS_STUDIO.md`).
+- `sandblock-conductor/`: the scheduler that runs a game's agent team in place
+  of Paperclip (SB-032) — Claude Code runs that each do one step of one task,
+  and a web UI on `:3200` for the human.
+- `roblox_lua_devtools/`: an in-game Luau console overlay for the Roblox
+  client (C++, Windows).
 - `prospection/`: a plain folder (not a repository) holding the studio's
   prospection repositories — `auto-contact-youtubers/` (YouTuber outreach
   pipeline) and `sandblox-landing-page/` (the Sandblox landing page). Each is
