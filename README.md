@@ -1,6 +1,6 @@
 # Sandblock Code workspace
 
-This Git meta-repository is the single entry point for the nine repositories
+This Git meta-repository is the single entry point for the repositories
 that form the Sandblock Roblox developer environment.
 
 ```text
@@ -16,6 +16,9 @@ sandblock-code-workspace/
   sandblock-library/          content games reuse: systems, UI, VFX, models, sounds
   sandblock-paperclip/        the machine's Paperclip instance: config, service
   sandblock-discord-bot/      the Discord bot: approvals and the teams' human surface
+  prospection/                prospection repositories (plain folder):
+    auto-contact-youtubers/   YouTuber outreach pipeline
+    sandblox-landing-page/    the Sandblox landing page
 ```
 
 The root tracks architecture, vision, agent context, and workspace

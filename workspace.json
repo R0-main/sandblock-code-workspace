@@ -67,6 +67,18 @@
       "path": "sandblock-conductor",
       "remote": "git@ssh.git.shulkr.net:roblox/sandblock-conductor.git",
       "defaultBranch": "main"
+    },
+    {
+      "name": "Prospection Auto Contact YouTubers",
+      "path": "prospection/auto-contact-youtubers",
+      "remote": "git@ssh.git.shulkr.net:roblox/prospection/auto-contact-youtubers.git",
+      "defaultBranch": "main"
+    },
+    {
+      "name": "Prospection Sandblox Landing Page",
+      "path": "prospection/sandblox-landing-page",
+      "remote": "git@ssh.git.shulkr.net:roblox/prospection/sandblox-landing-page.git",
+      "defaultBranch": "main"
     }
   ]
 }

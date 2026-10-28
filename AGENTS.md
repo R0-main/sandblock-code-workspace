@@ -1,7 +1,8 @@
 # Sandblock Code workspace instructions
 
 This root is a Git meta-repository containing canonical cross-repository
-context and orchestration for nine independent child repositories.
+context and orchestration for the independent child repositories listed in
+`workspace.json`.
 
 ## Required startup
 
@@ -40,8 +41,12 @@ more than one repository.
 - `sandblock-discord-bot/`: the Discord bot, the only human surface of the
   agent teams: one channel per Paperclip company, approvals as buttons, the
   project manager reached by mention or reply (`docs/AUTONOMOUS_STUDIO.md`).
+- `prospection/`: a plain folder (not a repository) holding the studio's
+  prospection repositories — `auto-contact-youtubers/` (YouTuber outreach
+  pipeline) and `sandblox-landing-page/` (the Sandblox landing page). Each is
+  its own child repository.
 
-The parent repository ignores all nine child directories. Parent commits may
+The parent repository ignores all child directories. Parent commits may
 change only workspace-level material such as `docs/`, `.agents/`, this file,
 `workspace.json`, or root scripts. Never stage a child repository into the
 parent or replace it with an accidental Git submodule.

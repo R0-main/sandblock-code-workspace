@@ -13,6 +13,7 @@ node_modules/
 /sandblock-discord-bot/
 /roblox_lua_devtools/
 /sandblock-conductor/
+/prospection/
 
 # Local secrets and generated media.
 .env
