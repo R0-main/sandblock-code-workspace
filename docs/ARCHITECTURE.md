@@ -470,6 +470,18 @@ only on those projects' endpoints. They ask the runtime service to act, because
 launching processes and holding the Roblox account belong to the main process
 (**current, unvalidated against Roblox**).
 
+The Creator Hub action tools — `creator_hub_actions`, `creator_hub_action`,
+`creator_hub_action_status` — are gated by a project setting that is off by
+default (**current**, see
+[SB-041](DECISIONS.md#sb-041--agents-run-the-creator-hubs-actions-on-their-own-game)).
+They too ask the runtime service, which runs the action with the connected
+account on the project's own universe after checking every id the call names.
+An action that needs a human waits: the gateway asks the agent's client with an
+MCP elicitation on the call itself, the Discord bot asks through the approver
+routes, and the first answer wins. The chat's answer reaches the app over the
+gateway's utility-process channel, the only message the gateway sends the app
+on its own.
+
 Every project endpoint also lists three thumbnail library tools:
 `file_thumbnail`, `list_thumbnails` and `file_live_thumbnails` (**current,
 unvalidated against Drive**, see

@@ -210,7 +210,7 @@ is fixed in one place.
 | Home thumbnails and their targeting | Thumbnail Personalization API |
 | Game icon and thumbnails | Not Open Cloud: the account's own endpoints, through `publish_store_page` (SB-033) |
 | Name and description | Not Open Cloud: the root place's configuration, through `publish_store_page` (SB-033) |
-| Other universe settings | Universes API (v2, update mask) |
+| Other universe settings | Not Open Cloud: the Creator Hub's own endpoints, through `creator_hub_action` (SB-041) |
 | Publishing a place version | Place publishing API |
 
 ## What is missing
@@ -221,7 +221,7 @@ is fixed in one place.
 | Project manager agent at the head of each game's company | In the boilerplate's `paperclip/` (SB-032); its channel opens by itself (SB-036) |
 | Trend scout and idea finder in Sandblock Labs | Not started; the scouting choices are decided |
 | Roblox design skills (monetization, simplicity, genre codes) for the GDD writer | Partly in the GDD template; no dedicated skill |
-| Open Cloud tool layer (ads, analytics, publishing) | Not started; the store page has its own tools (SB-033) |
+| Open Cloud tool layer (ads, analytics, publishing) | Not started; the store page has its own tools (SB-033), and the Creator Hub actions cover the game's settings, places, servers, passes, products, badges and languages with the session (SB-041) |
 | Test places on Roblox, beside the local copies | Not started: today's copies are local only |
 | Analytics skills and the daily stats report | Not started; needs funnel events in the boilerplate |
 | Community digest (Haiku) and Roblox feedback reading | Later |

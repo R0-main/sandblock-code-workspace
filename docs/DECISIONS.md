@@ -207,6 +207,10 @@ and account mutation stay outside the tool surface, and interpretation of the
 data remains a human decision under
 [SB-013](#sb-013--human-approvals-remain-explicit).
 
+**Amended by [SB-041](#sb-041--agents-run-the-creator-hubs-actions-on-their-own-game):**
+the analytics server stays read-only, but agents now change their own game
+through the Creator Hub actions, beside it.
+
 Projects gain a resolved Roblox `universeId` alongside `mainPlaceId` in
 `.sandblock-code.json`, because analytics are addressed by universe rather than
 by place.
@@ -1333,3 +1337,84 @@ game; Throw a Weapon's team still has the previous instructions until its
 `paperclip/` is updated. **Later:** session resume in Paperclip, which needs
 the prompt bundle key fixed and the Art director's hand-back routed through
 Paperclip's review stages (`execution_changes_requested`).
+
+## SB-041 — Agents run the Creator Hub's actions on their own game
+
+**Status:** Accepted — amends [SB-017](#sb-017--creator-hub-analytics-is-a-separate-process-behind-the-same-gateway)
+
+An agent team runs a game end to end, but everything past the code — a game
+pass, a price, a badge, a language, a place, the servers after an update —
+still needed someone on the Creator Hub. So a project's agents now get what
+the Creator Hub lets the owner do to **that game**, and nothing outside it.
+A human still decides what costs Robux, cannot be undone, or changes who can
+play, from the agent's chat or from Discord.
+
+- **Pinned from the Creator Hub's own code, then run.** The Creator Hub
+  ships generated API clients; `sandblock-code/scripts/creator-hub-operations.mjs`
+  reads them as text (2,094 operations, 1,047 writes on 2026-10-29). Each
+  action was then sent with `scripts/creator-hub-request.mjs` against a
+  private sandbox game, *Sandblock Creator Hub Sandbox* (universe
+  10773656396, created through SB-034), and its effect read back. Only those
+  go in the catalogue (`desktop/electron/creatorHubActionCatalog.ts`), each
+  with its verification date; what Roblox refused, or what could not be read
+  back, is listed as unavailable with the reason, and cannot be run.
+- **The connected account's session, in the app.** Like the store page
+  (SB-033), the actions run in the app's main process with the account the
+  Creator Hub tools read through; the cookie never leaves it. Open Cloud is
+  not used: most of these actions have no Open Cloud equivalent, and the
+  Creator Hub itself calls these endpoints with the session.
+- **The project's game only.** The universe comes from the project, never
+  from the agent, and every id a call names — a place, a game pass, a
+  developer product, a badge, a social link, a notification string — is
+  checked to belong to it before anything is sent. Collaborators,
+  permissions, group roles, API keys and payouts are not offered.
+- **Three tools, many actions.** On a project endpoint whose per-project
+  **Creator Hub actions** setting is on (this machine's, off by default):
+  `creator_hub_actions` lists the catalogue with a JSON Schema per action,
+  `creator_hub_action` runs one, and `creator_hub_action_status` waits for
+  one still pending. A catalogue rather than a tool per action keeps the
+  context cost of dozens of actions to three tools. Parameters are checked
+  strictly: an unknown name is refused, never ignored. Images come from the
+  game's repository, like the store page's.
+- **Who decides.** `read` and `write` actions run at once. `approval`
+  actions wait up to ten minutes for a human: making the game public,
+  archiving it, removing a place, shutting every server down, restarting
+  servers that are up to date, letting anyone copy a place. Paid badges are
+  not offered yet; free ones (five a day) are a write.
+  - **In the chat**: the gateway asks the human at the agent's client with
+    an MCP elicitation on the call itself, the same kind of question card as
+    Claude Code's own. Declining refuses; dismissing leaves the question to
+    Discord.
+  - **On Discord**: the bot polls `GET /roblox/action-requests/pending`
+    (runtime API 12, the approver key of SB-035) and posts a card in the
+    game's channel, or `#studio` when the game has none; approving what
+    cannot be undone takes two clicks.
+  - The first answer wins; the other side finds the run no longer pending.
+    With neither able to ask — no question support in the client, no bot
+    connected — the action is refused at once rather than left waiting. The
+    agent can never answer: the chat answer reaches the app over the
+    gateway's process channel, which no agent can write to.
+- **Recorded.** Every write and every approval, with who decided, goes to
+  the Activity log; the approver's `recent` list keeps the last hundred runs
+  that waited.
+
+**Current:** implemented in `sandblock-code` on `feat/creator-hub-actions`
+(catalogue, service, runtime API 12, gateway tools, the setting in a
+project's Agent tools), tested against a fake Roblox and a fake app, and 46
+actions verified on the sandbox: experience settings, privacy and
+archiving; places (settings, create, remove, versions, rollback); servers
+(restart, shutdown); game passes and developer products (list, create,
+update, icon); badges (list, create, update, icon); languages, automatic
+translation and translated name and description; social links;
+notification strings; events, data stores and secrets (list). Making the
+sandbox public was refused by Roblox until its maturity questionnaire is
+filled in, which is the expected refusal. Not yet run through the app
+itself: it needs a rebuild and a restart. The Discord cards are being added
+to `sandblock-discord-bot`.
+
+**Later:** experience events and update announcements (Roblox refused the
+sandbox's), secrets (values must be sealed with the experience's key),
+data store entries, bans and MessagingService (Open Cloud only: a key with
+the universe's scopes), paid badges, subscriptions and pricing tools,
+alerts, immersive ads, matchmaking and experiments — each pinned the same
+way before it is offered.
