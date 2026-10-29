@@ -1379,8 +1379,13 @@ play, from the agent's chat or from Discord.
 - **Who decides.** `read` and `write` actions run at once. `approval`
   actions wait up to ten minutes for a human: making the game public,
   archiving it, removing a place, shutting every server down, restarting
-  servers that are up to date, letting anyone copy a place. Paid badges are
-  not offered yet; free ones (five a day) are a write.
+  servers that are up to date, letting anyone copy a place, publishing an
+  experience event, sending an update announcement to every follower. Paid
+  badges are not offered yet; free ones (five a day) are a write. Some
+  actions read before they are run or asked about: an announcement is
+  refused at once when Roblox's text filter blocks it or the last one went
+  out less than 3 days ago (the Creator Hub's own limit; Roblox answers 500
+  otherwise), and the card for an event quotes its title and dates.
   - **In the chat**: the gateway asks the human at the agent's client with
     an MCP elicitation on the call itself, the same kind of question card as
     Claude Code's own. Declining refuses; dismissing leaves the question to
@@ -1400,20 +1405,21 @@ play, from the agent's chat or from Discord.
 
 **Current:** implemented in `sandblock-code` on `feat/creator-hub-actions`
 (catalogue, service, runtime API 12, gateway tools, the setting in a
-project's Agent tools), tested against a fake Roblox and a fake app, and 46
+project's Agent tools), tested against a fake Roblox and a fake app, and 54
 actions verified on the sandbox: experience settings, privacy and
 archiving; places (settings, create, remove, versions, rollback); servers
 (restart, shutdown); game passes and developer products (list, create,
 update, icon); badges (list, create, update, icon); languages, automatic
 translation and translated name and description; social links;
-notification strings; events, data stores and secrets (list). Making the
-sandbox public was refused by Roblox until its maturity questionnaire is
-filled in, which is the expected refusal. Not yet run through the app
-itself: it needs a rebuild and a restart. The Discord cards are being added
-to `sandblock-discord-bot`.
+notification strings; experience events (list, create, update, publish,
+cancel, delete) and update announcements (history, send); data stores and
+secrets (list). Making the sandbox public was refused by Roblox until its
+maturity questionnaire is filled in, which is the expected refusal. The
+Discord cards are in `sandblock-discord-bot` on
+`feat/creator-hub-action-approvals`. Not yet run through the app and the
+bot themselves: both need a merge, a rebuild and a restart.
 
-**Later:** experience events and update announcements (Roblox refused the
-sandbox's), secrets (values must be sealed with the experience's key),
+**Later:** secrets (values must be sealed with the experience's key),
 data store entries, bans and MessagingService (Open Cloud only: a key with
 the universe's scopes), paid badges, subscriptions and pricing tools,
 alerts, immersive ads, matchmaking and experiments — each pinned the same
