@@ -52,7 +52,7 @@ Four human checkpoints, and nothing else waits on a person:
 | Design challenger | The GDD and the draft plan, after the reuse check | One batch of questions for the board, each with a recommendation and a copy-paste answer block; the answers become the GDD's design calls | `design-challenge` |
 | Orchestrator / lead dev | The plan | Waves run, branches merged, builds transferred | `roblox-agent-team` |
 | Art director | The GDD, then the Thumbnail artist's images | The art direction and concept art the asset waves follow; then the store page (`roblox-store.yml`: title, description, the chosen icon and thumbnails), which it publishes once the board confirms it | `roblox-game-conventions` |
-| Asset agents, one per trade | One asset task each | A build in their copy | Modeler: `stud-models`, `asset-kit`. Map builder: `stud-map`, `map-builder`, `map-assembly`, `asset-kit`. UI designer: the game's UI skill, `roblox-game-conventions`, `controller-glyphs`. VFX artist: `vfx-creator`. Animator: `stud-animations`. Sound designer: `sound-effects` |
+| Asset agents, one per trade | One asset task each | A build in their copy | Modeler: `stud-models`, `asset-kit`. Map builder: `stud-map`, `map-builder`, `map-assembly`, `asset-kit`. UI designer: the game's UI skill, `roblox-game-conventions`, `controller-glyphs`. VFX artist: `vfx-creator`. Animator: `stud-animations`. Sound designer: `sound-designer`, `sound-effects` ([SB-040](DECISIONS.md#sb-040--the-sound-designer-listens-through-tools-and-every-game-has-one-sound)) |
 | Code agents | One feature each | Code and tests on their branch | The game's Project Skill, `tdd`, the packages' skills |
 | Reviewer / tester | The merged game | A fix list | `roblox-game-review`, `roblox-game-conventions` |
 | Balancing | The fixed game and the GDD's targets | Tuned economy and progression numbers, with proof | `game-balancing` |
@@ -202,7 +202,9 @@ effects and its animations in a single run, judged against the GDD's own
 picture until flawless
 ([SB-039](DECISIONS.md#sb-039--a-hero-character-is-built-from-its-picture-in-one-run-and-judged-until-flawless)).
 Every worker judges its visible work against its reference before handing it
-over.
+over. An interface's reference is the Claude Design artifact the UI designer
+makes it in first; a new look is built from the images exported from that
+design (`roblox-game-conventions`).
 
 ## 5. Review session
 

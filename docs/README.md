@@ -16,6 +16,7 @@ repository in the Sandblock Code workspace.
 | Cross-place Studio model transfer and package tools (implemented, pending Roblox validation) | [`CROSS_PLACE_MODEL_TRANSFER.md`](CROSS_PLACE_MODEL_TRANSFER.md) |
 | Launching Studio, automatic plugin connection, disposable place copies for parallel agents (implemented, pending Roblox validation), and scratch places outside every project (implemented, opening validated in Studio) | [`STUDIO_LAUNCH_AND_PLACE_COPIES.md`](STUDIO_LAUNCH_AND_PLACE_COPIES.md) |
 | The agent pipeline from idea to released game: agents, waves, review session, store work (target) | [`AGENT_GAME_PIPELINE.md`](AGENT_GAME_PIPELINE.md) |
+| Open-world zones: graybox first, a shared kit, one orchestrator per zone with model workers and an assembler, quests as data (proposal) | [`OPEN_WORLD_ZONES.md`](OPEN_WORLD_ZONES.md) |
 | The autonomous studio: trends and ideas, store, ads, analytics, community, live ops, and Discord as the only human surface (target) | [`AUTONOMOUS_STUDIO.md`](AUTONOMOUS_STUDIO.md) |
 | Worktree copies: one branch, one Studio, one agent, with the orchestrator owning the lifecycle (implemented, pending Windows and Roblox validation) | [`WORKTREE_COPIES.md`](WORKTREE_COPIES.md) |
 | Game list (GitLab topic `game`), one-click clone and setup, and in-app updates (target) | [`MACHINE_SETUP_AND_UPDATES.md`](MACHINE_SETUP_AND_UPDATES.md) |

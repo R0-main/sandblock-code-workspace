@@ -677,7 +677,8 @@ whatever was not transferred.
 
 Most projects do not need this, so the tools are listed only when a
 per-project **Worktree copies** setting is on. It is off by default, and needs
-Studio launch on.
+Studio launch on. A game Sandblock Code creates, or whose agent team it sets
+up, gets both turned on, since its boilerplate carries the team (2026-10-29).
 
 [`WORKTREE_COPIES.md`](WORKTREE_COPIES.md) is canonical for the behavior and
 the contracts.
@@ -919,7 +920,10 @@ thumbnails:          # in display order, 10 at most
   same preview and a Publish button.
 - A per-project **Store page** setting, this machine's and off by default like
   the Creator Hub tools, gates it. Off, the tools are neither listed nor
-  routed, and the runtime service refuses the routes (API 8).
+  routed, and the runtime service refuses the routes (API 8). A game
+  Sandblock Code creates, or whose agent team it sets up, gets it turned on
+  (2026-10-29): only the Art director may publish, and only once the board
+  confirms. Creator Hub analytics stay off until someone turns them on.
 
 The Drive library stays where candidates and their lineage live
 ([SB-026](#sb-026--thumbnail-lineage-lives-in-drive-and-the-board-draws-it));
@@ -978,8 +982,14 @@ sandblock-code roblox create-game --name "Neon Drift" --owner group:77 [--repo .
   answered `busy`.
 - The game is created **private from the Baseplate** through the same
   function as the settings form, which re-runs the account and project
-  checks. With `--repo` it becomes the project's main place and universe,
-  as the form does. Nothing else can be asked for: an unknown field is
+  checks. It is created with **Team Create** on, so the place saves itself
+  to Roblox and the agent team's copies open the latest transfers, and with
+  **Studio access to API services** (data stores in a Play) and the **mesh
+  and image APIs** (EditableMesh, EditableImage) on (2026-10-29). Each is
+  its own request: one Roblox refuses (the mesh and image APIs can want an
+  ID-verified account) leaves the game created and the others on, and the
+  outcome says what to turn on in Studio's Game Settings. With `--repo` it
+  becomes the project's main place and universe, as the form does. Nothing else can be asked for: an unknown field is
   refused rather than ignored.
 - Every request carries an **idempotency key**, `--request-id`, by default
   derived from the owner, the name and the repository. A request a human
@@ -1337,6 +1347,102 @@ game; Throw a Weapon's team still has the previous instructions until its
 `paperclip/` is updated. **Later:** session resume in Paperclip, which needs
 the prompt bundle key fixed and the Art director's hand-back routed through
 Paperclip's review stages (`execution_changes_requested`).
+
+## SB-040 — The sound designer listens through tools, and every game has one sound
+
+**Status:** Accepted
+
+The VFX artist got good once it could look at its own work (frozen-frame
+captures), drew its textures with one hand (`make-sprites.py`) and borrowed
+from a library it could search (the AuraLibrary catalog). The sound designer
+had none of that. A survey of the eight repositories with sound work
+(2026-10-29) found:
+
+- **No agent had heard a sound it picked.** Every choice came from an asset's
+  name or description; every game's docs say a human listening pass is owed.
+  The user's complaints were the ones that follow: a sound that is not what
+  its name says, or plays 2 s late, warnings and power-ups that sound
+  symbolic instead of designed, levels by accident, clips cut dead.
+- **Every game drew from the same few sounds, and no game from one family.**
+  `cartoon_pop` is in 5 games, the same ProSoundEffects bells and impacts in
+  3 each. Inside one game, each event was picked alone, so one game mixed a
+  pizzicato bed, a synth bell, a realistic cash register and a cartoon
+  slide whistle. That is what "made by AI" sounds like.
+- **Each game rebuilt its own tools** (loudness solving in Punch to Escape,
+  level classes in Heaven to Hell, a Volume cap in Totally Normal Obby) and
+  its own playback code.
+
+So a new shared skill, `sound-designer` (`sandblock-skills`), gives the
+trade what the VFX artist has:
+
+- **Ears.** `listen.py` measures every sound (loudness and its loudest
+  400 ms, silence before it, attack, tail, cut ends, phone-speaker loss,
+  frequency bands, pitch, key and tempo) and draws a waveform over a
+  log-frequency spectrogram for the agent to look at. Two local models run on
+  CPU: an AudioSet tagger says what the sound is and catches speech or music
+  inside an effect (a rip), and CLAP ranks candidates against a description
+  or a reference. They narrow choices; they do not replace the user's ear.
+- **The Roblox sound first.** The user's call on the first kits (temple
+  blocks, tings and switch clicks tuned to a key, 2026-10-29): "c'est très
+  nul et pas dans le thème de Roblox, il faudrait plus chercher des sons déjà
+  existants et utilisés par tous afin de faire une librairie de cela". So the
+  everyday sounds (click, hover, coin, level-up, purchase, error, whoosh…)
+  come from a **standard library** of what Roblox games already use, by
+  category: Roblox's built-in sounds, then the store sounds the scouted top
+  games play, the ones our games kept, and the most favourited by
+  developers (`catalog.py popular`). Only a game's signature sounds are its
+  own. The user's keeps make the library, proposed to `sandblock-library`
+  through the library agent.
+- **One sound per game.** A sound direction (`docs/SOUND_DIRECTION.md` and
+  its numbers in `docs/sound/direction.json`) says which standard sounds the
+  game takes and what is its own, the space, the loudness ladder and a
+  never-list, written in the research task. `mix.py` holds the sound table to
+  it: each variant levelled as one mix, silence trimmed, fades added, streaks
+  in the key when the direction sets one, and the sound that does not sound
+  like the rest of its group named.
+- **A catalog of every licensed sound.** The Creator Store search filters by
+  creator: every ProSoundEffects and APMOfficial sound (public, licensed to
+  every experience) is crawled with its full name, category and duration
+  into `build-tests/reference/sound-catalog/`, beside a seed of the 1,639
+  verdicts the earlier games recorded on 1,117 ids (198 of them the user's
+  own words). Searches rank down what other games already use and print
+  the user's rejections.
+- **The user's ear, in minutes.** `board.py` serves a local page that plays
+  each candidate as the game would (layers, delays, volume, pitch, regions,
+  fades), five times in a row or up a streak, beside its spectrogram; the
+  user's keep, maybe and reject land in the game's
+  `docs/sound/verdicts.jsonl`, which every later search reads. A T2+ sound
+  and the UI kit are not done until the user has heard them.
+- **What top games sound like.** The Roblox client caches what it loads
+  (`rbx-storage.db`). `scout.py` reads a copy of it after a play session on
+  the user's PC, files the session's audio under the game and its genre,
+  names the licensed sounds in it and finds licensed lookalikes for the
+  rest. Scouted audio is a reference: it stays in the machine's cache and is
+  never committed, uploaded or shipped.
+- **One runtime.** `SoundPlayer` plays the game's sound table
+  (`src/shared/audio/sounds.json`, a ModuleScript through Rojo): variants,
+  jitter, streaks in the scale, layers, debounce, ducking, fades, sliders
+  that scale the authored SoundGroups.
+
+The role (Conductor and Paperclip, boilerplate) now works this way, runs on
+Opus like the other trades that judge their work by eye, and the Art
+director reviews a sound task by what can be checked (the direction,
+`mix.py`'s report, the user's verdicts) rather than by ear.
+
+**Current:** written 2026-10-29. Measured on real sounds: the cards, the
+pictures, the tags and the CLAP rankings (a punch description ranks Body
+Impact 3 first; its nearest sound is its sibling Body Impact 2), and
+`mix.py` on a sample table (it trimmed Body Impact 3's 0.19 s of silence,
+tuned two bell dings 40 cents into the key and flagged a boom that loses
+27 dB on a phone). Three "designed" UI kits were heard and rejected (see
+above); the tool that made them was removed. ProSoundEffects and APMOfficial audio downloads without
+authentication; other users' uploads need an Open Cloud key with the Legacy
+Asset API permission (the current key answers 403). Not yet run: the
+`SoundPlayer` in Play mode, the board in a browser with the user, and a
+scouting session on a top game. **Later:** the standard library proposed to
+`sandblock-library` once the user has kept its sounds on the board; the
+scouting playtest tool driving the sessions.
+
 
 ## SB-041 — Agents run the Creator Hub's actions on their own game
 

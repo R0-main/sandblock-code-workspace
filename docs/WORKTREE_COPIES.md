@@ -144,6 +144,10 @@ under Studio launch, **off by default**: a small game worked by one agent does
 not need branches per agent, and the tools would only crowd its tool list.
 Like Studio launch, it belongs to the machine, not the repository.
 
+A game Sandblock Code creates, or whose agent team it sets up (Settings ›
+Agent team, `sandblock-code team`), gets it turned on, Studio launch with it:
+its boilerplate carries the team.
+
 - When it is off, the gateway neither lists nor routes `open_worktree_copy`,
   `list_worktrees`, or `remove_worktree`, and the runtime service refuses their
   routes with `worktree_copies_disabled`.

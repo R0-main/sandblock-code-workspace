@@ -362,9 +362,14 @@ becomes 4.
 - The app passes `SANDBLOCK_RUNTIME_URL` (loopback, the runtime port) in the
   gateway's environment.
 - The app posts `{ type: "sandblock-studio-launch", projects: [projectId, …] }`
-  with the projects whose Studio launch setting is on, when the gateway starts
-  and whenever the setting changes. A gateway the app did not start lists the
-  tools for no project.
+  with the projects whose Studio launch setting is on, when the gateway starts,
+  whenever the setting changes and whenever a game's window opens. The ids come
+  from each project's config alone, not a scan of its repository. When a
+  registered folder or its config cannot be read, that project is left out,
+  the app logs it and pushes again after 2, 5, 15, 30 and 60 s, so a read
+  that failed while the app started does not cost the project its tools until
+  a restart. The store page message works the same way. A gateway the app did
+  not start lists the tools for no project.
 - Bridge claims may carry a copy: `place = { key, name, main: false, copyOf,
   version, projectFile }` with no `placeId`. The bridge keeps `placeId` null
   rather than reading 0 from the fingerprint. A copy is exclusive by key within
