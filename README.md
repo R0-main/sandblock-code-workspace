@@ -14,9 +14,9 @@ sandblock-code-workspace/
   sandblock-skills/           agent skills shared across games
   sandblock-game-boilerplate/ starting repository for a new Roblox game
   sandblock-library/          content games reuse: systems, UI, VFX, models, sounds
-  sandblock-paperclip/        the machine's Paperclip instance: config, service
+  sandblock-paperclip/        legacy Paperclip instance, kept for existing companies (SB-042)
   sandblock-discord-bot/      the Discord bot: approvals and the teams' human surface
-  sandblock-conductor/        the scheduler that runs a game's agent team, web UI on :3200
+  sandblock-conductor/        the scheduler that runs every game's agent team (SB-042), web UI on :3200
   roblox_lua_devtools/        in-game Luau console overlay for the Roblox client
   prospection/                prospection repositories (plain folder):
     auto-contact-youtubers/   YouTuber outreach pipeline

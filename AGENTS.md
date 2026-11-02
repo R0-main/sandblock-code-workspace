@@ -34,16 +34,20 @@ more than one repository.
 - `sandblock-library/`: the content games reuse — systems, UI, VFX, models,
   sounds, animations — written only by the library agent through merge
   requests a human merges.
-- `sandblock-paperclip/`: the configuration of the machine's Paperclip
-  instance, which runs the games' agent teams (SB-032) — pinned version,
-  config, systemd service, the studio's company. Its state stays in
-  `~/.paperclip`.
+- `sandblock-paperclip/`: the legacy Paperclip instance, kept only for the
+  companies already on it (Throw a Weapon, Heaven To Hell Obby, Sandblock
+  Labs' Library Curator) until the board retires it (SB-042) — pinned
+  version, config, systemd service. Its state stays in `~/.paperclip`. No new
+  game gets a Paperclip company.
 - `sandblock-discord-bot/`: the Discord bot, the only human surface of the
-  agent teams: one channel per Paperclip company, approvals as buttons, the
-  project manager reached by mention or reply (`docs/AUTONOMOUS_STUDIO.md`).
-- `sandblock-conductor/`: the scheduler that runs a game's agent team in place
-  of Paperclip (SB-032) — Claude Code runs that each do one step of one task,
-  and a web UI on `:3200` for the human.
+  agent teams: one channel per game, approvals as buttons, the project manager
+  reached by mention or reply (`docs/AUTONOMOUS_STUDIO.md`). It still has a
+  Paperclip bridge for the legacy companies (SB-042, open).
+- `sandblock-conductor/`: the scheduler that runs every game's agent team
+  (SB-042; it replaces Paperclip) — Claude Code runs that each do one step of
+  one task from the game's `conductor/`, a project manager that triages stuck
+  tasks, and a web UI on `:3200` for the human. `sandblock-code new` adds a new
+  game to it, paused until the board presses « Lancer ».
 - `roblox_lua_devtools/`: an in-game Luau console overlay for the Roblox
   client (C++, Windows).
 - `prospection/`: a plain folder (not a repository) holding the studio's

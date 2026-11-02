@@ -790,6 +790,11 @@ uploads and caller-built place files are not validated yet.
 
 **Status:** Accepted — amends [SB-029](#sb-029--each-agent-codes-in-a-worktree-and-tests-in-a-copy-it-serves)
 
+> Superseded in part by [SB-042](#sb-042--the-conductor-runs-every-game-paperclip-is-dropped) (2026-11-02):
+> a new game's team is the Sandblock Conductor's, not a Paperclip company, and
+> the boilerplate no longer ships `paperclip/`. What follows is history, and
+> still describes the companies that remain on Paperclip.
+
 The [pipeline](AGENT_GAME_PIPELINE.md)'s agents ran as subagents of one
 Claude Code session. Nothing outlived the session: not the tasks, not who was
 doing what, not the human checkpoints, which were turns of a conversation. And
@@ -1102,6 +1107,13 @@ Roblox.
 
 **Status:** Accepted — amends [SB-018](#sb-018--a-project-declares-the-places-its-agents-may-reach) and [SB-032](#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries)
 
+> Superseded in part by [SB-042](#sb-042--the-conductor-runs-every-game-paperclip-is-dropped) (2026-11-02):
+> the team step (`paperclip-team.sh`, `sandblock-code team`, Settings › Agent
+> team) is gone, replaced by adding the game to the Conductor. The single path
+> through `POST /projects`, the failed-step rule and the existing-game check
+> stand. The Discord channel driven by a Paperclip company stands only for
+> the companies still on Paperclip.
+
 Creating a game made its repository and its GitLab project, but its agent
 team and its Discord channel were set up by hand: run the game's
 `scripts/paperclip-team.sh`, look up the company, its Project manager and
@@ -1241,6 +1253,11 @@ board confirms it. **Later:** the game-feel and genre-playbook references of
 
 **Status:** Accepted — complements [SB-032](#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries)
 and [SB-036](#sb-036--a-new-game-comes-with-its-agent-team-and-its-discord-channel)
+
+> Superseded in part by [SB-042](#sb-042--the-conductor-runs-every-game-paperclip-is-dropped) (2026-11-02):
+> a new game has no Paperclip team to send the review to. The delivery below,
+> a Paperclip issue for the project manager, applies to the games still on
+> Paperclip; its Conductor equivalent is not described here yet.
 
 The board plays each build and has a lot to say about it, faster spoken
 than typed, and most of it is about what is on screen at that moment. Typed
@@ -1530,3 +1547,83 @@ data store entries, bans and MessagingService (Open Cloud only: a key with
 the universe's scopes), paid badges, subscriptions and pricing tools,
 alerts, immersive ads, matchmaking and experiments — each pinned the same
 way before it is offered.
+
+
+## SB-042 — The Conductor runs every game; Paperclip is dropped
+
+**Status:** Accepted (2026-11-02) — supersedes in part
+[SB-032](#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries)
+and [SB-036](#sb-036--a-new-game-comes-with-its-agent-team-and-its-discord-channel)
+
+Since SB-032 a game's agent team was a Paperclip company. The Sandblock
+Conductor (`sandblock-conductor/`, web UI on `:3200`) was then built to
+schedule the same kind of team, and Romain, who runs the studio, decided on
+2026-11-02: « retire complètement l'équipe paperclip, maintenant c'est
+beaucoup mieux notre propre orchestrateur ». From now on **every game's agent
+team is run by the Conductor, and no new game gets a Paperclip company.**
+
+Why:
+
+- **The Conductor already gives what Paperclip gave, and more of what the
+  studio needs.** Its own triage (the project manager looks at a stuck task
+  before the board), its Discord bridge, and its Machines page (one Conductor
+  per PC, an admin one watching the others) replace Paperclip's task tree,
+  Project manager wake-ups and its watchdog for lost hand-offs.
+- **Agents kept going around the creation path.** To avoid setting up the
+  Paperclip team, agents made games by hand instead of with
+  `sandblock-code new`: Totally Normal Obby and Punch to Escape were built
+  that way and got no GitLab project. With no heavy team step in `new`, the
+  one path is also the easy one.
+- **One orchestrator to maintain**, instead of two that agents had to choose
+  between.
+
+What changed:
+
+- **`sandblock-code new` and the app's New game form** no longer set up a
+  Paperclip company. After the repository (from the boilerplate), its GitLab
+  project and the places, they add the game to the Conductor
+  (`POST /api/games {repo, name}` on `127.0.0.1:3200`, the address set by
+  `SANDBLOCK_CONDUCTOR_URL`) and import its `conductor/tasks.yaml`. The game
+  starts **paused** until the board presses « Lancer ». A Conductor that is
+  down is a retryable step (`conductorError`), not a failed creation: the
+  repository, the GitLab project and the places are kept, as SB-036 already
+  required of any failed step, and it is retried with `sandblock-code
+  conductor`, `POST /projects/conductor` (runtime API 13) or Settings › Agent
+  team. The `sandblock-code team` command, `POST /projects/team` and the
+  app's Paperclip team step are gone; an old `paperclip` entry in
+  `.sandblock-code.json` is ignored and dropped on the next write.
+- **Playtest reviews** (SB-038) are no longer sent as a Paperclip issue: the
+  Conductor has no route to create a task from outside yet, so an analyzed
+  review is copied for the team as Markdown (« Copy N for the team »), and
+  the board pastes it where it belongs. A Conductor route would plug in there.
+- **No Discord channel opens by itself for a new game**: the bot's
+  `autoChannels` only followed new Paperclip companies. Open until the bot
+  follows the Conductor's games.
+- **The game boilerplate** no longer ships `paperclip/` nor
+  `scripts/paperclip-team.sh`. Its team is `conductor/` only: `team.yaml`,
+  `rules.md`, `roles/` and `tasks.yaml`, with a project manager that triages
+  stuck tasks.
+- **The shared skills** (`roblox-agent-team`, `to-tasks`, `design-challenge`
+  and the per-role ones) describe the Conductor team: tasks in
+  `conductor/tasks.yaml`, questions to the board through the task's
+  `question` answer, worktrees owned by the Conductor.
+
+**Current:** implemented in `sandblock-code`, `sandblock-game-boilerplate` and
+`sandblock-skills`; the root docs describe the Conductor as the team
+orchestrator.
+
+**Open, not changed yet.** These keep running for the companies already on
+them until the board retires them:
+
+- the machine's Paperclip instance and its systemd service;
+- the `sandblock-paperclip/` child repository (its config and watchdog), now
+  the legacy instance;
+- the companies still in it: Throw a Weapon, Heaven To Hell Obby, and
+  Sandblock Labs with its Library Curator routine (the daily library pass,
+  [SB-030](#sb-030--one-library-agent-proposes-reusable-content-a-human-merges-it));
+- the Discord bot's Paperclip bridge, which still serves those companies'
+  channels. The channel of a game on the Conductor is the bot's Conductor
+  side.
+
+Moving those companies to the Conductor, moving the Library Curator, and
+removing Paperclip and `sandblock-paperclip/` are each a later decision.

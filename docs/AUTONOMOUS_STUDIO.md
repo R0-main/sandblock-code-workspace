@@ -10,11 +10,11 @@ stages before it (trends, ideas) and after it (store, ads, analytics,
 community, live ops), and the Discord surface where people take every decision.
 
 What exists today: the build pipeline's agents and skills, each game's team as a
-Paperclip company ([SB-032](DECISIONS.md#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries)),
-the studio's own company (Sandblock Labs, with the Library Curator), the
-Discord bot's repository `sandblock-discord-bot` (version 0 in progress), and
-a new game created with its team and its channel in one command
-([SB-036](DECISIONS.md#sb-036--a-new-game-comes-with-its-agent-team-and-its-discord-channel)).
+Sandblock Conductor team ([SB-042](DECISIONS.md#sb-042--the-conductor-runs-every-game-paperclip-is-dropped)),
+the studio's own company on the legacy Paperclip instance (Sandblock Labs, with
+the Library Curator, not yet moved), the Discord bot's repository
+`sandblock-discord-bot` (version 0 in progress), and a new game created with
+its team in one command ([SB-036](DECISIONS.md#sb-036--a-new-game-comes-with-its-agent-team-and-its-discord-channel), amended by SB-042).
 Everything else on this page is target or later.
 
 ## Principles
@@ -23,7 +23,7 @@ Everything else on this page is target or later.
   much of the work as possible, so that a person is asked only for what is
   theirs: money, anything game-breaking, publishing, what goes in front of a
   player. A human watches every game and can stop any project at any time.
-- **Discord is the only human surface.** Nobody needs to open Paperclip to work.
+- **Discord is the only human surface.** Nobody needs to open the Conductor's UI to work.
   Agents ask, present and report in Discord, and a person answers with a button
   or a reply. One input comes from elsewhere: a playtest review, the screen
   and the voice recorded in Sandblock Code while a person plays, which reaches
@@ -69,10 +69,13 @@ Everything else on this page is target or later.
 - **Idea finder**: turns trends into game ideas and keeps them in a list. It
   posts each idea in `#studio`: "this one could work, do we take it?".
   - **Accept**: the game is created (repository from the boilerplate, its
-    Paperclip company, its Discord channel) and its GDD starts. The creation
+    Conductor team, its Discord channel) and its GDD starts. The creation
     itself is current: `sandblock-code new` makes the repository, its GitLab
-    project and its Paperclip team, and the bot opens the channel when the
-    company appears (SB-036). The accept button calling it is target.
+    project and the places, then adds the game to the Conductor, where it
+    waits paused until the board presses « Lancer » (SB-036 amended by
+    SB-042). The accept button calling it is target. The Discord channel
+    opening by itself is current only for the companies still on the legacy
+    Paperclip bridge; for a Conductor game it is open.
   - **Reject**: the idea is dropped.
   - **Discuss**: a person replies or mentions the bot to develop the idea
     further before deciding.
@@ -151,9 +154,12 @@ the previous one, it rolls back to the previous place version.
 
 ## Discord
 
-One bot, `sandblock-discord-bot`, running on the machine beside Paperclip. It
-connects out to Discord, so Paperclip stays on loopback. The bot has no LLM of
-its own: it is a bridge, and the intelligence lives in the Paperclip agents.
+One bot, `sandblock-discord-bot`, running on the machine beside the Conductor. It
+connects out to Discord, so the Conductor stays on loopback or the tailnet. The
+bot has no LLM of its own: it is a bridge, and the intelligence lives in the
+Conductor's agents (the project manager that triages stuck tasks, and the
+roles). It still carries a Paperclip bridge for the legacy companies
+(SB-042, open).
 
 ```text
                         sandblock-discord-bot (one bot)
@@ -162,16 +168,18 @@ its own: it is a bridge, and the intelligence lives in the Paperclip agents.
         ▼                                                          ▼
   private prod server                                  community servers, one per game
   ├─ #studio  ↔ Sandblock Labs                         read only
-  ├─ #<game>  ↔ the game's Paperclip company           + polls and announcements,
+  ├─ #<game>  ↔ the game's Conductor team               + polls and announcements,
   └─ ...                                                 only after an approval
                                                          in the prod server
 ```
 
-- **One channel per Paperclip company** (one game = one company, SB-032).
-  `#studio` is Sandblock Labs. Each approval and each presented update gets
+- **One channel per game** (a Conductor team, SB-042; before it, a Paperclip
+  company, SB-032, still so for Throw a Weapon, Heaven To Hell Obby and
+  `#studio`, which is Sandblock Labs). Each approval and each presented update gets
   its own thread.
 - **A new game's channel opens by itself** ([SB-036](DECISIONS.md#sb-036--a-new-game-comes-with-its-agent-team-and-its-discord-channel),
-  current): when the bot sees a game company — its head agent is the
+  current for Paperclip companies; for a game on the Conductor this is open,
+  SB-042): when the bot sees a game company — its head agent is the
   boilerplate's Project manager — with no channel, it creates `#<game>` in
   the games' category with the same permissions as the other game channels,
   binds it to the company, its Project manager and its project, and says
@@ -217,8 +225,8 @@ is fixed in one place.
 
 | Piece | State |
 | --- | --- |
-| Discord bot: prod server bridge to Paperclip, approvals as buttons | `sandblock-discord-bot` version 0 in progress (2026-10-09) |
-| Project manager agent at the head of each game's company | In the boilerplate's `paperclip/` (SB-032); its channel opens by itself (SB-036) |
+| Discord bot: prod server bridge to the Conductor (and, still, to Paperclip), approvals as buttons | `sandblock-discord-bot` version 0 in progress (2026-10-09) |
+| Project manager agent at the head of each game's team | In the boilerplate's `conductor/` (SB-042), where it triages stuck tasks; a game's channel opening by itself is current for Paperclip companies, open for Conductor games (SB-036) |
 | Trend scout and idea finder in Sandblock Labs | Not started; the scouting choices are decided |
 | Roblox design skills (monetization, simplicity, genre codes) for the GDD writer | Partly in the GDD template; no dedicated skill |
 | Open Cloud tool layer (ads, analytics, publishing) | Not started; the store page has its own tools (SB-033), and the Creator Hub actions cover the game's settings, places, servers, passes, products, badges and languages with the session (SB-041) |

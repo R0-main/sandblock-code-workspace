@@ -119,7 +119,7 @@ game's agent team reads it as a git checkout (the Reuse scout and the
 workers, SB-030 amended 2026-10-10).
 
 **Target:** the library agent scans every game that changed once a day, as a
-Paperclip routine of Sandblock Labs. **Later, maybe:** the gateway searches it
+Paperclip routine of Sandblock Labs (the legacy instance, not yet moved to the Conductor, SB-042). **Later, maybe:** the gateway searches it
 and takes items into games, and Sandblock Code shows it in a Library view.
 
 ### `sandblock-game-boilerplate`
@@ -188,12 +188,14 @@ root. The current versioned format is:
 }
 ```
 
-`paperclip` is the game's agent team on this machine's Paperclip, as the
-game's `scripts/paperclip-team.sh --json` last reported it when Sandblock Code
-ran it — at the game's creation, or from `sandblock-code team` and Settings ›
-Agent team ([SB-036](DECISIONS.md#sb-036--a-new-game-comes-with-its-agent-team-and-its-discord-channel)).
-It is omitted until then, and a damaged entry is dropped rather than making the
-config invalid, since running the step again recreates it.
+`paperclip` is **legacy** ([SB-042](DECISIONS.md#sb-042--the-conductor-runs-every-game-paperclip-is-dropped)): the agent team of a game still on this
+machine's Paperclip, as its `scripts/paperclip-team.sh --json` last reported
+it. Sandblock Code no longer writes it: a new game's team is the Sandblock
+Conductor's (`conductor/` in the game, added by `sandblock-code new` through
+`POST /api/games` on `127.0.0.1:3200`, `SANDBLOCK_CONDUCTOR_URL`), and the
+config carries no entry for it. An existing entry is read without error and
+ignored, and it disappears the next time Sandblock Code writes that config
+(git history keeps it).
 
 `places` is the allowlist of Roblox places the project owns, and the only set an
 agent can act on. Exactly one place is `main`: every agent session starts there.
@@ -301,8 +303,8 @@ start processes.
 | `GET /roblox/game-requests/recent` | The latest outcomes, with who decided, and the latest settings changes, with who made them (API 10, approver key) |
 | `GET /roblox/game-requests/owners` | The owners the connected accounts reach, and whether each is allowed (API 10, approver key) |
 | `GET`/`POST /roblox/game-requests/settings` | The policy, or one change to it — switch, owner, quota — attributed to a Discord person (API 10, approver key) |
-| `POST /projects` | Create a game as the New game form does: `{name, gdd, parent?, universeId?, placeId?}` — repository, GitLab project, an existing Roblox game declared after a read-only ownership check, the Paperclip team; `status` is `created`, `partial`, `not_allowed`, `busy`, `failed` or `invalid_request` (API 11, [SB-036](DECISIONS.md#sb-036--a-new-game-comes-with-its-agent-team-and-its-discord-channel)) |
-| `POST /projects/team` | Set up, or bring back in line, a registered game's Paperclip team: `{repo}`; `status` is `synced`, `failed` (with the step's `code`), `not_registered`, `busy` or `invalid_request` (API 11) |
+| `POST /projects` | Create a game as the New game form does: `{name, gdd, parent?, universeId?, placeId?}` — repository, GitLab project, an existing Roblox game declared after a read-only ownership check, the game added to the Conductor (paused until the board presses « Lancer »; a Conductor that is down is the retryable `conductorError`); `status` is `created`, `partial`, `not_allowed`, `busy`, `failed` or `invalid_request` (API 11, [SB-036](DECISIONS.md#sb-036--a-new-game-comes-with-its-agent-team-and-its-discord-channel), amended by [SB-042](DECISIONS.md#sb-042--the-conductor-runs-every-game-paperclip-is-dropped)) |
+| `POST /projects/conductor` | `{repo}`: adds a registered game to the Sandblock Conductor and imports its `conductor/tasks.yaml` (API 13, [SB-042](DECISIONS.md#sb-042--the-conductor-runs-every-game-paperclip-is-dropped)); answers `registered`, `failed` (with `conductor_unreachable`, `conductor_refused` or `conductor_failed`), `not_registered`, `busy` or `invalid_request`. Safe to repeat: the Conductor finds the game by its folder and a re-import keeps each task's progress. `sandblock-code conductor [<repo>]` and Settings › Agent team › « Register with the Conductor » call it. It replaces `POST /projects/team` (removed) |
 
 The five routes after `/studios/hello` are specified in
 [`STUDIO_LAUNCH_AND_PLACE_COPIES.md`](STUDIO_LAUNCH_AND_PLACE_COPIES.md#runtime-service),

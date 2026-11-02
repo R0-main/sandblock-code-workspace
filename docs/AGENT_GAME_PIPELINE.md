@@ -10,8 +10,8 @@ asset and map skills that still live in game repositories, the reuse step
 (a Reuse scout reading the [library](ASSET_LIBRARY.md) as a git checkout),
 the design calls (a Design challenger asking the board once,
 [SB-037](DECISIONS.md#sb-037--a-design-challenger-asks-the-board-once-and-every-agent-reads-the-roblox-dna)),
-and the team itself, which every game carries as a Paperclip company
-([SB-032](DECISIONS.md#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries)). The rest is
+and the team itself, which every game carries as a Sandblock Conductor team
+(`conductor/` in the game, [SB-042](DECISIONS.md#sb-042--the-conductor-runs-every-game-paperclip-is-dropped); Paperclip is history, SB-032). The rest is
 described here so it can be built against one plan. It does not replace the
 [development workflow](ROBLOX_DEVELOPMENT_WORKFLOW.md): the human approvals,
 quality gates and reuse rules there still apply. What comes before the idea
@@ -62,11 +62,13 @@ Every agent reads `roblox-game-dna` (`sandblock-skills`) at the start of every
 run: what makes a Roblox game a Roblox game, with a short block per role in its
 instructions.
 
-On a Paperclip team the agents are organized in departments (art under the Art
-director, the Planner, the Reuse scout, the Design challenger and the Balancer
-under the Game designer), and the trades
-meet in a task tree with one issue per feature and one task per trade under it
-([SB-032](DECISIONS.md#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries)).
+On a Conductor team ([SB-042](DECISIONS.md#sb-042--the-conductor-runs-every-game-paperclip-is-dropped)) the agents are roles in the game's `conductor/`
+(`team.yaml`, `rules.md`, `roles/`), and the trades meet in `conductor/tasks.yaml`:
+one task per piece of work, blocked on the tasks it needs. A project manager
+triages a stuck task before the board sees it, and a question for the board
+is the task's `question` answer. The Conductor owns each task's worktree. The
+earlier Paperclip team (departments, an issue tree, SB-032) is history and
+runs only the companies not yet moved.
 
 ## 1. Idea to GDD
 
@@ -120,7 +122,7 @@ already says what is reused.
   `$HOME/sandblock/sandblock-code-workspace/sandblock-library`, or
   `SANDBLOCK_LIBRARY`), which it updates with `git pull --ff-only` and
   searches with `grep` and `jq` over the `item.json` files, the READMEs and
-  the previews (the `library-reuse` skill). Paperclip runs agents without
+  the previews (the `library-reuse` skill). The Conductor runs agents without
   permission prompts, so an agent working in the game's checkout or in a
   worktree reads it at its absolute path. No gateway tool is involved.
 - **What it writes.** On each task, one comment: the item and its version,
@@ -256,10 +258,10 @@ Launching the ads and choosing the winners stay with the Head of Roblox Pole.
 | Piece | State |
 | --- | --- |
 | Planner skill, writing `docs/PLAN.md` | `to-tasks` v1 in `sandblock-skills` (2026-10-07); to improve by iteration |
-| Reuse agent | The Reuse scout and `library-reuse` (2026-10-10), reading the library's checkout directly; in the boilerplate and Throw a Weapon's `paperclip/`, first run on Throw a Weapon's plan (THR-131) |
+| Reuse agent | The Reuse scout and `library-reuse` (2026-10-10), reading the library's checkout directly; in the boilerplate's `conductor/` and, as history, Throw a Weapon's `paperclip/` (first run on its plan, THR-131) |
 | Design challenge and the Roblox DNA | The Design challenger, `design-challenge` and `roblox-game-dna` (2026-10-10, SB-037); in the boilerplate and Throw a Weapon, not yet run. The DNA's game-feel and genre references are stubs, still being researched |
 | Asset and map skills in `sandblock-skills` | Gathered 2026-10-07 with their tools; games get them through `scripts/sync-skills.sh`. Still per game: `aura-icons`, `create-boss`, `ui-builder` |
 | Reviewer skill: the test session and the fix list format | `roblox-game-review` v1 in `sandblock-skills` (2026-10-07); to improve by iteration |
 | Generic balancing skill | `game-balancing` v1 in `sandblock-skills` (2026-10-07), AAF's model as the worked example; to improve by iteration |
 | Setting the game's name, description, icon and thumbnails from an agent | `roblox-store.yml` and `publish_store_page` in `sandblock-code` ([SB-033](DECISIONS.md#sb-033--the-store-page-is-a-file-in-the-game-published-with-the-connected-account)), not yet run against a real game. In the boilerplate, the Art director writes and publishes it |
-| Running it all from one place (Paperclip roles) | `paperclip/` and `scripts/paperclip-team.sh` in `sandblock-game-boilerplate` ([SB-032](DECISIONS.md#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries), 2026-10-07): one Paperclip company per game, with the Reuse scout and the Design challenger since 2026-10-10. Tested on a disposable game, not yet through a whole wave |
+| Running it all from one place (the Conductor's roles) | `conductor/` (`team.yaml`, `rules.md`, `roles/`, `tasks.yaml`) in `sandblock-game-boilerplate` ([SB-042](DECISIONS.md#sb-042--the-conductor-runs-every-game-paperclip-is-dropped), 2026-11-02): the game is added to the Conductor by `sandblock-code new` and starts paused until the board presses « Lancer ». Replaces the Paperclip company per game ([SB-032](DECISIONS.md#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries), 2026-10-07), which still runs Throw a Weapon and Heaven To Hell Obby. Not yet through a whole wave |

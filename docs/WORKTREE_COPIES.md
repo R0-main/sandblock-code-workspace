@@ -173,7 +173,7 @@ with the same header, refusal shape and gating:
 
 Sandblock Code can turn the Studio launch tools off per project, not per
 agent. The split between agents is set where each agent is configured
-(Paperclip, or Claude Code permissions):
+(the Conductor, or Claude Code permissions):
 
 - **Orchestrator.** Every tool above, `get_place_version`, and
   `transfer_model_between_places`. It owns the worktree and copy lifecycle.
@@ -183,14 +183,15 @@ agent. The split between agents is set where each agent is configured
   `remove_worktree`, and `transfer_model_between_places`. Deny lists on MCP tool
   names hold; shell patterns do not, which is why the lifecycle is not a CLI
   command.
-- **Worker in a Paperclip team** ([SB-032](DECISIONS.md#sb-032--a-games-agent-team-is-a-paperclip-company-the-game-carries)).
-  Paperclip creates the worker's branch and worktree for its task, beside the
-  ones Sandblock Code makes, so the worker also calls `open_worktree_copy` on
-  that branch, with the place and version the orchestrator gave it. The tool
-  reuses the worktree. The rest of its deny list stands. The worktree is
-  Paperclip's to remove, when the task's execution workspace is closed, so
-  there the orchestrator does not call `remove_worktree` either. The game's
-  `paperclip/README.md` is canonical for that setup.
+- **Worker in a Conductor team** ([SB-042](DECISIONS.md#sb-042--the-conductor-runs-every-game-paperclip-is-dropped)).
+  The Conductor creates the worker's branch and worktree for its task, beside
+  the ones Sandblock Code makes, so the worker also calls `open_worktree_copy`
+  on that branch, with the place and version it was given. The tool reuses the
+  worktree. The rest of its deny list stands. The worktree is the Conductor's
+  to remove, so there nobody calls `remove_worktree` either. The game's
+  `conductor/rules.md` and the Conductor's `docs/DESIGN.md` are canonical for
+  that setup. (Games still on Paperclip, SB-032, work the same way with
+  Paperclip as the owner; that team is legacy.)
 
 ## Bringing work back
 

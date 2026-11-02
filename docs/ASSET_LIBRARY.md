@@ -111,9 +111,9 @@ checkout, with no tool of the app's. The machine's checkout is the
 workspace's `sandblock-library/`
 (`$HOME/sandblock/sandblock-code-workspace/sandblock-library`), or the path in
 `SANDBLOCK_LIBRARY`. Every pass starts with `git pull --ff-only`, and agents
-only read: they never commit, branch or check out there. Paperclip runs every
-agent without permission prompts (`claude_local` passes
-`--dangerously-skip-permissions`), so an agent reads the checkout at its
+only read: they never commit, branch or check out there. The Conductor runs every
+agent without permission prompts (`--permission-mode
+bypassPermissions`), so an agent reads the checkout at its
 absolute path from the game's checkout or from its worktree, and needs no
 `--add-dir`. The pull uses the machine's own SSH access to GitLab.
 
@@ -280,8 +280,9 @@ the skills manifest, `.claude/sandblock-skills.json`
 
 ## The library agent
 
-It is the **Library Curator**, an agent of the studio's Paperclip company,
-Sandblock Labs (Paperclip is installed as SB-032 describes). Its settings:
+It is the **Library Curator**, an agent of the studio's company, Sandblock
+Labs, which is still on the machine's legacy Paperclip instance (installed as
+SB-032 describes; not yet moved to the Conductor, SB-042). Its settings:
 
 - adapter `claude_local` on the CLI engine, with Opus 5.5;
 - working directory: the machine's `sandblock-library` checkout, so it follows
@@ -382,10 +383,10 @@ It is Toolbox content, not ours.
 | --- | --- | --- |
 | Repository, layout, item format and schema, the agent's rules, the `library-scan` skill | `sandblock-library` | Written |
 | A check for items: schema, files, `needs`, LFS | `sandblock-library` | To write |
-| Reading the checkout from a game's team: the Reuse scout, the workers' procedure, `sandblock-library.json` | `sandblock-game-boilerplate` (`paperclip/`), `sandblock-skills` (`library-reuse`) | Written 2026-10-10; in Throw a Weapon, not yet run |
+| Reading the checkout from a game's team: the Reuse scout, the workers' procedure, `sandblock-library.json` | `sandblock-game-boilerplate` (`conductor/`), `sandblock-skills` (`library-reuse`) | Written 2026-10-10; in Throw a Weapon, not yet run |
 | `search_library`, `get_library_item`, `use_library_item`, reading and fetching the checkout | `sandblock-code` | Later, maybe |
 | The Library view: a page in each project window and in the launcher | `sandblock-code` | Later, maybe |
-| The daily pass: the Library Curator in Sandblock Labs, woken at 10:00 by its Paperclip routine | Paperclip on this machine | Set up 2026-10-08; no game scanned yet |
+| The daily pass: the Library Curator in Sandblock Labs, woken at 10:00 by its Paperclip routine | Paperclip on this machine (legacy instance, SB-042) | Set up 2026-10-08; no game scanned yet |
 | The games in `roblox/games`, where the games token reaches them | GitLab, a human | To move |
 | Scratch places: `/scratch/mcp`, `open_scratch_place`, `close_scratch_place`, a blank place, uploads that name their owner | `sandblock-code`, `sandblock-studio-plugin` | Implemented; opening and connecting validated in Studio, renders not yet ([SB-031](DECISIONS.md#sb-031--scratch-places-blank-studios-outside-every-project)) |
 | `download_assets` for the library agent: it changes no place, but the capture endpoint does not list it | `sandblock-code` | To decide |
@@ -418,6 +419,6 @@ It is Toolbox content, not ours.
 - `sandblock-skills`: the skills that make items (`vfx-creator`, `asset-kit`,
   and the others) and the reuse agent's skill, `library-reuse`.
 - `sandblock-game-boilerplate`: the Reuse scout and the workers' procedure in
-  its `paperclip/`, and the empty `sandblock-library.json` every game starts
+  its `conductor/`, and the empty `sandblock-library.json` every game starts
   with.
 - Each game: its `sandblock-library.json`.

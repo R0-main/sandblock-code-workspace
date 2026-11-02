@@ -119,11 +119,12 @@ ops) and the Discord surface, then
 itself. Humans decide through Discord only; one project manager per game talks
 to them.
 
-Creating a game with its Paperclip team and its Discord channel
-(`sandblock-code new`, `sandblock-code team`, the bot's `autoChannels`) is
-[`DECISIONS.md`](../../../docs/DECISIONS.md) SB-036; it touches
-`sandblock-code`, the boilerplate's `scripts/paperclip-team.sh` contract and
-`sandblock-discord-bot` together.
+Creating a game (`sandblock-code new`: repository, GitLab project, places, then
+the game added to the Sandblock Conductor, paused) is
+[`DECISIONS.md`](../../../docs/DECISIONS.md) SB-036 as amended by SB-042, which
+dropped Paperclip: the game's team is the boilerplate's `conductor/`. It touches
+`sandblock-code`, `sandblock-conductor`'s `/api/games` contract and the
+boilerplate together.
 
 ### UI work
 
