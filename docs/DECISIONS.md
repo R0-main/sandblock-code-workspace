@@ -1627,3 +1627,60 @@ them until the board retires them:
 
 Moving those companies to the Conductor, moving the Library Curator, and
 removing Paperclip and `sandblock-paperclip/` are each a later decision.
+
+## SB-043 — An installed Sandblock Code updates from GitLab releases and ships no sources
+
+**Status:** Accepted (2026-11-04) — replaces, for machines that do not develop
+the app, the source update planned in
+[`MACHINE_SETUP_AND_UPDATES.md`](MACHINE_SETUP_AND_UPDATES.md#3-in-app-updates)
+
+A computer that only uses Sandblock Code (an employee's, a client's) must not
+need the workspace checkout to run it or to update it, and must not receive
+the sources. Romain asked on 2026-11-04 for « une version de sandblock code qui
+va chercher les update […] sans source code direct pour mettre sur le pc d'un
+employé », its releases « dans le gitlab », and « la config avec toutes les key
+[…] pas compilée dedans mais juste pouvoir les config dans l'app ».
+
+So **such a machine runs a Windows installer built by `npm run release` in
+`sandblock-code`, and updates itself from the releases of the private GitLab
+project `roblox/sandblock-code-releases`.**
+
+- **What ships is built code only.** The gateway bundle, the Electron and
+  Creator Hub outputs (minified, no tests or source maps), the renderer bundle,
+  `prompts/` and public npm packages, in `app.asar`. Beside it in `resources/`,
+  because other programs read them: the agent plugins with the shared skills at
+  their committed HEAD, a Linux Rojo for WSL (the fork build when there is one,
+  else the release `aftman.toml` pins, with its MPL licence), and the Studio
+  plugin, which the app installs at start. `@sandblock/ui` and the renderer's
+  libraries are dev dependencies, so their sources stay out. Minified code can
+  still be read with effort; the protection beyond that is contractual.
+- **No key is compiled in.** Settings › This machine (also in the launcher)
+  holds every setting a checkout kept in `.env`: the GitLab URL and tokens, the
+  Conductor URL, the Gemini and remove.bg keys. Secrets go to the keychain
+  vault, the rest to `userData/app-config.json`; a `.env`-style file can be
+  imported in one go, which is how a machine is handed its config with the
+  installer. A real environment variable still wins, then the setting, then a
+  checkout's `.env`.
+- **Updates are read with the user's own token.** A personal access token with
+  `read_api`, entered once in Settings. The app checks at launch and every 30
+  minutes, downloads by itself, and installs when it quits or on « Restart and
+  update », which first stops the Rojo servers, agents and place copies as
+  quitting does. Taking someone off the releases project stops their updates.
+  The installers are generic package files, whose links go through the API that
+  accepts the token.
+- **Publishing needs a separate token**, `api` scope on the releases project,
+  in `SANDBLOCK_RELEASE_TOKEN` on the machine that publishes. A release matches
+  a tag (`npm version`), and the script refuses local changes in the app or the
+  plugin.
+- **It is built from WSL.** Linux packages the app; Windows' own Node turns it
+  into the NSIS installer, which off Windows needs Wine.
+
+**Current:** implemented in `sandblock-code` (`appConfig.ts`, `appUpdates.ts`,
+`appBundle.ts`, `studioPluginInstall.ts`, `scripts/release.mjs`); a local
+installer is built, nothing published yet.
+
+**Not covered:** WSL with Ubuntu, Claude Code, git with an SSH key for
+`git.shulkr.net` and Aftman are still prerequisites of the machine; the
+`sandblock-code` WSL command is not installed with the app; the installer is
+not code-signed, so Windows SmartScreen warns on first install. Developer
+machines keep `npm run update`.

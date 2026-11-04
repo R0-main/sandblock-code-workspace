@@ -2,9 +2,14 @@
 
 ## Status
 
-**Target:** agreed direction, not current behavior. Nothing in this document is
-implemented yet. Once validated, the two decisions at the end move into
-[`DECISIONS.md`](DECISIONS.md) as SB-027 and SB-028.
+**Target:** agreed direction, not current behavior, except where a section says
+**Current** or **Implemented**. A machine that only *uses* the app now installs
+and updates it from GitLab releases instead
+([SB-043](DECISIONS.md#sb-043--an-installed-sandblock-code-updates-from-gitlab-releases-and-ships-no-sources)),
+with its tokens entered in Settings › This machine; section 3 below stays the
+plan for machines that develop the children. The two decisions at the end
+were planned as SB-027 and SB-028, numbers since used for other decisions; they
+get new numbers once validated.
 
 ## Goal
 
@@ -35,9 +40,9 @@ What a new machine lacks today is local to the app's `userData`:
 | --- | --- | --- |
 | Which games exist and where they are on disk | `projects.json` | Yes: the GitLab `game` topic replaces "find the remote, clone by hand, add the folder" |
 | Game toolchain and packages | inside each game repository | Yes: one-click setup |
-| The app itself, the Studio plugin, the Rojo fork | the workspace | Yes: in-app updates |
+| The app itself, the Studio plugin, the Rojo fork | the workspace, or the installer (SB-043) | Yes: in-app updates |
 | Roblox accounts | `roblox-accounts.json` + keychain vault | No: sign in once per machine |
-| GitLab token | keychain vault | No: paste it once per machine |
+| GitLab token, Conductor URL, Gemini and remove.bg keys | keychain vault + `app-config.json` (Settings › This machine) | No: entered once per machine, or imported from a `.env`-style file (SB-043) |
 | Open Cloud keys, Drive service account | vault + `~/.config/sandblock-code` | **Later:** a cloud store that keeps secrets server-side |
 
 ## 1. Finding the games: GitLab topic `game`
@@ -205,6 +210,10 @@ so a fresh clone already has them, and refreshing them is a reviewed change to
 the game like any other.
 
 ## 3. In-app updates
+
+**Current for installed machines:** they update from GitLab releases instead
+([SB-043](DECISIONS.md#sb-043--an-installed-sandblock-code-updates-from-gitlab-releases-and-ships-no-sources)).
+What follows is the plan for a machine that runs the workspace checkout.
 
 ### The update channel is the workspace `main`
 
