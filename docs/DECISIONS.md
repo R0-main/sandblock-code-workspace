@@ -1670,14 +1670,17 @@ project `roblox/sandblock-code-releases`.**
   accepts the token.
 - **Publishing needs a separate token**, `api` scope on the releases project,
   in `SANDBLOCK_RELEASE_TOKEN` on the machine that publishes. A release matches
-  a tag (`npm version`), and the script refuses local changes in the app or the
-  plugin.
+  a tag (`npm version`), and the script refuses local changes in the app; the
+  Studio plugin and the shared skills ship at their committed HEAD. The script
+  creates the GitLab release before uploading: electron-builder's parallel
+  uploads each tried to create it, and the first release (0.2.0) lost its
+  `latest.yml` that way until it was added by hand.
 - **It is built from WSL.** Linux packages the app; Windows' own Node turns it
   into the NSIS installer, which off Windows needs Wine.
 
 **Current:** implemented in `sandblock-code` (`appConfig.ts`, `appUpdates.ts`,
-`appBundle.ts`, `studioPluginInstall.ts`, `scripts/release.mjs`); a local
-installer is built, nothing published yet.
+`appBundle.ts`, `studioPluginInstall.ts`, `scripts/release.mjs`); 0.2.0 is
+published (2026-11-04), not yet installed on a machine.
 
 **Not covered:** WSL with Ubuntu, Claude Code, git with an SSH key for
 `git.shulkr.net` and Aftman are still prerequisites of the machine; the
