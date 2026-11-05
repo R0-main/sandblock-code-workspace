@@ -219,7 +219,7 @@ is fixed in one place.
 | Game icon and thumbnails | Not Open Cloud: the account's own endpoints, through `publish_store_page` (SB-033) |
 | Name and description | Not Open Cloud: the root place's configuration, through `publish_store_page` (SB-033) |
 | Other universe settings | Not Open Cloud: the Creator Hub's own endpoints, through `creator_hub_action` (SB-041) |
-| Publishing a place version | Place publishing API |
+| Publishing a place version | Not Open Cloud: the version Studio saved, checked by `check_place_version`, put live by `creator_hub_action` `place.rollback` with `published`, after a human approves (SB-045) |
 
 ## What is missing
 
@@ -229,11 +229,11 @@ is fixed in one place.
 | Project manager agent at the head of each game's team | In the boilerplate's `conductor/` (SB-042), where it triages stuck tasks; a game's channel opening by itself is current for Paperclip companies, open for Conductor games (SB-036) |
 | Trend scout and idea finder in Sandblock Labs | Not started; the scouting choices are decided |
 | Roblox design skills (monetization, simplicity, genre codes) for the GDD writer | Partly in the GDD template; no dedicated skill |
-| Open Cloud tool layer (ads, analytics, publishing) | Not started; the store page has its own tools (SB-033), and the Creator Hub actions cover the game's settings, places, servers, passes, products, badges and languages with the session (SB-041) |
+| Open Cloud tool layer (ads, analytics) | Not started; the store page has its own tools (SB-033), the Creator Hub actions cover the game's settings, places, servers, passes, products, badges and languages with the session (SB-041), and publishing a version is a check plus an approved rollback (SB-045) |
 | Test places on Roblox, beside the local copies | Not started: today's copies are local only |
 | Analytics skills and the daily stats report | Not started; needs funnel events in the boilerplate |
 | Community digest (Haiku) and Roblox feedback reading | Later |
-| Live ops: events, community server setup, publish and rollback | Later |
+| Live ops: events, community server setup, publish and rollback | Events and update announcements are Creator Hub actions (SB-041). An agent names the saved version to publish, and a human approves putting it live (SB-045). Community server setup is later |
 | One-click new game from an accepted idea | The creation is one command, `sandblock-code new` (SB-036): repository, GitLab, team, channel. The idea finder's accept button calling it is later |
 
 ## Notes

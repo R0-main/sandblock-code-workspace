@@ -1687,3 +1687,76 @@ published (2026-11-04), not yet installed on a machine.
 `sandblock-code` WSL command is not installed with the app; the installer is
 not code-signed, so Windows SmartScreen warns on first install. Developer
 machines keep `npm run update`.
+
+
+## SB-045 — An agent names the place version to publish; a human puts it live
+
+**Status:** Accepted (2026-11-05) — amends
+[SB-041](#sb-041--agents-run-the-creator-hubs-actions-on-their-own-game).
+SB-044 is the Discord DM assistant, which is not recorded here yet.
+
+Getting an update to players was the last step that needed someone at Studio:
+find the version, check it holds the work, publish. Agents now do all of it
+except the publication itself, which stays a human's decision.
+
+- **The version is one Studio saved, not a Rojo build.** The world of a
+  Sandblock game lives in the place (rooms, maps and UI are built in Studio,
+  see `roblox-game-conventions`), and the repository's Rojo tree leaves
+  `Workspace` empty. A place built by `rojo build` and uploaded to Roblox would
+  have no map, so none is uploaded. Once Rojo has synced the code into the
+  place, Studio saves it to Roblox (File › Save to Roblox). That saved version
+  holds the world and the code together, and it is the one that goes live.
+- **A check proves the version holds the code.** `check_place_version
+  {place?, version?}` takes the newest saved version of a declared place (the
+  main place unless a key or PlaceId is given). The place must be declared and
+  published, and Roblox must place it in the project's universe. Sandblock
+  Code then builds the repository's release tree with the pinned Rojo
+  (`RojoManager.build`, through WSL like `serve`) and downloads the version
+  with the connected account. A Lune script looks for every script of the
+  build at the same path in the version, with the same class and source.
+  Scripts the version has beyond the build are not compared: they are the
+  place's own scripts and the test tree Studio syncs. The two files are
+  deleted afterwards. The version is ready when every script matches and it is
+  newer than the published one.
+- **Before and after are traced.** The answer gives the published version (as
+  the version listing marks it), the previous check of the same place (its
+  version, commit and whether it was ready, kept by the app per place), and
+  the repository's HEAD commit the build was made from. That shows which
+  commit a version carries, and that a new save really holds the change.
+- **Which tree is the release.** First the place's own `places[].rojoProject`
+  (a lobby and a game). Then `default.project.json`, Rojo's default and the
+  boilerplate's production tree. Then the project's `rojoProject`. The project's
+  `rojoProject` is what Studio syncs while the team works, and in most games it
+  is `tests.project.json`: the same tree plus the test specs and
+  `scripts/studio`. A file named like a test tree is refused rather than built.
+- **Publishing is `place.rollback` with `published: true`, approved by a
+  human.** The check returns that Creator Hub action call ready to send. Its
+  risk is now `approval` when `published` is true (reason `players`): it
+  waits for the answer in the agent's chat or on Discord, as SB-041's other
+  approvals do. Without `published` it only makes a version the latest in the
+  history, and stays a `write`.
+- **Off by default, per project.** The **Place release** setting (Settings ›
+  Agent tools, this machine's) gates the tool at the gateway and the route in
+  the runtime service, `POST /runtimes/{id}/place-release/check` (runtime API
+  14), like the store page's (SB-033).
+- **Not an Open Cloud upload.** Open Cloud's place publishing API
+  (`POST /universes/v1/{universeId}/places/{placeId}/versions?versionType=Saved`,
+  with a key that has `universe-places:write`) was the first plan. It is not
+  used, because it uploads a file, and the only file the repository can build
+  has no world. It becomes useful once a game's whole world is in its
+  repository.
+
+**Current:** implemented in `sandblock-code` on `feat/place-publish`
+(`desktop/electron/placeRelease.ts`, `RojoManager.build`, the
+`check_place_version` tool, the setting, the `place.rollback` risk). It is
+tested with a fake Roblox, and the Rojo build and Lune comparison are tested
+for real on a small tree. Nothing was published or uploaded to Roblox. The
+saved-version listing is the one SB-041 verified. The download
+(`assetdelivery` with a version) and the listing's published flag
+(`isPublished`, read leniently) are not yet checked against a real game.
+
+**Not covered:** an agent cannot make Studio save to Roblox. A human or Team
+Create's autosave does, and the check says when no saved version holds the
+code yet. The installed app does not ship Lune: it uses the one Aftman
+installed in WSL (`lune-org/lune`), or `SANDBLOCK_LUNE_BIN`. Non-script
+content is not compared.

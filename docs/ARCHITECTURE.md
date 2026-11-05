@@ -296,6 +296,7 @@ start processes.
 | `POST /runtimes/{runtimeId}/thumbnails` | File an image an agent made, with its lineage (`file_thumbnail`, API 7) |
 | `POST /runtimes/{runtimeId}/thumbnails/live` | File the store art Roblox shows today (`file_live_thumbnails`, API 7) |
 | `GET`/`POST /runtimes/{runtimeId}/store-page` | Preview or publish the store page from `roblox-store.yml`, refused while the project's setting is off (API 8, [SB-033](DECISIONS.md#sb-033--the-store-page-is-a-file-in-the-game-published-with-the-connected-account)) |
+| `POST /runtimes/{runtimeId}/place-release/check` | `{place?, version?}`: does that saved version hold the repository's release tree, and is it newer than the published one; refused while the project's setting is off, publishes nothing (`check_place_version`, API 14, [SB-045](DECISIONS.md#sb-045--an-agent-names-the-place-version-to-publish-a-human-puts-it-live)) |
 | `POST /roblox/game-requests` | Ask for a new Roblox game; the app's policy and a human decide (API 9, [SB-034](DECISIONS.md#sb-034--an-agent-may-ask-for-a-new-roblox-game-a-human-creates-it)) |
 | `GET /roblox/game-requests/{requestId}` | That request's outcome, waiting up to `?wait=<s>` while it is pending (API 9) |
 | `GET /roblox/game-requests/pending` | The remote approver: the request waiting for an answer, with owner, repository, quota and expiry, or `null` (API 10, approver key, [SB-035](DECISIONS.md#sb-035--a-roblox-game-request-can-be-answered-from-discord)) |
@@ -482,7 +483,22 @@ An action that needs a human waits: the gateway asks the agent's client with an
 MCP elicitation on the call itself, the Discord bot asks through the approver
 routes, and the first answer wins. The chat's answer reaches the app over the
 gateway's utility-process channel, the only message the gateway sends the app
-on its own.
+on its own. `place.rollback` with `published: true`, which puts a saved
+version live, is one of them; without `published` it only moves the version
+history and runs at once.
+
+`check_place_version` prepares that publication without making it (**current;
+the version download is unvalidated against Roblox**, see
+[SB-045](DECISIONS.md#sb-045--an-agent-names-the-place-version-to-publish-a-human-puts-it-live)).
+It is gated by its own project setting, Place release, off by default. The
+version it checks is one Studio saved to Roblox after Rojo synced the code,
+because the world lives in the place and is not in the repository. The runtime
+service builds the release tree with the pinned Rojo (`RojoManager.build`,
+through WSL like `serve`), downloads the version with the connected account,
+and runs a Lune script that looks for every built script in the version. It
+then answers whether the version is ready and what came before it (the
+published version, the last check and its commit), with the `place.rollback`
+call a human has to approve.
 
 Every project endpoint also lists three thumbnail library tools:
 `file_thumbnail`, `list_thumbnails` and `file_live_thumbnails` (**current,

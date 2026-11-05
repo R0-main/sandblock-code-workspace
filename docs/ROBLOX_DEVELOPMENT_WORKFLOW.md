@@ -105,7 +105,19 @@ platform.
 
 ### 6. Publish and operate
 
-Publication remains a human decision. After launch, evaluate live metrics,
+Publication remains a human decision, and agents prepare it
+([SB-045](DECISIONS.md#sb-045--an-agent-names-the-place-version-to-publish-a-human-puts-it-live)).
+The version that goes live is one Studio saved to Roblox after Rojo synced the
+code, because the world is built in the place and not in the repository. Never
+publish a place built by `rojo build` alone. With the project's Place release
+setting on, `check_place_version` builds the release tree (`default.project.json`,
+or the place's own tree; never `tests.project.json`), downloads the newest saved
+version and checks that it holds every script of the build and is newer than
+the published version. It answers with the `creator_hub_action` call,
+`place.rollback` with `published: true`, which waits for a human to approve it
+in the agent's chat or on Discord.
+
+After launch, evaluate live metrics,
 player feedback, crashes, retention, and economy behavior. Roblox Ads Manager
 campaigns happen only after launch and are planned manually by the responsible
 human.
