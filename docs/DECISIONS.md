@@ -1760,3 +1760,135 @@ Create's autosave does, and the check says when no saved version holds the
 code yet. The installed app does not ship Lune: it uses the one Aftman
 installed in WSL (`lune-org/lune`), or `SANDBLOCK_LUNE_BIN`. Non-script
 content is not compared.
+
+## SB-046 — Agents playtest from scenarios replayed in one call, and audit through one call
+
+**Status:** Accepted (2026-11-11).
+
+Agents playtested by calling StudioMCP's tools one at a time. Every action
+cost a model turn, and every console dump and image went through their
+context, so they tested rarely and late. Map and UI checks were scripts inside
+skills, which the agent read and pasted into `execute_luau`, or ad-hoc Luau it
+wrote itself.
+
+- **A game keeps its playtests as files.** They are JSON files in
+  `tests/playtests/`. Each step is one object with one action: `wait`,
+  `waitUntil`, `press`, `type`, `click`, `walkTo`, `luau`, `assert`,
+  `capture`, `noErrors`. Luau travels as strings. JSON rather than typed Luau,
+  because the runner sends each snippet to Studio as text, so the typing would
+  be lost. Rather than YAML, because implicit types bite there (`press: Y`
+  reads as a boolean). The CLI's `check` subcommand validates a folder without
+  Studio, so a game's `check.sh` can run it.
+- **One call replays a scenario, with no model between the steps.** The entry
+  points are `sandblock-playtest run` (a CLI, an MCP client of the project's
+  endpoint) and the `run_playtest` gateway tool, both over one core in
+  `sandblock-code` (`src/playtest/`). The answer is PASS, FAIL, INCONCLUSIVE
+  or REFUSED, one line per step, the first failure with its console lines,
+  and only the paths of the captures. A click goes through
+  `user_mouse_input` on the GuiObject's path, as a player's click does, after
+  checking the object is shown and on top.
+- **A PASS needs proof.** Studio's scripts, hashed in Edit mode, must equal
+  the build's: the checkout on disk for the CLI, the place's Rojo session for
+  the tool. Every step must pass and the console must have been read. Without
+  the proof the verdict is INCONCLUSIVE, which wins over FAIL.
+- **The target is one named place:** a declared place, a place copy or a
+  worktree copy. A Studio already playing, an answer from another Studio, or
+  several Studios on one place are refused, not guessed.
+- **Cleanup is the runner's job.** Play always stops and the Edit camera is put
+  back. Nothing else is written in Edit mode, because a Team Create place
+  would autosave it.
+- **Starting data, on a copy only.** Romain asked for it on 2026-11-11: « rajouter un
+  initial database […] pour que l'agent puisse setup des cas très spécifiques […]
+  pour chaque test ».
+  - **The fields:** a scenario may give `save`, a partial player save whose
+    top-level keys replace the reconciled save's, for every player who joins.
+    It may also give `stores`, raw GetDataStore entries for the game's other
+    systems; OrderedDataStore is later.
+  - **Refused on a declared place:** it has the real DataStores, and Team
+    Create would autosave the write.
+  - **Transport:** no StudioMCP tool passes test arguments to Play, so the
+    runner sets `ServerStorage.SandblockPlaytestSeed` (JSON, version 1, 32 KB
+    at most) in the copy's Edit DataModel right before Play. It removes it in
+    every cleanup. That is its one Edit write, on copies only.
+  - **Game side:** the game applies the seed only when its saves are in memory
+    (a Studio session whose PlaceId is 0), before anything reads the save. It
+    checks the shapes and numbers, then answers `SaveSeed` = `"applied"` or
+    `"rejected: <reason>"` on each player, with the defaults loaded on a
+    rejection. Anything but `"applied"` makes the run INCONCLUSIVE.
+  - **Seeded passes:** a seeded pass is not re-checked with Roblox for the
+    session.
+  - **One accessor for DataStores:** all game code goes through the
+    boilerplate's `classes/data-stores`, which serves the in-memory store on a
+    copy and Roblox's elsewhere. `check.sh` refuses any other
+    `DataStoreService` call, so `stores` reach every system. A `stores` entry
+    naming a Lapis collection is refused.
+- **Audits use the same delivery.** A map audit (z-fighting, floating parts,
+  unanchored parts) and a UI audit per viewport (off-screen, text that does
+  not fit, overlapping buttons, small touch targets) are one Luau core behind
+  a CLI (`sandblock-audit`) and gateway tools (`audit_map`, `audit_ui`). They
+  are not skills.
+- **Why a tool or a CLI and not a skill:** the bench of 2026-11-10
+  (`~/sandblock/audit-bench`, 88 Sonnet runs, $17.46) found a tool and a CLI
+  equally accurate and cheap. A skill was as accurate but cost about twice as
+  much and took nearly three times as long, because the agent pastes the
+  script into `execute_luau`. Ad-hoc Luau reached a precision of 0.76 to 0.83
+  against 1.00.
+- **A game's CLAUDE.md names when to run them.** In a dev task that did not
+  mention audits, agents used the capability unprompted in 4 runs out of 10
+  without that line, and in 15 out of 15 with it. Recall was 0.89 for runs
+  that audited, against 0.25 for runs that did not. That line is what gets
+  either capability used.
+- **A new menu or mechanic comes with its scenario.** A reviewer sends new
+  work back without one. A fix task adds none and replays only the scenario
+  that covers it (the Conductor's rule 11).
+- **Before every publication, the whole suite passes on main.** Romain's
+  call (2026-11-11): « on rajoute les playtests qui sont run […] avant une mise
+  à jour importante […] pour voir si rien n'a été cassé », then before every
+  publication rather than only large ones, and blocking. A FAIL or an
+  INCONCLUSIVE blocks the publication until it is fixed, unless the board
+  answers that it ships anyway. The Lead dev runs it (`lead-dev.md`), as does
+  any session that publishes (`CLAUDE.md`).
+  - **Where:** on a copy of the version to publish (`get_place_version`, then
+    `open_place_copy`), never on the real place, so seeded scenarios run and
+    no test touches the real saves. A plain copy syncs the copied place's Rojo
+    session, which serves the main checkout.
+  - **How:** with `scripts/playtest.sh --release --place <copy key>`, which is
+    INCONCLUSIVE unless it plays the main checkout on `main` with nothing
+    uncommitted.
+- **Later:** two players, devices, performance samples, video bursts (a clip
+  for the human, a contact sheet for the agent), camera moves. The scenario
+  format reserves them and refuses them clearly for now.
+
+**Current:** committed and not merged; every change below went through
+fresh-agent reviews whose findings are fixed.
+- **`sandblock-code`:** `feat/studio-audits` holds the whole thing, the runner
+  with seeds plus the audits, on top of `feat/playtest-runner`. It has unit
+  tests, a fake Studio, a Lune compile of every generated script, and every
+  call checked against StudioMCP's published schemas. The audits give the
+  bench's results line for line on random maps and GUIs, with a before/after
+  check that they change nothing.
+  - **In Studio:** only the runner's first version ran, on Avalanche Smash's
+    main place, before the reviews. Nothing has run in Studio since, and
+    nothing on a copy: agents were told not to launch a Studio while Romain is
+    away, after a scratch Studio signed every Studio out on 2026-11-10.
+  - **Going live:** the gateway tools (`run_playtest`, `audit_map`,
+    `audit_ui`) go live at the app's next restart, and the CLIs go on PATH
+    once merged and built.
+  - **Canonical docs:** `sandblock-code/docs/playtest-runner.md` and
+    `docs/studio-audits.md`.
+- **The boilerplate:** `feat/playtests`, on top of `feat/purchase-service`.
+  - `tests/playtests/` with a boot scenario and a seeded one.
+  - The `check.sh` hooks, `scripts/playtest.sh` and `scripts/audit.sh`
+    (exit 5 when their CLI is missing).
+  - The CLAUDE.md section, and the Conductor rules and roles above.
+  - `SaveLoaded`, the in-memory saves, the DataStores accessor and the seed.
+- **Already created games** keep their own `CLAUDE.md` and `conductor/`, so
+  none of this reaches them until it is carried over.
+
+**Not covered:** games made before the boilerplate's in-memory store still
+need their save on a copy (PlaceId 0 has no DataStores). Clicks in the device
+simulator, ScreenGuis with `IgnoreGuiInset` and gamepad input are unverified.
+Nothing in the app enforces the suite before a publication yet: the rule is
+the team's, and the publish approval does not check for a recent PASS. This is Studio only:
+playing the real Roblox client is `packages/playtest-mcp`, a separate piece of
+work.
