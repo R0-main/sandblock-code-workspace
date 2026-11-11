@@ -69,6 +69,12 @@
       "defaultBranch": "main"
     },
     {
+      "name": "Sandblock Studios Site",
+      "path": "sandblock-studios-site",
+      "remote": "git@ssh.git.shulkr.net:JustRomain/sandblock-studios-site.git",
+      "defaultBranch": "main"
+    },
+    {
       "name": "Prospection Auto Contact YouTubers",
       "path": "prospection/auto-contact-youtubers",
       "remote": "git@ssh.git.shulkr.net:roblox/prospection/auto-contact-youtubers.git",

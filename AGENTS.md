@@ -50,6 +50,9 @@ more than one repository.
   game to it, paused until the board presses « Lancer ».
 - `roblox_lua_devtools/`: an in-game Luau console overlay for the Roblox
   client (C++, Windows).
+- `sandblock-studios-site/`: the studio's website, sandblockstudios.com — a
+  pixel-for-pixel copy of the Framer site as static pages for Cloudflare Pages,
+  rebuilt from captures of the live Framer pages (its `README.md`).
 - `prospection/`: a plain folder (not a repository) holding the studio's
   prospection repositories — `auto-contact-youtubers/` (YouTuber outreach
   pipeline) and `sandblox-landing-page/` (the Sandblox landing page). Each is

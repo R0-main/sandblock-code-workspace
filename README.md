@@ -18,6 +18,7 @@ sandblock-code-workspace/
   sandblock-discord-bot/      the Discord bot: approvals and the teams' human surface
   sandblock-conductor/        the scheduler that runs every game's agent team (SB-042), web UI on :3200
   roblox_lua_devtools/        in-game Luau console overlay for the Roblox client
+  sandblock-studios-site/     sandblockstudios.com, a pixel copy of the Framer site
   prospection/                prospection repositories (plain folder):
     auto-contact-youtubers/   YouTuber outreach pipeline
     sandblox-landing-page/    the Sandblox landing page
