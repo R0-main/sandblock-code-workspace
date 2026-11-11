@@ -1859,24 +1859,28 @@ wrote itself.
   for the human, a contact sheet for the agent), camera moves. The scenario
   format reserves them and refuses them clearly for now.
 
-**Current:** committed and not merged; every change below went through
-fresh-agent reviews whose findings are fixed.
-- **`sandblock-code`:** `feat/studio-audits` holds the whole thing, the runner
-  with seeds plus the audits, on top of `feat/playtest-runner`. It has unit
+**Current:** merged and pushed on 2026-11-11 (`sandblock-code` 0b735a5,
+boilerplate 94ca485); every change went through fresh-agent reviews whose
+findings are fixed. `sandblock-playtest` and `sandblock-audit` are on PATH
+(`~/.local/bin`), and the app is rebuilt; the gateway tools appear once it is
+restarted.
+- **`sandblock-code`:** the runner with seeds, plus the audits. It has unit
   tests, a fake Studio, a Lune compile of every generated script, and every
   call checked against StudioMCP's published schemas. The audits give the
   bench's results line for line on random maps and GUIs, with a before/after
   check that they change nothing.
-  - **In Studio:** only the runner's first version ran, on Avalanche Smash's
-    main place, before the reviews. Nothing has run in Studio since, and
-    nothing on a copy: agents were told not to launch a Studio while Romain is
-    away, after a scratch Studio signed every Studio out on 2026-11-10.
-  - **Going live:** the gateway tools (`run_playtest`, `audit_map`,
-    `audit_ui`) go live at the app's next restart, and the CLIs go on PATH
-    once merged and built.
+  - **In Studio:** a scenario passed on First Person Shooter's main place on
+    2026-11-11 (a lobby with no character, a full-screen GUI), after two fixes
+    that run found. The map audit read FPS's 8 maps under
+    `ServerStorage.Maps` (5,050 parts, clean), and the UI audit its 20 screens
+    under `ReplicatedStorage.Screens`. Nothing has run on a place copy yet, nor
+    a seeded scenario (FPS predates the boilerplate's seed support).
+  - **The UI audit on phones:** it does not apply a UI kit's run-time
+    layout (`TextPx`, phone slots), so phone results on such a game are mostly
+    not what a player sees; the output counts those elements.
   - **Canonical docs:** `sandblock-code/docs/playtest-runner.md` and
     `docs/studio-audits.md`.
-- **The boilerplate:** `feat/playtests`, on top of `feat/purchase-service`.
+- **The boilerplate:**
   - `tests/playtests/` with a boot scenario and a seeded one.
   - The `check.sh` hooks, `scripts/playtest.sh` and `scripts/audit.sh`
     (exit 5 when their CLI is missing).
