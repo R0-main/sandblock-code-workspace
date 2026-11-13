@@ -1852,9 +1852,16 @@ wrote itself.
     `open_place_copy`), never on the real place, so seeded scenarios run and
     no test touches the real saves. A plain copy syncs the copied place's Rojo
     session, which serves the main checkout.
-  - **How:** with `scripts/playtest.sh --release --place <copy key>`, which is
-    INCONCLUSIVE unless it plays the main checkout on `main` with nothing
-    uncommitted.
+  - **How:** with `scripts/playtest.sh --release --one-session --place <copy
+    key>`, which is INCONCLUSIVE unless it plays the main checkout on `main`
+    with nothing uncommitted.
+- **A suite plays in one session.** Romain, 2026-11-11: « y'a moyen de faire un
+  long test plutot que plein de petit test qui lance 15 fois le studio ».
+  `--one-session` (`oneSession` with `files` on `run_playtest`) proves the
+  build once and starts one Play per distinct starting data instead of one per
+  scenario, each scenario with its own verdict. A scenario of a session closes
+  what it opened; a ScreenGui it leaves enabled is a warning, never a failure.
+  Scenarios may run up to 500 steps and 3600 s.
 - **Later:** two players, devices, performance samples, video bursts (a clip
   for the human, a contact sheet for the agent), camera moves. The scenario
   format reserves them and refuses them clearly for now.
@@ -1888,6 +1895,16 @@ restarted.
   - `SaveLoaded`, the in-memory saves, the DataStores accessor and the seed.
 - **Already created games** keep their own `CLAUDE.md` and `conductor/`, so
   none of this reaches them until it is carried over.
+
+**`--one-session`:** merged on 2026-11-13 (`sandblock-code` c66b77b,
+boilerplate 7080311); the CLI is rebuilt, and `run_playtest`'s `files` and
+`oneSession` appear once the app is restarted. On a copy of Run a Dino Shop!
+the same day, 6 scenarios ran in 2 Plays in 1 min 30 s, against about
+4 min 27 s one Play each (a Play there starts in about 22 s and stops in about
+7.5 s). Every step passed, but no PASS: the borrowed copy's Studio was 34
+scripts behind `main`. Games made before the boilerplate change keep their own
+`CLAUDE.md` and `lead-dev.md`, so their pre-publication suite still runs one
+Play per scenario until they are carried over.
 
 **Not covered:** games made before the boilerplate's in-memory store still
 need their save on a copy (PlaceId 0 has no DataStores). Clicks in the device
