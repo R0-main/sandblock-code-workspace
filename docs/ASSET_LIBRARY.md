@@ -280,37 +280,56 @@ the skills manifest, `.claude/sandblock-skills.json`
 
 ## The library agent
 
-It is the **Library Curator**, an agent of the studio's company, Sandblock
-Labs, which is still on the machine's legacy Paperclip instance (installed as
-SB-032 describes; not yet moved to the Conductor, SB-042). Its settings:
+**Current, since 2026-11-17: a morning timer on the always-on PC.** The
+runner is `~/sandblock/library-daily` (its README is canonical for how it
+runs), started by the systemd `--user` timer `library-daily.timer`. It
+replaced the Library Curator of Paperclip's Sandblock Labs, whose routine
+"Scan quotidien de la bibliothèque" (10:00) never scanned a game and stopped
+with Paperclip (SB-042).
 
-- adapter `claude_local` on the CLI engine, with Opus 5.5;
-- working directory: the machine's `sandblock-library` checkout, so it follows
-  that repository's `AGENTS.md`;
-- it wakes only for work assigned to it, and runs one pass at a time.
+- **When.** Once a day at 8:30, or at boot when the PC was off then.
+- **Only when few Studios run.** It first asks Windows how many Studios are
+  open and how much memory is free. With more than two Studios, or less than
+  4 GB free, it does not pass that day, sends nothing, and tries again the
+  next morning.
+- **What the runner does without AI.** It lists the games of the PC: every
+  folder of `~/sandblock` with a `*.project.json`, a Git repository and a
+  `main` branch, minus an exclusion list. For each game it takes whichever
+  `main` is ahead, GitLab's or the local one, since the Conductor merges
+  locally. It reads the game's scan log, keeps the games whose head the last
+  comment does not name, and finds the human review comments not answered
+  yet. With nothing new, it stops there. Otherwise it clones the games that
+  moved into a temporary folder.
+- **The agent.** `claude -p` runs with Opus 5.5 in the machine's
+  `sandblock-library` checkout, so it follows that repository's `AGENTS.md`
+  and its `library-scan` skill. The runner's prompt gives it the games, the
+  clones and the reviews, and says whether renders are allowed. It runs in
+  `dontAsk` mode under the library's `.claude/settings.json`: anything else
+  is refused, and the report says so. A pass is capped at $20 and 3 hours.
+- **The report** goes to Romain as a Discord DM: the reviews answered, the
+  games, and what waits on a human. Then each request opened gets its own
+  card: a French sentence on what the item brings, up to four previews read
+  from the branch, and the buttons « Approuver » and « Me rappeler plus
+  tard ». The Discord bot relays a click to the runner's `bin/library.py`.
+  « Approuver » merges the request with a token kept apart from the agent's: a
+  project access token of the library, with the Maintainer role. Clicking it is
+  the human promotion SB-013 asks for, made from Discord instead of GitLab.
+  « Me rappeler plus tard » sends the card again the next morning, before the
+  Studio check.
 
-The routine **"Scan quotidien de la bibliothèque"** in the project "Sandblock
-Library" assigns it an issue every day at 10:00, Europe/Paris. If a pass is
-still running, the next one joins it; if the machine was off, the missed pass
-is skipped. The routine's optional `game` variable runs the same pass on one
-game from Paperclip's "Run now". The agent posts its report on that issue,
-one line per game.
+Each pass follows the library's `library-scan` skill, with the games already
+chosen and cloned by the runner:
 
-It runs with permission prompts on. The library's `.claude/settings.json`
-allows what a pass needs, such as Git, `curl`, the repository's scripts, and
-`sandblock-code`. Anything else is refused, and the report says so. The agent
-lives only in the Paperclip instance, created through its API.
+1. Answer the human review comments first.
+2. For each game that moved, scan it from its clone, render its items in
+   scratch places ([Renders](#renders-target)), open the requests, and
+   comment on the scan log, naming the head scanned. The runner reads that
+   comment the next morning.
+3. The runner deletes the clones.
 
-Each pass follows the library's `library-scan` skill:
-
-1. List the games in the GitLab group `roblox/games`.
-2. Compare the head of each game's `main` with the last commit in its scan
-   log. A game that has not moved is skipped.
-3. For each game that moved:
-   1. Clone it into a temporary folder with the games token.
-   2. Scan it, render its items in scratch places ([Renders](#renders-target)),
-      open the requests, and comment on the scan log.
-   3. Delete the clone.
+**Renders are skipped** when a Studio older than the newest installed version
+is open. On 2026-11-10, a newer Studio launched next to older ones signed
+every Studio out. Its visual items are then labelled `preview-missing`.
 
 The pass never uses a checkout someone works in, and never opens a game in
 Sandblock Code. Only `main` is read, because a branch is not reviewed yet.
@@ -321,7 +340,8 @@ refuses to start an app in session 0, where it could not be shown. When
 renders cannot happen, the scan still proposes, and labels its visual items
 `preview-missing`.
 
-A scan on demand is the same skill, asked for one game.
+A scan on demand is the same pass, run for one game:
+`~/sandblock/library-daily/bin/daily.py --force --game <folder>`.
 
 It works in its own worktree of the library, at
 `<repo parent>/.worktrees/sandblock-library/<branch slug>`, the location rule
@@ -353,12 +373,13 @@ environment first, then from that file.
   uses that token only to list and clone. This is a rule in the agent's
   `AGENTS.md`, not a GitLab limit: a Reporter role with `read_api` and
   `read_repository` would enforce it.
-- **The games token reaches no game yet**, checked 2026-10-07.
-  `roblox/games` is empty, while the games are in `roblox/`, its other
-  subgroups, and `JustRomain/`. They must move into `roblox/games`, or the
-  token must be created where they are.
-- **The games token expires in a month.** It must be renewed before
-  2026-11-06, or the daily pass stops listing games.
+- **The games token expired on 2026-11-06**, and the daily pass no longer
+  needs it. The runner lists the games from the PC's folders and clones them
+  over the machine's own SSH access to GitLab, or from the local repository.
+  It hands the agent only the library token, through the environment. In
+  `dontAsk` mode, `curl -H "PRIVATE-TOKEN: $VAR"` is refused, so the agent
+  calls the API through the runner's `bin/gitlab.py`, which reads the token
+  itself.
 
 ## First content
 
@@ -386,8 +407,9 @@ It is Toolbox content, not ours.
 | Reading the checkout from a game's team: the Reuse scout, the workers' procedure, `sandblock-library.json` | `sandblock-game-boilerplate` (`conductor/`), `sandblock-skills` (`library-reuse`) | Written 2026-10-10; in Throw a Weapon, not yet run |
 | `search_library`, `get_library_item`, `use_library_item`, reading and fetching the checkout | `sandblock-code` | Later, maybe |
 | The Library view: a page in each project window and in the launcher | `sandblock-code` | Later, maybe |
-| The daily pass: the Library Curator in Sandblock Labs, woken at 10:00 by its Paperclip routine | Paperclip on this machine (legacy instance, SB-042) | Set up 2026-10-08; no game scanned yet |
-| The games in `roblox/games`, where the games token reaches them | GitLab, a human | To move |
+| The daily pass: `library-daily.timer` at 8:30, only when few Studios run | `~/sandblock/library-daily` on the always-on PC | Set up 2026-11-17; first pass pending |
+| Proposal cards with « Approuver » and « Me rappeler plus tard » | `~/sandblock/library-daily` (`cards.py`, `library.py`), `sandblock-discord-bot` (`src/library.ts`) | Built 2026-11-17; the merge token is still to create |
+| The library's `AGENTS.md` and `library-scan` skill still name Paperclip and the games token; the runner's prompt overrides them | `sandblock-library`, a merge request | To update |
 | Scratch places: `/scratch/mcp`, `open_scratch_place`, `close_scratch_place`, a blank place, uploads that name their owner | `sandblock-code`, `sandblock-studio-plugin` | Implemented; opening and connecting validated in Studio, renders not yet ([SB-031](DECISIONS.md#sb-031--scratch-places-blank-studios-outside-every-project)) |
 | `download_assets` for the library agent: it changes no place, but the capture endpoint does not list it | `sandblock-code` | To decide |
 | Inserting a `.rbxm` from a file | `sandblock-studio-plugin` | To build and validate (`SerializationService:DeserializeInstancesAsync` is the assumed path) |
