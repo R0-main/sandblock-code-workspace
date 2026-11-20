@@ -17,6 +17,7 @@ Anime Aura Farming, Stop The Eruption, MP5 Arena et build-tests. Le détail :
 | [`totally-normal-obby-throw-a-weapon.md`](totally-normal-obby-throw-a-weapon.md) | Les premiers jeux : ce qu'il a fallu polir à la main, ce qui revenait |
 | [`taste-anime-aura-farming-stop-the-eruption.md`](taste-anime-aura-farming-stop-the-eruption.md) | Le Taste de Romain, 107 remarques absentes des skills |
 | [`taste-mp5-arena-build-tests.md`](taste-mp5-arena-build-tests.md) | Le Taste de Romain, 65 remarques absentes des skills |
+| [`skill-lines.md`](skill-lines.md) | Les 138 lignes vérifiées à ajouter aux skills, et les contradictions tranchées |
 
 ## Les premiers jeux n'étaient pas prêts non plus
 
