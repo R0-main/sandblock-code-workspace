@@ -1913,3 +1913,38 @@ Nothing in the app enforces the suite before a publication yet: the rule is
 the team's, and the publish approval does not check for a recent PASS. This is Studio only:
 playing the real Roblox client is `packages/playtest-mcp`, a separate piece of
 work.
+
+## SB-047 — The Conductor holds a Studio outage, the PM decides what can change later, reviews look from the player's camera
+
+**Status:** Accepted (2026-11-20). Review and numbers: [`conductor-review-2026-11-20/`](conductor-review-2026-11-20/README.md).
+
+Romain (2026-11-20): games out of the Conductor were « clairement moins bien que
+au début », « plus que super lent », and it asked questions the PM could answer
+and stopped « pour rien ». Measured on Run a Dino Shop!: board-fix batches of 28
+to 48 hours (4.9 hours for a bigger batch on Totally Normal Obby), playtest
+replays taking 22 to 32 % of every step, 57 tasks relaunched by hand, 156 board
+items after the build, 31 of them broken by an earlier fix, and an Art director
+on Sonnet approving 118 of 131 visual reviews.
+
+- **The Conductor** (`sandblock-conductor` 9a89008, 6d21160, 52c288a): a retry
+  after requested changes goes back to the worker; a Claude API error or a
+  Studio outage (the app not answering, its worktrees failing, its copies off)
+  is not the task's: the Studio work waits under one banner and starts again
+  by itself. The project manager answers a question on a game detail the board
+  can change later with the recommended option (« Décision du PM »), and
+  escalates only the board's calls. `no-review` sends a board fix straight to
+  the Lead dev's integration. A prompt shows at most 24 notes.
+- **The boilerplate's team** (d6eb197, adf1b02): the Art director on Opus;
+  reviews only on the reviewer's own captures from the player's camera;
+  scenarios replayed once by the worker and once by the Lead dev, never by the
+  reviewer, 20 minutes at most on one; a fix batch is one task per screen or
+  system with the board's words, chained when files overlap; every placeholder
+  has its replacing task; the board's eye (twelve taste calls in Romain's
+  words) leads the two visual reviewers. Dino Shop's run and copy settings
+  came back into the template.
+
+**Not done:** already created games keep their `conductor/` until it is
+carried over (Run a Dino Shop!'s checkout was busy with hand work). The shared
+skills were not edited: the taste digests list about 170 missing calls for
+Romain to accept. Rollback: the tag `before-2026-11-20-quality-pass` in both
+repositories.
