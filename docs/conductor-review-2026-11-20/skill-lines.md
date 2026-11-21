@@ -1,6 +1,6 @@
 # Ton Taste dans les skills : les lignes proposées
 
-Rien n'est encore écrit dans les skills : c'est la liste à valider.
+**Écrit le 2026-11-21, sur ton accord** (`sandblock-skills` d340dfc, tag de retour `before-2026-11-21-taste-lines` ; boilerplate CLAUDE.md et rôles). `roblox-game-conventions` est rangé par métier dans `references/ui.md`, `input.md`, `world.md` et `feel.md`. Les citations qui n'étaient pas tes mots exacts ont été retirées ou remplacées par tes mots retrouvés. Pas écrit : la ligne de `roblox-experience-events` (skill pas encore commité par la session qui l'a créé) et les deux points sur les règles de Roblox, restés comme dans les skills.
 
 **Comment elle a été faite (2026-11-20).** Les quatre analyses de ce dossier
 ont donné 386 remarques. Chacune a été comparée au texte actuel de
