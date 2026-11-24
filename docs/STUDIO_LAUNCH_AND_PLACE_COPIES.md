@@ -174,8 +174,10 @@ Windows, `open_scratch_place` opened the blank place in Studio and the plugin
 connected it by itself.
 
 A scratch place is a Studio opened on a place that belongs to no project:
-blank, or a place file the caller built. It is for work that must not touch a
-game: building something from its code alone, uploading what it needs, and
+blank, a place file the caller built, or a saved version of a place a
+registered project declares. It is for work that must not touch a game:
+building something from its code alone, trying something on a game's real map
+from a session outside its repository, uploading what it needs, and
 photographing it. The library agent renders items this way
 ([`ASSET_LIBRARY.md`](ASSET_LIBRARY.md#renders-target)), and never opens a
 game's place.
@@ -183,6 +185,8 @@ game's place.
 ```text
 open_scratch_place()                          → "scratch-a1b2"   (blank place)
 open_scratch_place({ placeFile })             → "scratch-c3d4"   (e.g. `rojo build -o game.rbxl` of a game's code)
+open_scratch_place({ project: "dino-shop", place: "main", version: 42 })
+                                              → "scratch-e5f6"   (that saved version, world and code)
 execute_luau / upload_assets / render_gui_element / get_model_icon … with place = "scratch-a1b2"
 close_scratch_place({ place: "scratch-a1b2" }) → Studio stopped, file deleted
 ```
@@ -206,6 +210,19 @@ close_scratch_place({ place: "scratch-a1b2" }) → Studio stopped, file deleted
   path works: the app converts it to the Windows path it can open
   (`wslpath -w`, or `C:\…` for `/mnt/c/…`). Building a game's code with `rojo
   build` gives its scripts and packages without its world.
+
+  With `project`, a saved version of one of the places that project declares,
+  downloaded exactly as a [copy](#copies) is, through the same account: its
+  world and the code that version saved. `project` names a registered game by
+  its id, display name or repository folder; `place` names one of its
+  declared places by key, name or PlaceId, the main place by default; `version`
+  defaults to the latest. Only places a registered project declares can be
+  opened this way, and the declaring project's **Studio launch** setting
+  applies, as it does to that project's own copies. Its window need not be
+  open: that is the point, a session outside the game's repository has no
+  project endpoint. The answer carries `source: { project, place, placeId,
+  version }`, so the version opened is always known. `placeFile` and `project`
+  cannot be combined.
 
   There is no Rojo session: a scratch place is a snapshot, not a sync.
 - **Identity.** It is a copy without a source. The file is named
@@ -257,10 +274,24 @@ close_scratch_place({ place: "scratch-a1b2" }) → Studio stopped, file deleted
   `copy_limit`, and `scratch_not_found` (404). The project routes never reach a
   scratch place.
 
+  API version 16 lets `POST /scratch-places` take `{ project, place?, version?
+  }` instead, answered with `scratch.source`. It adds the refusals
+  `project_not_found` (404) and `invalid_request` (both sources named, or
+  `place` or `version` without `project`), and answers with the copy refusals
+  where they apply: `studio_launch_disabled`, `place_not_declared`,
+  `place_unpublished`, `version_not_found`, `roblox_account_missing` and
+  `roblox_refused`. All of them, download aside, come before a slot is held or
+  a Studio starts.
+
 Validated in Studio on 2026-10-07: the blank XML place opens, and the plugin
 connects it without a click. Still to validate: renders and `execute_luau`
-in it, a `placeFile` built with `rojo build`, uploads that name their owner,
-and whether images and meshes owned by the games' group show in it.
+in it, a `placeFile` built with `rojo build`, a saved version opened with
+`project`, uploads that name their owner, and whether images and meshes owned
+by the games' group show in it.
+
+Saved versions (`project`) are implemented on the `sandblock-code` branch
+`feat/scratch-published-version`, with unit tests on the app and the gateway,
+and are not merged yet. Nothing changes in the plugin.
 
 ## Bringing work back: transfers and setup
 

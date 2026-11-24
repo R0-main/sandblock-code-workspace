@@ -785,6 +785,18 @@ place without a project or Rojo). It is tested on both sides. In Studio, on
 Windows, a blank scratch place opens and connects by itself; renders,
 uploads and caller-built place files are not validated yet.
 
+**Amended 2026-11-24: saved versions of declared places.** A session outside
+a game's repository has no project endpoint, so it could not open a copy of the
+game's place, only a blank place or a file it built, which never holds the
+game's world. `open_scratch_place` therefore also takes `project`, `place` and
+`version`: the app downloads that saved version through its account, as it
+does for a copy, and opens it as a scratch place. It stays a scratch place: no
+Rojo, no transfers out, the scratch endpoint only, the four scratch slots.
+Only places a registered project declares can be opened this way, and that
+project's Studio launch setting applies; its window need not be open. Runtime
+API 16. Implemented on the `sandblock-code` branch
+`feat/scratch-published-version`, not merged, not validated in Studio.
+
 
 ## SB-032 — A game's agent team is a Paperclip company the game carries
 
